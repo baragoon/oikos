@@ -80,11 +80,18 @@ router.get('/', (req, res) => {
     result.urgentTasks = [];
   }
 
-  // Heutiges Essen
+  // Heutiges Essen (gefiltert nach haushaltweiten Mahlzeit-Typ-Einstellungen)
   try {
+    const ALL_MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
+    const prefRow = d.prepare('SELECT value FROM sync_config WHERE key = ?').get('visible_meal_types');
+    const visibleTypes = prefRow
+      ? prefRow.value.split(',').filter((t) => ALL_MEAL_TYPES.includes(t))
+      : ALL_MEAL_TYPES;
+    const placeholders = visibleTypes.map(() => '?').join(', ');
     result.todayMeals = d.prepare(`
       SELECT * FROM meals
       WHERE date = ?
+        AND meal_type IN (${placeholders})
       ORDER BY
         CASE meal_type
           WHEN 'breakfast' THEN 0
@@ -92,7 +99,7 @@ router.get('/', (req, res) => {
           WHEN 'dinner'    THEN 2
           WHEN 'snack'     THEN 3
         END
-    `).all(todayStr);
+    `).all(todayStr, ...visibleTypes);
   } catch (err) {
     log.error('todayMeals-Fehler:', err.message);
     result.todayMeals = [];
