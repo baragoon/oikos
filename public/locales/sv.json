@@ -552,5 +552,29 @@
 
   "modal": {
     "closeLabel": "Stäng"
+  },
+
+  "rrule": {
+    "freqNone": "Ingen upprepning",
+    "freqDaily": "Dagligen",
+    "freqWeekly": "Veckovis",
+    "freqMonthly": "Månadsvis",
+    "dayMo": "Må",
+    "dayTu": "Ti",
+    "dayWe": "On",
+    "dayTh": "To",
+    "dayFr": "Fr",
+    "daySa": "Lö",
+    "daySu": "Sö",
+    "labelRepeat": "Upprepning",
+    "labelEvery": "Varje",
+    "labelOnDays": "På dessa dagar",
+    "labelUntil": "Slutar på (valfritt)",
+    "unitDay": "dag",
+    "unitDays": "dagar",
+    "unitWeek": "vecka",
+    "unitWeeks": "veckor",
+    "unitMonth": "månad",
+    "unitMonths": "månader"
   }
 }
