@@ -142,6 +142,9 @@
     "kanbanOpen": "Da fare",
     "kanbanInProgress": "In corso",
     "kanbanDone": "Completato",
+    "kanbanMoveToInProgress": "Imposta in corso",
+    "kanbanMoveToDone": "Segna come completato",
+    "kanbanMoveToOpen": "Riapri",
     "recurring": "Ricorrente",
     "listView": "Vista elenco",
     "kanbanView": "Vista Kanban"

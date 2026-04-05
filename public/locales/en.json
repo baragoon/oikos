@@ -142,6 +142,9 @@
     "kanbanOpen": "Open",
     "kanbanInProgress": "In Progress",
     "kanbanDone": "Done",
+    "kanbanMoveToInProgress": "Set to in progress",
+    "kanbanMoveToDone": "Mark as done",
+    "kanbanMoveToOpen": "Reopen",
     "recurring": "Recurring",
     "listView": "List view",
     "kanbanView": "Kanban view"

@@ -506,8 +506,21 @@ const KANBAN_COLS = () => [
   { status: 'done',        label: t('tasks.kanbanDone'),       colorVar: '--color-success'        },
 ];
 
+function kanbanNextStatus(status) {
+  if (status === 'open')        return 'in_progress';
+  if (status === 'in_progress') return 'done';
+  return 'open';
+}
+
 function renderKanbanCard(task) {
-  const due = formatDueDate(task.due_date);
+  const due  = formatDueDate(task.due_date);
+  const next = kanbanNextStatus(task.status);
+  const icon = next === 'done' ? 'check' : next === 'in_progress' ? 'circle-play' : 'rotate-ccw';
+  const nextLabel = next === 'done'
+    ? t('tasks.kanbanMoveToDone')
+    : next === 'in_progress'
+      ? t('tasks.kanbanMoveToInProgress')
+      : t('tasks.kanbanMoveToOpen');
   return `
     <div class="kanban-card ${task.status === 'done' ? 'kanban-card--done' : ''}"
          data-task-id="${task.id}" draggable="true">
@@ -516,13 +529,17 @@ function renderKanbanCard(task) {
         ${renderPriorityBadge(task.priority)}
         ${due ? `<span class="due-date ${due.cls}"><i data-lucide="clock" style="width:10px;height:10px" aria-hidden="true"></i> ${due.label}</span>` : ''}
       </div>
-      ${task.assigned_color ? `
-        <div class="kanban-card__footer">
+      <div class="kanban-card__footer">
+        ${task.assigned_color ? `
           <div class="task-avatar" style="background-color:${task.assigned_color};width:22px;height:22px;font-size:9px"
-               title="${task.assigned_name ?? ''}">
+               title="${esc(task.assigned_name ?? '')}">
             ${initials(task.assigned_name ?? '')}
-          </div>
-        </div>` : ''}
+          </div>` : '<span></span>'}
+        <button class="kanban-card__status-btn" type="button"
+                data-next-status="${next}" title="${nextLabel}" aria-label="${nextLabel}">
+          <i data-lucide="${icon}" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>`;
 }
 
@@ -625,8 +642,30 @@ function wireKanbanDrag(container) {
     }
   });
 
-  // Klick auf Kanban-Card öffnet Edit-Modal
+  // Klick auf Status-Button: Status ohne Modal wechseln
   board.addEventListener('click', async (e) => {
+    const statusBtn = e.target.closest('[data-next-status]');
+    if (statusBtn) {
+      e.stopPropagation();
+      const card      = statusBtn.closest('.kanban-card[data-task-id]');
+      if (!card) return;
+      const taskId    = card.dataset.taskId;
+      const newStatus = statusBtn.dataset.nextStatus;
+      const task      = state.tasks.find((t) => String(t.id) === String(taskId));
+      if (!task) return;
+      task.status = newStatus;
+      renderKanban(container);
+      try {
+        await api.patch(`/tasks/${taskId}/status`, { status: newStatus });
+        await loadTasks(container);
+      } catch (err) {
+        window.oikos.showToast(err.message, 'danger');
+        await loadTasks(container);
+      }
+      return;
+    }
+
+    // Klick auf Kanban-Card öffnet Edit-Modal
     if (e.target.closest('[draggable]')) {
       const card = e.target.closest('.kanban-card[data-task-id]');
       if (!card) return;

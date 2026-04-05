@@ -142,6 +142,9 @@
     "kanbanOpen": "Öppna",
     "kanbanInProgress": "Pågår",
     "kanbanDone": "Slutfört",
+    "kanbanMoveToInProgress": "Sätt till pågår",
+    "kanbanMoveToDone": "Markera som klar",
+    "kanbanMoveToOpen": "Öppna igen",
     "recurring": "Återkommande",
     "listView": "Listvy",
     "kanbanView": "Kanban-vy"
