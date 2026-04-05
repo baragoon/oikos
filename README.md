@@ -65,9 +65,21 @@
 
 ## Quick Start
 
+**Option A — pre-built image (fastest, no clone required):**
+
+```bash
+curl -O https://raw.githubusercontent.com/ulsklyc/oikos/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/ulsklyc/oikos/main/.env.example
+cp .env.example .env     # edit .env — set SESSION_SECRET and DB_ENCRYPTION_KEY
+docker compose up -d
+docker compose exec oikos node setup.js
+```
+
+**Option B — build from source:**
+
 ```bash
 git clone https://github.com/ulsklyc/oikos.git && cd oikos
-cp .env.example .env     # then edit .env - set SESSION_SECRET and DB_ENCRYPTION_KEY
+cp .env.example .env     # edit .env — set SESSION_SECRET and DB_ENCRYPTION_KEY
 docker compose up -d --build
 docker compose exec oikos node setup.js
 ```

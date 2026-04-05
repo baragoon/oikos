@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.8] - 2026-04-05
+
+### Changed
+- `docker-compose.yml` now references the pre-built GHCR image (`ghcr.io/ulsklyc/oikos:latest`) by default - no local build needed to get started (#25)
+- README Quick Start now shows both the pre-built image path (no clone required) and the build-from-source path
+
 ## [0.11.7] - 2026-04-05
 
 ### Added
