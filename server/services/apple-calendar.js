@@ -139,19 +139,25 @@ function parseICS(ics) {
     const location    = get('LOCATION')    || null;
     const rrule       = get('RRULE')       ? `RRULE:${get('RRULE')}` : null;
 
-    // DTSTART - mit optionalem TZID oder VALUE=DATE
-    const dtStartRaw  = (() => {
-      const m = /^DTSTART(?:;[^:]*)?:(.*)$/im.exec(block);
-      return m ? m[1].trim() : null;
-    })();
-    const dtEndRaw    = (() => {
-      const m = /^DTEND(?:;[^:]*)?:(.*)$/im.exec(block);
-      return m ? m[1].trim() : null;
-    })();
+    // DTSTART / DTEND - extract value and optional TZID parameter
+    const parseDTLine = (prop) => {
+      const re = new RegExp(`^${prop}((?:;[^:]*)*):(.*)$`, 'im');
+      const m = block.match(re);
+      if (!m) return { value: null, tzid: null };
+      const params  = m[1];
+      const value   = m[2].trim();
+      const tzMatch = params.match(/;TZID=([^;:]+)/i);
+      return { value, tzid: tzMatch ? tzMatch[1].trim() : null };
+    };
+
+    const dtStartLine = parseDTLine('DTSTART');
+    const dtEndLine   = parseDTLine('DTEND');
+    const dtStartRaw  = dtStartLine.value;
+    const dtEndRaw    = dtEndLine.value;
 
     const allDay  = /^DTSTART;VALUE=DATE:/im.test(block);
-    const dtstart = dtStartRaw ? formatICSDate(dtStartRaw, allDay) : null;
-    let   dtend   = dtEndRaw   ? formatICSDate(dtEndRaw,   allDay) : null;
+    const dtstart = dtStartRaw ? formatICSDate(dtStartRaw, allDay, dtStartLine.tzid) : null;
+    let   dtend   = dtEndRaw   ? formatICSDate(dtEndRaw,   allDay, dtEndLine.tzid)   : null;
 
     // RFC 5545: DTEND for VALUE=DATE is exclusive - subtract one day
     if (allDay && dtend) {
@@ -177,14 +183,55 @@ function parseICS(ics) {
 }
 
 /**
+ * Converts a local datetime string in a named timezone to UTC ISO-8601.
+ * Uses the Intl API (Node.js 12+) without external dependencies.
+ * @param {string} localStr - "YYYY-MM-DDTHH:MM:SS"
+ * @param {string} tzid - IANA timezone name e.g. "Europe/Helsinki"
+ * @returns {string} UTC ISO string ending with 'Z', or localStr on error
+ */
+function tzLocalToUTC(localStr, tzid) {
+  try {
+    // Treat the local time as if it were UTC to create a reference point
+    const fakeUTC = new Date(localStr + 'Z');
+
+    // Find out what fakeUTC looks like in the target timezone
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tzid,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false,
+    }).formatToParts(fakeUTC);
+
+    const get = (type) => {
+      const part = parts.find(p => p.type === type);
+      const v = part ? part.value : '0';
+      return v === '24' ? 0 : parseInt(v, 10);
+    };
+
+    // Compute offset: how much the timezone differs from what we fed in
+    const tzDisplayedAsUTC = Date.UTC(
+      get('year'), get('month') - 1, get('day'),
+      get('hour'), get('minute'), get('second')
+    );
+    const offsetMs = fakeUTC.getTime() - tzDisplayedAsUTC;
+
+    const trueUTC = new Date(fakeUTC.getTime() + offsetMs);
+    return trueUTC.toISOString().replace('.000Z', 'Z');
+  } catch {
+    return localStr;
+  }
+}
+
+/**
  * Konvertiert ICS-Datumswert in ISO-8601-String.
  * Unterstützt: DATE (20240101), DATE-TIME lokal (20240101T120000),
- *              DATE-TIME UTC (20240101T120000Z), DATE-TIME mit TZID (ignoriert TZID, behandelt als lokal).
+ *              DATE-TIME UTC (20240101T120000Z), DATE-TIME mit TZID (konvertiert zu UTC).
  * @param {string} val
  * @param {boolean} allDay
+ * @param {string|null} tzid - IANA timezone from TZID parameter, if present
  * @returns {string}
  */
-function formatICSDate(val, allDay) {
+function formatICSDate(val, allDay, tzid) {
   if (allDay || /^\d{8}$/.test(val)) {
     // DATE: YYYYMMDD → YYYY-MM-DD
     return `${val.slice(0, 4)}-${val.slice(4, 6)}-${val.slice(6, 8)}`;
@@ -196,8 +243,19 @@ function formatICSDate(val, allDay) {
   const h  = val.slice(9, 11);
   const mi = val.slice(11, 13);
   const s  = val.slice(13, 15) || '00';
-  const z  = val.endsWith('Z') ? 'Z' : '';
-  return `${y}-${mo}-${d}T${h}:${mi}:${s}${z}`;
+
+  if (val.endsWith('Z')) {
+    // Already UTC
+    return `${y}-${mo}-${d}T${h}:${mi}:${s}Z`;
+  }
+
+  if (tzid) {
+    // Convert from named timezone to UTC
+    return tzLocalToUTC(`${y}-${mo}-${d}T${h}:${mi}:${s}`, tzid);
+  }
+
+  // Floating local time - store without timezone suffix
+  return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
 }
 
 /**

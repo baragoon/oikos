@@ -13,7 +13,7 @@ let currentLocale = DEFAULT_LOCALE;
 let translations = {};
 let fallbackTranslations = {};
 
-/** Resolve locale: manual override > navigator.language > default */
+/** Resolve locale: manual override > navigator.language > English > default */
 function resolveLocale() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored && SUPPORTED_LOCALES.includes(stored)) return stored;
@@ -23,7 +23,7 @@ function resolveLocale() {
     const base = tag.split('-')[0].toLowerCase();
     if (SUPPORTED_LOCALES.includes(base)) return base;
   }
-  return DEFAULT_LOCALE;
+  return 'en';
 }
 
 /** Lade eine Locale-JSON-Datei */

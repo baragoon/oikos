@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-04-13
+
+### Fixed
+- i18n: fallback language for unsupported browser locales changed from German to English (#43)
+- Apple CalDAV sync: calendar events with a `TZID` parameter are now correctly converted to UTC instead of being treated as floating local time, fixing wrong start times for events synced from iOS Calendar (#43)
+
 ## [0.16.0] - 2026-04-06
 
 ### Added
