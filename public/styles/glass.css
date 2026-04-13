@@ -1,0 +1,222 @@
+/**
+ * Modul: Liquid Glass - Shell Components (Phase 1)
+ * Zweck: Glass-Effekte für Navigation, Modal, Buttons, FAB
+ *        Rein additiv: überschreibt nur optische Eigenschaften,
+ *        keine Layout-, Größen- oder Funktionsänderungen.
+ * Abhängigkeiten: tokens.css (Section 16 Glass-Tokens), layout.css
+ *
+ * Aufbau:
+ *   1. Bottom Navigation
+ *   2. Sidebar (Desktop)
+ *   3. Modal (Overlay + Panel)
+ *   4. Buttons (Capsule + Specular)
+ *   5. FAB
+ *   6. Karten (hover-only)
+ *   7. Reduced-motion / Reduced-transparency Overrides
+ */
+
+/* ================================================================
+ * 1. Bottom Navigation — Glass Bar
+ *
+ * Upgrade von color-mix-Fallback auf --glass-* Tokens.
+ * Bereits vorhandenes backdrop-filter wird auf Tokens umgestellt.
+ * ================================================================ */
+@supports (backdrop-filter: blur(1px)) {
+  .nav-bottom {
+    background-color: var(--glass-bg);
+    backdrop-filter: var(--blur-md) saturate(180%);
+    -webkit-backdrop-filter: var(--blur-md) saturate(180%);
+    border-top: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+  }
+}
+
+/* Active-State: Konzentrische Glass-Kapsel hinter aktivem Nav-Item */
+.nav-item[aria-current="page"] {
+  background: color-mix(in srgb, var(--active-module-accent, var(--color-accent)) 14%, transparent);
+  border-radius: var(--radius-glass-chip);
+  box-shadow: inset 0 1px 0 var(--glass-highlight-subtle);
+}
+
+/* Hover-State auf Desktop (falls Maus vorhanden) */
+@media (hover: hover) {
+  .nav-item:hover:not([aria-current="page"]) {
+    background: color-mix(in srgb, var(--color-text-tertiary) 8%, transparent);
+    border-radius: var(--radius-glass-chip);
+  }
+}
+
+/* ================================================================
+ * 2. Sidebar (Desktop ≥ 1024px) — Glass Panel
+ *
+ * backdrop-filter saturate() gibt dem Sidebar-Hintergrund einen
+ * leichten Farbboost vom Content. blur() wirkt auf überlappenden
+ * Content beim Scrollen in engen Layouts.
+ * ================================================================ */
+@media (min-width: 1024px) {
+  @supports (backdrop-filter: blur(1px)) {
+    .nav-sidebar {
+      background: var(--glass-bg-elevated);
+      backdrop-filter: var(--blur-sm) saturate(160%);
+      -webkit-backdrop-filter: var(--blur-sm) saturate(160%);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow-md);
+    }
+  }
+
+  /* Active-State in Sidebar: Glass Pill mit Akzentlinie */
+  .nav-sidebar .nav-item[aria-current="page"] {
+    background: color-mix(in srgb, var(--active-module-accent, var(--color-accent)) 12%, transparent);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 1px 0 var(--glass-highlight-subtle);
+  }
+
+}
+
+/* ================================================================
+ * 3. Modal — Glass Overlay + Glass Panel
+ *
+ * Overlay: leichter Page-Blur ("Tiefenschärfe"-Effekt) +
+ *          reduziertes Dimming (Glass braucht weniger Overlay-Dunkel).
+ * Panel:   Glass-Hintergrund mit --glass-bg-elevated + leichtem blur.
+ * Header:  Sticky-Header im Panel bekommt identisches Glass-BG.
+ * ================================================================ */
+@supports (backdrop-filter: blur(1px)) {
+  .modal-overlay {
+    /* Weniger Dimming, dafür Page-Blur für Tiefeneffekt */
+    background-color: rgba(0, 0, 0, 0.30);
+    backdrop-filter: var(--blur-xs) saturate(120%);
+    -webkit-backdrop-filter: var(--blur-xs) saturate(120%);
+  }
+
+  .modal-panel {
+    background: var(--glass-bg-elevated);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-lg);
+  }
+
+  /* Sticky-Header: identisches Glass-BG damit beim Scrollen
+     der Blur-Layer nicht durch den Inhalt bricht */
+  .modal-panel__header {
+    background: var(--glass-bg-elevated);
+    border-bottom-color: var(--glass-border);
+  }
+}
+
+/* Bottom-Sheet Handle: etwas prominenter auf Glass */
+@media (max-width: 767px) {
+  @supports (backdrop-filter: blur(1px)) {
+    .modal-panel::before {
+      background: var(--glass-border);
+    }
+  }
+}
+
+/* ================================================================
+ * 4. Buttons — Capsule Shape + Specular Highlight
+ *
+ * Primär-Button: Kapsel-Radius (--radius-glass-button = full)
+ *               + subtiles Specular-Highlight (inset box-shadow oben)
+ * Sekundär-Button: leichte Glass-Border-Verfeinerung
+ * ================================================================ */
+.btn--primary {
+  border-radius: var(--radius-glass-button);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.btn--primary:hover {
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.btn--secondary {
+  border-radius: var(--radius-glass-button);
+}
+
+/* Ghost-Buttons bekommen beim Hover ein leichtes Glass-Pill */
+@supports (backdrop-filter: blur(1px)) {
+  .btn--ghost:hover {
+    background: color-mix(in srgb, var(--color-text-tertiary) 10%, transparent);
+    backdrop-filter: var(--blur-xs);
+    -webkit-backdrop-filter: var(--blur-xs);
+  }
+}
+
+/* ================================================================
+ * 5. FAB (Floating Action Button) — Specular Highlight
+ *
+ * Inset box-shadow erzeugt Specular-Highlight-Illusion (Lichtquelle
+ * von oben) ohne Canvas-Manipulation oder SVG-Filter.
+ * ================================================================ */
+.fab {
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.fab:hover {
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+}
+
+/* ================================================================
+ * 6. Cards — Glass auf hover (nur interaktive Cards)
+ *
+ * .card--interactive bekommt beim Hover einen Glass-Lift:
+ * leichter Blur + Glass-Border + erhöhter Schatten.
+ * Nicht auf Touch-Geräten (hover: hover).
+ * ================================================================ */
+@media (hover: hover) {
+  @supports (backdrop-filter: blur(1px)) {
+    .card--interactive:hover {
+      background: var(--glass-bg-hover);
+      backdrop-filter: var(--blur-xs);
+      -webkit-backdrop-filter: var(--blur-xs);
+      border: 1px solid var(--glass-border-subtle);
+      box-shadow: var(--glass-shadow-md);
+    }
+  }
+}
+
+/* ================================================================
+ * 7. Accessibility Overrides
+ *
+ * prefers-reduced-transparency: Tokens aus tokens.css schalten
+ *   backdrop-filter bereits ab. Hier zusätzliche Sicherheit für
+ *   Elemente, die ohne @supports-Guard arbeiten (Specular-Highlights).
+ *
+ * prefers-reduced-motion: Alle Glass-Transitionen deaktivieren.
+ *   (Animationen in layout.css mit animation: none bereits gedeckt,
+ *    hier nur Glass-spezifische Transitions.)
+ * ================================================================ */
+@media (prefers-reduced-transparency: reduce) {
+  .nav-item[aria-current="page"],
+  .nav-item:hover:not([aria-current="page"]) {
+    box-shadow: none;
+  }
+
+  .btn--primary,
+  .btn--primary:hover,
+  .fab,
+  .fab:hover {
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .nav-sidebar .nav-item,
+  .btn,
+  .fab,
+  .card--interactive {
+    transition-duration: 0.01ms !important;
+  }
+}
