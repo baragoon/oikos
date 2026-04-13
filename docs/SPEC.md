@@ -234,7 +234,7 @@ User management and app configuration. Logged-in users only.
 - **User management (admin):** create new users, edit/delete existing users, assign roles (admin/member)
 - **Calendar integration:** connect/disconnect Google Calendar OAuth, store Apple Calendar (CalDAV) credentials, configure sync interval
 - **Weather:** configure OpenWeatherMap location
-- **Language:** System (follows `navigator.language`), German, English, Italian, Swedish - via `oikos-locale-picker` web component; switch without page reload
+- **Language:** System (follows `navigator.language`), German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, Chinese - via `oikos-locale-picker` web component; switch without page reload
 - **App info:** version, license
 
 ### Budget (`/budget`)
@@ -344,8 +344,14 @@ All UI strings are managed via `public/i18n.js`. No hardcoded text in JS files o
 |------|----------|--------|
 | `de` | German | Reference locale (all keys defined here) |
 | `en` | English | Full translation |
+| `es` | Spanish | Full translation |
+| `fr` | French | Full translation (added v0.16.3) |
 | `it` | Italian | Full translation (added v0.5.8) |
 | `sv` | Swedish | Full translation (added v0.11.3) |
+| `el` | Greek | Full translation (added v0.16.3) |
+| `ru` | Russian | Full translation (added v0.16.3) |
+| `tr` | Turkish | Full translation (added v0.16.3) |
+| `zh` | Chinese (Simplified) | Full translation (added v0.16.3) |
 
 ### Adding a New Language
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.3] - 2026-04-13
+
+### Added
+- i18n: five new UI languages - French (fr), Turkish (tr), Russian (ru), Greek (el), and Chinese Simplified (zh) with full translations of all keys
+- Budget: TRY (Turkish Lira) and RUB (Russian Ruble) added to the list of selectable currencies in Settings
+- i18n: Italian locale now includes the complete `rrule` section (was missing previously)
+
 ## [0.16.2] - 2026-04-13
 
 ### Added

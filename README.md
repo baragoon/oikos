@@ -51,7 +51,7 @@
 
 **Calendar Sync:** Two-way sync with Google Calendar (OAuth) and Apple iCloud (CalDAV)
 
-**Budget Tracking:** Income and expenses, recurring entries, configurable currency (13 currencies), monthly trends, CSV export
+**Budget Tracking:** Income and expenses, recurring entries, configurable currency (15 currencies), monthly trends, CSV export
 
 **Notes & Contacts:** Colored sticky notes with Markdown, contact directory with vCard import/export
 
@@ -61,7 +61,7 @@
 
 **PWA Native Feel:** Installable on any device, works offline, dark mode, responsive from phone to desktop
 
-**Multilingual:** German, English, Italian, and Swedish UI with automatic locale detection
+**Multilingual:** German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, and Chinese UI with automatic locale detection
 
 ## Quick Start
 

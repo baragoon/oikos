@@ -10,7 +10,7 @@ import { t, formatDate, formatTime } from '/i18n.js';
 import { esc } from '/utils/html.js';
 import '/components/oikos-locale-picker.js';
 
-const SUPPORTED_CURRENCIES = ['AUD', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'JPY', 'NOK', 'PLN', 'SEK', 'USD'];
+const SUPPORTED_CURRENCIES = ['AUD', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'JPY', 'NOK', 'PLN', 'RUB', 'SEK', 'TRY', 'USD'];
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
 
 function buildCurrencyOptions(selected) {
