@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.3] - 2026-04-14
+
+### Added
+- Docker: multi-architecture image support (linux/amd64 + linux/arm64) - enables self-hosting on Raspberry Pi and other ARM64 devices (closes #44)
+
 ## [0.19.2] - 2026-04-14
 
 ### Improved
