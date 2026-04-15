@@ -226,6 +226,8 @@
     "addIngredient": "添加食材",
     "ingredientNamePlaceholder": "食材",
     "ingredientQtyPlaceholder": "数量",
+    "ingredientCategoryLabel": "分类",
+    "ingredientCategoryDefault": "其他",
     "removeIngredient": "移除食材",
     "transferLabel": "将食材添加到购物清单",
     "transferNow": "立即添加",

@@ -169,13 +169,14 @@ router.post('/', (req, res) => {
       const mealId = result.lastInsertRowid;
 
       const insertIng = db.get().prepare(`
-        INSERT INTO meal_ingredients (meal_id, name, quantity) VALUES (?, ?, ?)
+        INSERT INTO meal_ingredients (meal_id, name, quantity, category) VALUES (?, ?, ?, ?)
       `);
 
       for (const ing of ingredients) {
-        const name = String(ing.name || '').trim().slice(0, MAX_TITLE);
-        const qty  = String(ing.quantity || '').trim().slice(0, MAX_SHORT) || null;
-        if (name) insertIng.run(mealId, name, qty);
+        const name     = String(ing.name || '').trim().slice(0, MAX_TITLE);
+        const qty      = String(ing.quantity || '').trim().slice(0, MAX_SHORT) || null;
+        const category = String(ing.category || '').trim().slice(0, MAX_SHORT) || 'Sonstiges';
+        if (name) insertIng.run(mealId, name, qty, category);
       }
 
       return db.get().prepare(`
@@ -287,13 +288,13 @@ router.post('/:id/ingredients', (req, res) => {
     const meal   = db.get().prepare('SELECT id FROM meals WHERE id = ?').get(mealId);
     if (!meal) return res.status(404).json({ error: 'Mahlzeit nicht gefunden', code: 404 });
 
-    const { name, quantity = null } = req.body;
+    const { name, quantity = null, category = 'Sonstiges' } = req.body;
     if (!name || !name.trim())
       return res.status(400).json({ error: 'Name ist erforderlich', code: 400 });
 
     const result = db.get().prepare(`
-      INSERT INTO meal_ingredients (meal_id, name, quantity) VALUES (?, ?, ?)
-    `).run(mealId, name.trim(), quantity?.trim() || null);
+      INSERT INTO meal_ingredients (meal_id, name, quantity, category) VALUES (?, ?, ?, ?)
+    `).run(mealId, name.trim(), quantity?.trim() || null, String(category || '').trim() || 'Sonstiges');
 
     const ing = db.get().prepare(
       'SELECT * FROM meal_ingredients WHERE id = ?'
@@ -318,17 +319,19 @@ router.patch('/ingredients/:ingId', (req, res) => {
     const ing   = db.get().prepare('SELECT * FROM meal_ingredients WHERE id = ?').get(ingId);
     if (!ing) return res.status(404).json({ error: 'Zutat nicht gefunden', code: 404 });
 
-    const { name, quantity, on_shopping_list } = req.body;
+    const { name, quantity, on_shopping_list, category } = req.body;
 
     db.get().prepare(`
       UPDATE meal_ingredients
       SET name             = COALESCE(?, name),
           quantity         = ?,
+          category         = COALESCE(?, category),
           on_shopping_list = COALESCE(?, on_shopping_list)
       WHERE id = ?
     `).run(
       name?.trim() ?? null,
       quantity !== undefined ? (quantity?.trim() || null) : ing.quantity,
+      category !== undefined ? (String(category || '').trim() || 'Sonstiges') : null,
       on_shopping_list !== undefined ? (on_shopping_list ? 1 : 0) : null,
       ingId
     );
@@ -378,7 +381,7 @@ router.post('/:id/to-shopping-list', (req, res) => {
     const meal   = db.get().prepare('SELECT id FROM meals WHERE id = ?').get(mealId);
     if (!meal) return res.status(404).json({ error: 'Mahlzeit nicht gefunden', code: 404 });
 
-    const { listId, category = 'Sonstiges' } = req.body;
+    const { listId } = req.body;
     if (!listId)
       return res.status(400).json({ error: 'listId ist erforderlich', code: 400 });
 
@@ -404,7 +407,7 @@ router.post('/:id/to-shopping-list', (req, res) => {
 
       let count = 0;
       for (const ing of ingredients) {
-        insertItem.run(listId, ing.name, ing.quantity, category, mealId);
+        insertItem.run(listId, ing.name, ing.quantity, ing.category || 'Sonstiges', mealId);
         markDone.run(ing.id);
         count++;
       }
@@ -426,7 +429,7 @@ router.post('/:id/to-shopping-list', (req, res) => {
  */
 router.post('/week-to-shopping-list', (req, res) => {
   try {
-    const { listId, week, category = 'Sonstiges' } = req.body;
+    const { listId, week } = req.body;
 
     if (!listId)
       return res.status(400).json({ error: 'listId ist erforderlich', code: 400 });
@@ -460,7 +463,7 @@ router.post('/week-to-shopping-list', (req, res) => {
 
       let count = 0;
       for (const ing of ingredients) {
-        insertItem.run(listId, ing.name, ing.quantity, category, ing.meal_id);
+        insertItem.run(listId, ing.name, ing.quantity, ing.category || 'Sonstiges', ing.meal_id);
         markDone.run(ing.id);
         count++;
       }

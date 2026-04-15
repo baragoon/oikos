@@ -226,6 +226,8 @@
     "addIngredient": "Ajouter un ingrédient",
     "ingredientNamePlaceholder": "Ingrédient",
     "ingredientQtyPlaceholder": "Quantité",
+    "ingredientCategoryLabel": "Catégorie",
+    "ingredientCategoryDefault": "Divers",
     "removeIngredient": "Supprimer l'ingrédient",
     "transferLabel": "Transférer les ingrédients vers la liste de courses",
     "transferNow": "Transférer maintenant",

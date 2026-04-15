@@ -226,6 +226,8 @@
     "addIngredient": "Προσθήκη υλικού",
     "ingredientNamePlaceholder": "Υλικό",
     "ingredientQtyPlaceholder": "Ποσότητα",
+    "ingredientCategoryLabel": "Κατηγορία",
+    "ingredientCategoryDefault": "Διάφορα",
     "removeIngredient": "Αφαίρεση υλικού",
     "transferLabel": "Μεταφορά υλικών στη λίστα αγορών",
     "transferNow": "Μεταφορά τώρα",

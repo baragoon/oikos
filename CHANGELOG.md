@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.6] - 2026-04-15
+
+### Added
+- Meals: ingredient category selection when adding ingredients to a meal - each ingredient can now be assigned a shopping category (e.g. Fruit & Vegetables, Dairy, Meat & Fish) directly in the meal editor. Categories are automatically applied when transferring ingredients to the shopping list, so items appear pre-sorted in their correct category groups (closes #33)
+
 ## [0.19.5] - 2026-04-14
 
 ### Fixed

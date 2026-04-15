@@ -226,6 +226,8 @@
     "addIngredient": "材料を追加",
     "ingredientNamePlaceholder": "材料",
     "ingredientQtyPlaceholder": "量",
+    "ingredientCategoryLabel": "カテゴリ",
+    "ingredientCategoryDefault": "その他",
     "removeIngredient": "材料を削除",
     "transferLabel": "材料を買い物リストに追加",
     "transferNow": "今すぐ追加",

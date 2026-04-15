@@ -34,6 +34,7 @@ let state = {
   currentWeek:      null,   // YYYY-MM-DD (Montag)
   meals:            [],
   lists:            [],     // Einkaufslisten für Transfer-Dropdown
+  categories:       [],     // Einkaufskategorien für Zutaten
   modal:            null,
   visibleMealTypes: ['breakfast', 'lunch', 'dinner', 'snack'],
 };
@@ -98,6 +99,15 @@ async function loadLists() {
   }
 }
 
+async function loadCategories() {
+  try {
+    const res       = await api.get('/shopping/categories');
+    state.categories = res.data;
+  } catch {
+    state.categories = [];
+  }
+}
+
 async function loadPreferences() {
   try {
     const res = await api.get('/preferences');
@@ -137,7 +147,7 @@ export async function render(container, { user }) {
   const today  = new Date().toISOString().slice(0, 10);
   const monday = getMondayOf(today);
 
-  await Promise.all([loadWeek(monday), loadLists(), loadPreferences()]);
+  await Promise.all([loadWeek(monday), loadLists(), loadPreferences(), loadCategories()]);
   renderWeekGrid();
   wireNav();
 }
@@ -554,7 +564,7 @@ function buildModalContent({ mode, date, mealType, meal }) {
     : `<option value="" disabled>${t('meals.noShoppingLists')}</option>`;
 
   const ingRows = isEdit && meal.ingredients?.length
-    ? meal.ingredients.map((ing) => ingredientRowHTML(ing.name, ing.quantity ?? '', ing.id)).join('')
+    ? meal.ingredients.map((ing) => ingredientRowHTML(ing.name, ing.quantity ?? '', ing.id, ing.category ?? 'Sonstiges')).join('')
     : '';
 
   const hasIngOpen = isEdit && meal.ingredients?.some((i) => !i.on_shopping_list);
@@ -620,11 +630,16 @@ function buildModalContent({ mode, date, mealType, meal }) {
     </div>`;
 }
 
-function ingredientRowHTML(name, qty, id) {
+function ingredientRowHTML(name, qty, id, category = 'Sonstiges') {
+  const catOptions = state.categories.length
+    ? state.categories.map((c) => `<option value="${esc(c.name)}" ${c.name === category ? 'selected' : ''}>${esc(c.name)}</option>`).join('')
+    : `<option value="Sonstiges" selected>${t('meals.ingredientCategoryDefault')}</option>`;
+
   return `
     <div class="ingredient-row" data-ing-id="${id ?? ''}">
       <input type="text" class="form-input ingredient-row__name" placeholder="${t('meals.ingredientNamePlaceholder')}" value="${esc(name)}">
       <input type="text" class="form-input ingredient-row__qty" placeholder="${t('meals.ingredientQtyPlaceholder')}" value="${esc(qty)}">
+      <select class="form-input ingredient-row__cat" aria-label="${t('meals.ingredientCategoryLabel')}">${catOptions}</select>
       <button class="ingredient-row__remove" data-action="remove-ingredient" type="button" aria-label="${t('meals.removeIngredient')}">
         <i data-lucide="x" style="width:14px;height:14px;" aria-hidden="true"></i>
       </button>
@@ -652,9 +667,10 @@ async function saveModal(overlay) {
 
   const ingredients = [];
   overlay.querySelectorAll('.ingredient-row').forEach((row) => {
-    const name = row.querySelector('.ingredient-row__name').value.trim();
-    const qty  = row.querySelector('.ingredient-row__qty').value.trim() || null;
-    if (name) ingredients.push({ name, quantity: qty, id: row.dataset.ingId || null });
+    const name     = row.querySelector('.ingredient-row__name').value.trim();
+    const qty      = row.querySelector('.ingredient-row__qty').value.trim() || null;
+    const category = row.querySelector('.ingredient-row__cat')?.value || 'Sonstiges';
+    if (name) ingredients.push({ name, quantity: qty, category, id: row.dataset.ingId || null });
   });
 
   saveBtn.disabled    = true;
@@ -680,7 +696,7 @@ async function saveModal(overlay) {
         if (!keptIds.has(id)) await api.delete(`/meals/ingredients/${id}`);
       }
       for (const ing of ingredients) {
-        if (!ing.id) await api.post(`/meals/${meal.id}/ingredients`, { name: ing.name, quantity: ing.quantity });
+        if (!ing.id) await api.post(`/meals/${meal.id}/ingredients`, { name: ing.name, quantity: ing.quantity, category: ing.category });
       }
 
       // Reload updated meal

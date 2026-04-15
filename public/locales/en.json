@@ -226,6 +226,8 @@
     "addIngredient": "Add ingredient",
     "ingredientNamePlaceholder": "Ingredient",
     "ingredientQtyPlaceholder": "Quantity",
+    "ingredientCategoryLabel": "Category",
+    "ingredientCategoryDefault": "Miscellaneous",
     "removeIngredient": "Remove ingredient",
     "transferLabel": "Transfer ingredients to shopping list",
     "transferNow": "Transfer now",

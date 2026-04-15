@@ -226,6 +226,8 @@
     "addIngredient": "सामग्री जोड़ें",
     "ingredientNamePlaceholder": "सामग्री",
     "ingredientQtyPlaceholder": "मात्रा",
+    "ingredientCategoryLabel": "श्रेणी",
+    "ingredientCategoryDefault": "विविध",
     "removeIngredient": "सामग्री हटाएं",
     "transferLabel": "सामग्री खरीदारी सूची में जोड़ें",
     "transferNow": "अभी जोड़ें",

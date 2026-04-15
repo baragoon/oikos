@@ -226,6 +226,8 @@
     "addIngredient": "Aggiungi ingrediente",
     "ingredientNamePlaceholder": "Ingrediente",
     "ingredientQtyPlaceholder": "Quantità",
+    "ingredientCategoryLabel": "Categoria",
+    "ingredientCategoryDefault": "Varie",
     "removeIngredient": "Rimuovi ingrediente",
     "transferLabel": "Trasferisci ingredienti alla lista della spesa",
     "transferNow": "Trasferisci ora",

@@ -226,6 +226,8 @@
     "addIngredient": "Malzeme ekle",
     "ingredientNamePlaceholder": "Malzeme",
     "ingredientQtyPlaceholder": "Miktar",
+    "ingredientCategoryLabel": "Kategori",
+    "ingredientCategoryDefault": "Çeşitli",
     "removeIngredient": "Malzemeyi kaldır",
     "transferLabel": "Malzemeleri alışveriş listesine aktar",
     "transferNow": "Şimdi aktar",

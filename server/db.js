@@ -362,6 +362,13 @@ const MIGRATIONS = [
       ALTER TABLE meals ADD COLUMN recipe_url TEXT;
     `,
   },
+  {
+    version: 7,
+    description: 'Kategorie pro Zutat für Einkaufslisten-Transfer',
+    up: `
+      ALTER TABLE meal_ingredients ADD COLUMN category TEXT NOT NULL DEFAULT 'Sonstiges';
+    `,
+  },
 ];
 
 /**

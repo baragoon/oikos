@@ -226,6 +226,8 @@
     "addIngredient": "Добавить ингредиент",
     "ingredientNamePlaceholder": "Ингредиент",
     "ingredientQtyPlaceholder": "Количество",
+    "ingredientCategoryLabel": "Категория",
+    "ingredientCategoryDefault": "Разное",
     "removeIngredient": "Удалить ингредиент",
     "transferLabel": "Перенести ингредиенты в список покупок",
     "transferNow": "Перенести сейчас",

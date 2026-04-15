@@ -226,6 +226,8 @@
     "addIngredient": "إضافة مكون",
     "ingredientNamePlaceholder": "المكون",
     "ingredientQtyPlaceholder": "الكمية",
+    "ingredientCategoryLabel": "الفئة",
+    "ingredientCategoryDefault": "متنوعات",
     "removeIngredient": "إزالة المكون",
     "transferLabel": "نقل المكونات إلى قائمة التسوق",
     "transferNow": "نقل الآن",

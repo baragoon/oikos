@@ -226,6 +226,8 @@
     "addIngredient": "Zutat hinzufügen",
     "ingredientNamePlaceholder": "Zutat",
     "ingredientQtyPlaceholder": "Menge",
+    "ingredientCategoryLabel": "Kategorie",
+    "ingredientCategoryDefault": "Sonstiges",
     "removeIngredient": "Zutat entfernen",
     "transferLabel": "Zutaten auf Einkaufsliste übertragen",
     "transferNow": "Jetzt übertragen",

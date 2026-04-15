@@ -329,6 +329,12 @@
   min-width: 0;
 }
 
+.ingredient-row__cat {
+  flex: 1.5;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
 .ingredient-row__remove {
   width: 32px;
   height: 32px;

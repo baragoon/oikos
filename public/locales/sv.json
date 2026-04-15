@@ -226,6 +226,8 @@
     "addIngredient": "Tillsätt ingrediens",
     "ingredientNamePlaceholder": "Ingrediens",
     "ingredientQtyPlaceholder": "Kvantitet",
+    "ingredientCategoryLabel": "Kategori",
+    "ingredientCategoryDefault": "Övrigt",
     "removeIngredient": "Ta bort ingrediensen",
     "transferLabel": "Överför ingredienserna till inköpslistan",
     "transferNow": "Överför nu",
