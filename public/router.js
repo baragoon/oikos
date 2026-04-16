@@ -115,6 +115,9 @@ async function importPage(pagePath) {
 let currentUser = null;
 let currentPath = null;
 let isNavigating = false;
+// Gesetzt wenn auth:expired waehrend einer laufenden Navigation feuert.
+// Die Weiterleitung zu /login wird nach Abschluss der Navigation nachgeholt.
+let _pendingLoginRedirect = false;
 
 // --------------------------------------------------------
 // Router
@@ -189,6 +192,13 @@ async function navigate(path, userOrPushState = true, pushState = true) {
     updateThemeColorForRoute(route);
   } finally {
     isNavigating = false;
+    // auth:expired kann waehrend einer Navigation gefeuert haben (z.B. wenn ein
+    // paralleler API-Call 401 zurueckgab). Jetzt wo die Navigation abgeschlossen
+    // ist, holen wir die Login-Weiterleitung nach.
+    if (_pendingLoginRedirect) {
+      _pendingLoginRedirect = false;
+      navigate('/login');
+    }
   }
 }
 
@@ -511,7 +521,13 @@ window.addEventListener('popstate', (e) => {
 window.addEventListener('auth:expired', () => {
   currentUser = null;
   stopReminders();
-  navigate('/login');
+  if (isNavigating) {
+    // navigate('/login') kann nicht sofort aufgerufen werden - wird im finally-Block
+    // der laufenden Navigation nachgeholt.
+    _pendingLoginRedirect = true;
+  } else {
+    navigate('/login');
+  }
 });
 
 // Sprache geändert: Navigation neu rendern damit Labels aktualisiert werden

@@ -655,7 +655,7 @@ export async function render(container, { user }) {
     weather      = weatherRes.data ?? null;
     widgetConfig = prefsRes.data?.dashboard_widgets ?? DEFAULT_WIDGET_CONFIG;
   } catch (err) {
-    console.error('[Dashboard] Ladefehler:', err.message);
+    console.error('[Dashboard] Ladefehler:', err.message, 'Status:', err.status ?? 'network');
     window.oikos?.showToast(t('dashboard.loadError'), 'warning');
   }
 
