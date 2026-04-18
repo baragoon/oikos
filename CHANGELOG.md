@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.8] - 2026-04-18
+
+### Changed
+- Dependencies updated: `better-sqlite3` 9 → 12, `dotenv` 16 → 17, `express-rate-limit` 7 → 8, `express-session` 1.18 → 1.19, `helmet` 8.0 → 8.1, `googleapis` 144 → 171, `tsdav` 2.0 → 2.1 (closes #53)
+- Added GitHub Dependabot configuration for automated weekly dependency updates
+
 ## [0.20.7] - 2026-04-16
 
 ### Fixed
