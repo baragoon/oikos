@@ -1,10 +1,11 @@
 /**
  * Modul: Wetter-Proxy (Weather)
  * Zweck: Serverseitiger Proxy für OpenWeatherMap API (API-Key nie im Frontend)
- * Abhängigkeiten: express, node-fetch, dotenv
+ * Abhängigkeiten: express, dotenv
  */
 
 import { createLogger } from '../logger.js';
+import { Readable } from 'node:stream';
 import express from 'express';
 
 const log = createLogger('Weather');
@@ -37,9 +38,6 @@ router.get('/', async (req, res) => {
     if (cache.data && Date.now() - cache.ts < CACHE_TTL_MS) {
       return res.json({ data: cache.data });
     }
-
-    // Dynamischer Import für node-fetch (ESM)
-    const { default: fetch } = await import('node-fetch');
 
     // Aktuelles Wetter
     const currentUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=${units}&lang=${lang}`;
@@ -108,7 +106,6 @@ router.get('/icon/:code', async (req, res) => {
   }
 
   try {
-    const { default: fetch } = await import('node-fetch');
     const url = `https://openweathermap.org/img/wn/${code}@2x.png`;
     const upstream = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!upstream.ok) {
@@ -116,7 +113,7 @@ router.get('/icon/:code', async (req, res) => {
     }
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 Stunden
-    upstream.body.pipe(res);
+    Readable.fromWeb(upstream.body).pipe(res);
   } catch (err) {
     log.warn('Icon-Proxy Fehler:', err.message);
     res.status(502).json({ error: 'Icon-Proxy fehlgeschlagen.', code: 502 });
