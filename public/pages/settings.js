@@ -10,7 +10,7 @@ import { t, formatDate, formatTime } from '/i18n.js';
 import { esc } from '/utils/html.js';
 import '/components/oikos-locale-picker.js';
 
-const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'INR', 'JPY', 'NOK', 'PLN', 'RUB', 'SAR', 'SEK', 'TRY', 'USD'];
+const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'INR', 'JPY', 'NOK', 'PLN', 'RUB', 'SAR', 'SEK', 'TRY', 'UAH', 'USD'];
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
 
 function buildCurrencyOptions(selected) {
@@ -32,16 +32,16 @@ function buildCurrencyOptions(selected) {
  */
 export async function render(container, { user }) {
   // URL-Parameter auswerten (z.B. nach OAuth-Callback)
-  const params   = new URLSearchParams(location.search);
-  const syncOk   = params.get('sync_ok');
-  const syncErr  = params.get('sync_error');
+  const params = new URLSearchParams(location.search);
+  const syncOk = params.get('sync_ok');
+  const syncErr = params.get('sync_error');
 
   // State für Familienmitglieder + Sync-Status
-  let users        = [];
+  let users = [];
   let googleStatus = { configured: false, connected: false, lastSync: null };
-  let appleStatus  = { configured: false, lastSync: null };
-  let prefs        = { visible_meal_types: ['breakfast', 'lunch', 'dinner', 'snack'], currency: 'EUR' };
-  let categories   = [];
+  let appleStatus = { configured: false, lastSync: null };
+  let prefs = { visible_meal_types: ['breakfast', 'lunch', 'dinner', 'snack'], currency: 'EUR' };
+  let categories = [];
 
   try {
     const [usersRes, gStatus, aStatus, prefsRes, catsRes] = await Promise.allSettled([
@@ -51,11 +51,11 @@ export async function render(container, { user }) {
       api.get('/preferences'),
       api.get('/shopping/categories'),
     ]);
-    if (usersRes.status === 'fulfilled')  users        = usersRes.value.data  ?? [];
-    if (gStatus.status  === 'fulfilled')  googleStatus = gStatus.value;
-    if (aStatus.status  === 'fulfilled')  appleStatus  = aStatus.value;
-    if (prefsRes.status === 'fulfilled')  prefs        = prefsRes.value.data  ?? prefs;
-    if (catsRes.status  === 'fulfilled')  categories   = catsRes.value.data   ?? [];
+    if (usersRes.status === 'fulfilled') users = usersRes.value.data ?? [];
+    if (gStatus.status === 'fulfilled') googleStatus = gStatus.value;
+    if (aStatus.status === 'fulfilled') appleStatus = aStatus.value;
+    if (prefsRes.status === 'fulfilled') prefs = prefsRes.value.data ?? prefs;
+    if (catsRes.status === 'fulfilled') categories = catsRes.value.data ?? [];
   } catch (_) { /* non-critical */ }
 
   const googleStatusText = googleStatus.connected
@@ -73,8 +73,8 @@ export async function render(container, { user }) {
     : (sessionStorage.getItem(SETTINGS_TAB_KEY) ?? 'general');
 
   const panelHidden = (id) => id === activeTab ? '' : ' hidden';
-  const btnClass    = (id) => `settings-tab-btn${id === activeTab ? ' settings-tab-btn--active' : ''}`;
-  const btnAria     = (id) => id === activeTab ? 'true' : 'false';
+  const btnClass = (id) => `settings-tab-btn${id === activeTab ? ' settings-tab-btn--active' : ''}`;
+  const btnAria = (id) => id === activeTab ? 'true' : 'false';
 
   container.innerHTML = `
     <div class="page settings-page">
@@ -82,7 +82,7 @@ export async function render(container, { user }) {
         <h1 class="page__title">${t('settings.title')}</h1>
       </div>
 
-      ${syncOk  ? `<div class="settings-banner settings-banner--success">${syncOk === 'google' ? t('settings.syncSuccessGoogle') : t('settings.syncSuccessApple')}</div>` : ''}
+      ${syncOk ? `<div class="settings-banner settings-banner--success">${syncOk === 'google' ? t('settings.syncSuccessGoogle') : t('settings.syncSuccessApple')}</div>` : ''}
       ${syncErr ? `<div class="settings-banner settings-banner--error">${syncErr === 'google' ? t('settings.syncErrorGoogle') : t('settings.syncErrorApple')}</div>` : ''}
 
       <nav class="settings-tabs" role="tablist" aria-label="${t('settings.tabsAriaLabel')}">
@@ -426,10 +426,10 @@ function bindEvents(container, user, categories) {
   if (passwordForm) {
     passwordForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const currentPw  = container.querySelector('#current-password').value;
-      const newPw      = container.querySelector('#new-password').value;
-      const confirmPw  = container.querySelector('#confirm-password').value;
-      const errorEl    = container.querySelector('#password-error');
+      const currentPw = container.querySelector('#current-password').value;
+      const newPw = container.querySelector('#new-password').value;
+      const confirmPw = container.querySelector('#confirm-password').value;
+      const errorEl = container.querySelector('#password-error');
 
       errorEl.hidden = true;
 
@@ -526,10 +526,10 @@ function bindEvents(container, user, categories) {
       const errorEl = container.querySelector('#apple-connect-error');
       errorEl.hidden = true;
 
-      const url      = container.querySelector('#apple-caldav-url').value.trim();
+      const url = container.querySelector('#apple-caldav-url').value.trim();
       const username = container.querySelector('#apple-username').value.trim();
       const password = container.querySelector('#apple-password').value;
-      const btn      = container.querySelector('#apple-connect-btn');
+      const btn = container.querySelector('#apple-connect-btn');
 
       btn.disabled = true;
       btn.textContent = t('settings.appleConnecting');
@@ -573,17 +573,17 @@ function bindEvents(container, user, categories) {
       errorEl.hidden = true;
 
       const data = {
-        username:     container.querySelector('#new-username').value.trim(),
+        username: container.querySelector('#new-username').value.trim(),
         display_name: container.querySelector('#new-display-name').value.trim(),
-        password:     container.querySelector('#new-member-password').value,
+        password: container.querySelector('#new-member-password').value,
         avatar_color: container.querySelector('#new-avatar-color').value,
-        role:         container.querySelector('#new-role').value,
+        role: container.querySelector('#new-role').value,
       };
 
       const btn = addMemberForm.querySelector('[type=submit]');
       btn.disabled = true;
       try {
-        const res  = await auth.createUser(data);
+        const res = await auth.createUser(data);
         const list = container.querySelector('#members-list');
         list.insertAdjacentHTML('beforeend', memberHtml(res.user));
         addMemberForm.reset();
@@ -637,7 +637,7 @@ function bindTabEvents(container) {
       panel.hidden = panel.dataset.panel !== tab;
     });
 
-    try { sessionStorage.setItem(SETTINGS_TAB_KEY, tab); } catch (_) {}
+    try { sessionStorage.setItem(SETTINGS_TAB_KEY, tab); } catch (_) { }
   });
 }
 
@@ -648,7 +648,7 @@ function bindDeleteButtons(container, user) {
   });
   container.querySelectorAll('[data-delete-user]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const id   = parseInt(btn.dataset.deleteUser, 10);
+      const id = parseInt(btn.dataset.deleteUser, 10);
       const name = btn.dataset.name;
       if (!await confirmModal(t('settings.deleteMemberConfirm', { name }), { danger: true, confirmLabel: t('common.delete') })) return;
       try {
@@ -710,14 +710,14 @@ function bindCategoryEvents(container) {
   api.get('/shopping/categories').then((res) => {
     cats = res.data ?? [];
     renderCatList(container, cats);
-  }).catch(() => {});
+  }).catch(() => { });
 
   const addForm = container.querySelector('#cat-add-form');
   if (addForm) {
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = container.querySelector('#cat-add-input');
-      const name  = input.value.trim();
+      const name = input.value.trim();
       if (!name) return;
       try {
         const res = await api.post('/shopping/categories', { name });
@@ -739,8 +739,8 @@ function bindCategoryEvents(container) {
     const target = e.target.closest('[data-action]');
     if (!target) return;
     const action = target.dataset.action;
-    const rowEl  = target.closest('[data-cat-id]');
-    const id     = rowEl ? Number(rowEl.dataset.catId) : Number(target.dataset.id);
+    const rowEl = target.closest('[data-cat-id]');
+    const id = rowEl ? Number(rowEl.dataset.catId) : Number(target.dataset.id);
 
     if (action === 'rename-cat') {
       const cat = cats.find((c) => c.id === id);
