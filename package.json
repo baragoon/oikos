@@ -34,7 +34,7 @@
     "node-fetch": "^3.3.2"
   },
   "optionalDependencies": {
-    "googleapis": "^144.0.0",
+    "googleapis": "^171.0.0",
     "tsdav": "^2.0.10"
   },
   "license": "MIT",
