@@ -13,6 +13,22 @@ import '/components/oikos-locale-picker.js';
 const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'INR', 'JPY', 'NOK', 'PLN', 'RUB', 'SAR', 'SEK', 'TRY', 'UAH', 'USD'];
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
 
+const CATEGORY_I18N = {
+  'Obst & Gemüse': 'shopping.catFruitVeg',
+  'Backwaren': 'shopping.catBakery',
+  'Milchprodukte': 'shopping.catDairy',
+  'Fleisch & Fisch': 'shopping.catMeatFish',
+  'Tiefkühl': 'shopping.catFrozen',
+  'Getränke': 'shopping.catDrinks',
+  'Haushalt': 'shopping.catHousehold',
+  'Drogerie': 'shopping.catDrugstore',
+  'Sonstiges': 'shopping.catMisc',
+};
+function catLabel(name) {
+  const key = CATEGORY_I18N[name];
+  return key ? t(key) : name;
+}
+
 function buildCurrencyOptions(selected) {
   const display = typeof Intl.DisplayNames !== 'undefined'
     ? new Intl.DisplayNames([document.documentElement.lang || 'en'], { type: 'currency' })
@@ -671,7 +687,7 @@ function categoryRowHtml(cat, isFirst, isLast) {
   return `
     <li class="cat-row" data-cat-id="${cat.id}">
       <i data-lucide="${esc(cat.icon)}" class="cat-row__icon" aria-hidden="true"></i>
-      <span class="cat-row__name" data-action="rename-cat" title="${t('settings.shoppingCategoryRenameHint')}">${esc(cat.name)}</span>
+      <span class="cat-row__name" data-action="rename-cat" title="${t('settings.shoppingCategoryRenameHint')}">${esc(catLabel(cat.name))}</span>
       <div class="cat-row__actions">
         <button class="btn btn--icon btn--ghost" data-action="move-cat-up" data-id="${cat.id}"
                 aria-label="${t('settings.shoppingCategoryMoveUp')}"
