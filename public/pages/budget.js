@@ -428,9 +428,14 @@ function openBudgetModal({ mode, entry = null }) {
         const catSelect = panel.querySelector('#bm-category');
         const currentValue = catSelect.value;
 
-        catSelect.innerHTML = cats.map((c) =>
-          `<option value="${c}" ${currentValue === c ? 'selected' : ''}>${catLabels[c] || c}</option>`
-        ).join('');
+        const options = cats.map((c) => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = catLabels[c] || c;
+          opt.selected = currentValue === c;
+          return opt;
+        });
+        catSelect.replaceChildren(...options);
       };
 
       panel.querySelector('#type-expense').addEventListener('click', () => {
