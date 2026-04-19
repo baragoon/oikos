@@ -204,8 +204,8 @@
 
 .nav-item__icon-wrap .nav-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: calc(-1 * var(--space-1));
+  right: calc(-1 * var(--space-1));
   margin-left: 0;
 }
 
