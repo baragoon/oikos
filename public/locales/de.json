@@ -42,7 +42,14 @@
     "settings": "Einstellungen",
     "main": "Hauptnavigation",
     "navigation": "Navigation",
-    "quickActions": "Schnellaktionen"
+    "quickActions": "Schnellaktionen",
+    "more": "Mehr"
+  },
+  "search": {
+    "title": "Suche",
+    "placeholder": "Suchen…",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "open": "Suche öffnen"
   },
   "dashboard": {
     "title": "Übersicht",

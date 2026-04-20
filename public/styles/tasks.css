@@ -302,6 +302,26 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* #11 Swipe-Affordanz: subtiler grüner Streifen am rechten Rand (nur Touch-Geräte) */
+@media (pointer: coarse) {
+  .swipe-row::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to left, color-mix(in srgb, var(--color-success) 60%, transparent), transparent);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+  }
+
+  .swipe-row--swiping::after {
+    opacity: 0;
+  }
+}
+
 /* --------------------------------------------------------
  * Task-Card
  * -------------------------------------------------------- */

@@ -20,8 +20,8 @@ const router = express.Router();
 
 const VALID_PRIORITIES = ['none', 'low', 'medium', 'high', 'urgent'];
 const VALID_STATUSES   = ['open', 'in_progress', 'done'];
-const VALID_CATEGORIES = ['Haushalt', 'Schule', 'Einkauf', 'Reparatur',
-                          'Gesundheit', 'Finanzen', 'Freizeit', 'Sonstiges'];
+const VALID_CATEGORIES = ['household', 'school', 'shopping', 'repair',
+                          'health', 'finance', 'leisure', 'misc'];
 
 // --------------------------------------------------------
 // Hilfsfunktionen

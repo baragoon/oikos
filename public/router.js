@@ -4,7 +4,7 @@
  * Abhängigkeiten: api.js
  */
 
-import { auth } from '/api.js';
+import { api, auth } from '/api.js';
 import { initI18n, getLocale, t } from '/i18n.js';
 import { init as initReminders, stop as stopReminders } from '/reminders.js';
 
@@ -125,6 +125,8 @@ let _pendingLoginRedirect = false;
 
 const ROUTE_ORDER = ['/', '/tasks', '/calendar', '/meals', '/shopping',
                      '/notes', '/contacts', '/budget', '/settings'];
+
+const PRIMARY_NAV = 4;
 
 function getDirection(fromPath, toPath) {
   const fromIdx = ROUTE_ORDER.indexOf(fromPath ?? '/');
@@ -285,35 +287,115 @@ async function renderPage(route, previousPath = null) {
  * App-Shell mit Navigation einmalig aufbauen (nach erstem Login).
  */
 function renderAppShell(container) {
-  container.innerHTML = `
-    <a href="#main-content" class="sr-only">${t('common.skipToContent')}</a>
-    <nav class="nav-sidebar" aria-label="${t('nav.main')}">
-      <div class="nav-sidebar__logo"><span>Oikos</span></div>
-      <div class="nav-sidebar__items" role="list">
-        ${navItems().map(navItemHtml).join('')}
-      </div>
-    </nav>
+  const skipLink = document.createElement('a');
+  skipLink.href = '#main-content';
+  skipLink.className = 'sr-only';
+  skipLink.textContent = t('common.skipToContent');
 
-    <main class="app-content" id="main-content" aria-live="polite">
-    </main>
+  const sidebar = document.createElement('nav');
+  sidebar.className = 'nav-sidebar';
+  sidebar.setAttribute('aria-label', t('nav.main'));
+  const sidebarLogo = document.createElement('div');
+  sidebarLogo.className = 'nav-sidebar__logo';
+  const sidebarLogoSpan = document.createElement('span');
+  sidebarLogoSpan.textContent = 'Oikos';
+  sidebarLogo.appendChild(sidebarLogoSpan);
+  const sidebarItems = document.createElement('div');
+  sidebarItems.className = 'nav-sidebar__items';
+  sidebarItems.setAttribute('role', 'list');
+  navItems().forEach((item) => sidebarItems.appendChild(navItemEl(item)));
+  sidebar.appendChild(sidebarLogo);
+  sidebar.appendChild(sidebarItems);
 
-    <nav class="nav-bottom" aria-label="${t('nav.navigation')}">
-      <div class="nav-bottom__dots" aria-hidden="true">
-        <span class="nav-bottom__dot nav-bottom__dot--active"></span>
-        <span class="nav-bottom__dot"></span>
-      </div>
-      <div class="nav-bottom__scroll">
-        <div class="nav-bottom__page" role="list">
-          ${navItems().slice(0, 5).map(navItemHtml).join('')}
-        </div>
-        <div class="nav-bottom__page" role="list">
-          ${navItems().slice(5).map(navItemHtml).join('')}
-        </div>
-      </div>
-    </nav>
+  const main = document.createElement('main');
+  main.className = 'app-content';
+  main.id = 'main-content';
+  main.setAttribute('aria-live', 'polite');
 
-    <div class="toast-container" id="toast-container" aria-live="assertive"></div>
-  `;
+  const bottomNav = document.createElement('nav');
+  bottomNav.className = 'nav-bottom';
+  bottomNav.setAttribute('aria-label', t('nav.navigation'));
+  const bottomItems = document.createElement('div');
+  bottomItems.className = 'nav-bottom__items';
+  navItems().slice(0, PRIMARY_NAV).forEach((item) => bottomItems.appendChild(navItemEl(item)));
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'nav-item nav-item--more';
+  moreBtn.id = 'more-btn';
+  moreBtn.setAttribute('aria-label', t('nav.more'));
+  moreBtn.setAttribute('aria-expanded', 'false');
+  const moreBtnIcon = document.createElement('i');
+  moreBtnIcon.dataset.lucide = 'grid-2x2';
+  moreBtnIcon.className = 'nav-item__icon';
+  moreBtnIcon.setAttribute('aria-hidden', 'true');
+  const moreBtnLabel = document.createElement('span');
+  moreBtnLabel.className = 'nav-item__label';
+  moreBtnLabel.textContent = t('nav.more');
+  moreBtn.appendChild(moreBtnIcon);
+  moreBtn.appendChild(moreBtnLabel);
+  bottomItems.appendChild(moreBtn);
+  bottomNav.appendChild(bottomItems);
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'more-backdrop';
+  backdrop.id = 'more-backdrop';
+  backdrop.setAttribute('aria-hidden', 'true');
+
+  const moreSheet = document.createElement('div');
+  moreSheet.className = 'more-sheet';
+  moreSheet.id = 'more-sheet';
+  moreSheet.setAttribute('role', 'dialog');
+  moreSheet.setAttribute('aria-label', t('nav.more'));
+  moreSheet.setAttribute('aria-hidden', 'true');
+  const searchBtn = document.createElement('button');
+  searchBtn.className = 'more-item';
+  searchBtn.id = 'search-btn';
+  const searchIcon = document.createElement('i');
+  searchIcon.dataset.lucide = 'search';
+  searchIcon.className = 'more-item__icon';
+  searchIcon.setAttribute('aria-hidden', 'true');
+  const searchLabel = document.createElement('span');
+  searchLabel.className = 'more-item__label';
+  searchLabel.textContent = t('search.title');
+  searchBtn.appendChild(searchIcon);
+  searchBtn.appendChild(searchLabel);
+  moreSheet.appendChild(searchBtn);
+  navItems().slice(PRIMARY_NAV).forEach((item) => moreSheet.appendChild(moreItemEl(item)));
+
+  const searchOverlay = document.createElement('div');
+  searchOverlay.className = 'search-overlay';
+  searchOverlay.id = 'search-overlay';
+  searchOverlay.setAttribute('aria-hidden', 'true');
+  const searchHeader = document.createElement('div');
+  searchHeader.className = 'search-overlay__header';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'search-overlay__input';
+  searchInput.id = 'search-input';
+  searchInput.placeholder = t('search.placeholder');
+  searchInput.setAttribute('aria-label', t('search.title'));
+  const searchClose = document.createElement('button');
+  searchClose.className = 'search-overlay__close';
+  searchClose.id = 'search-close';
+  searchClose.setAttribute('aria-label', t('common.close'));
+  const closeIcon = document.createElement('i');
+  closeIcon.dataset.lucide = 'x';
+  closeIcon.className = 'search-overlay__close-icon';
+  closeIcon.setAttribute('aria-hidden', 'true');
+  searchClose.appendChild(closeIcon);
+  searchHeader.appendChild(searchInput);
+  searchHeader.appendChild(searchClose);
+  const searchResults = document.createElement('div');
+  searchResults.className = 'search-overlay__results';
+  searchResults.id = 'search-results';
+  searchOverlay.appendChild(searchHeader);
+  searchOverlay.appendChild(searchResults);
+
+  const toastContainer = document.createElement('div');
+  toastContainer.className = 'toast-container';
+  toastContainer.id = 'toast-container';
+  toastContainer.setAttribute('aria-live', 'assertive');
+
+  container.replaceChildren(skipLink, sidebar, main, bottomNav, backdrop, moreSheet, searchOverlay, toastContainer);
 
   // Klick-Handler für alle Nav-Links
   container.querySelectorAll('[data-route]').forEach((el) => {
@@ -323,11 +405,9 @@ function renderAppShell(container) {
     });
   });
 
-  // Bottom-Nav: Scroll-Snap + Dot-Indikator
-  initBottomNavSwipe(container);
-
-  // Bottom-Nav: Auto-Hide beim Runterscrollen (Mobile)
+  initMoreSheet(container);
   initNavHideOnScroll(container);
+  initSearch(container);
 }
 
 /**
@@ -357,30 +437,138 @@ function initNavHideOnScroll(container) {
 }
 
 /**
- * Initialisiert Swipe-Gesten und Dot-Indikator für die mobile Bottom-Navigation.
+ * Öffnet/schließt das More-Sheet und die Backdrop.
  */
-function initBottomNavSwipe(container) {
-  const scroll = container.querySelector('.nav-bottom__scroll');
-  const dots   = container.querySelectorAll('.nav-bottom__dot');
-  if (!scroll || !dots.length) return;
+function initMoreSheet(container) {
+  const moreBtn  = container.querySelector('#more-btn');
+  const backdrop = container.querySelector('#more-backdrop');
+  const sheet    = container.querySelector('#more-sheet');
+  if (!moreBtn || !backdrop || !sheet) return;
 
-  // Scroll-Event: Dot-Indikator aktualisieren
-  scroll.addEventListener('scroll', () => {
-    const page = Math.round(scroll.scrollLeft / scroll.offsetWidth);
-    dots.forEach((d, i) => d.classList.toggle('nav-bottom__dot--active', i === page));
-  }, { passive: true });
+  function openSheet() {
+    sheet.setAttribute('aria-hidden', 'false');
+    backdrop.classList.add('more-backdrop--visible');
+    moreBtn.setAttribute('aria-expanded', 'true');
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function closeSheet() {
+    sheet.setAttribute('aria-hidden', 'true');
+    backdrop.classList.remove('more-backdrop--visible');
+    moreBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  moreBtn.addEventListener('click', () => {
+    const isOpen = sheet.getAttribute('aria-hidden') === 'false';
+    isOpen ? closeSheet() : openSheet();
+  });
+
+  backdrop.addEventListener('click', closeSheet);
+
+  sheet.querySelectorAll('[data-route]').forEach((el) => {
+    el.addEventListener('click', () => closeSheet());
+  });
+
+  window._closeMoreSheet = closeSheet;
 }
 
 /**
- * Scrollt die Bottom-Nav zur richtigen Seite, wenn ein Item auf Seite 2 aktiv ist.
+ * Initialisiert die Suchfunktion (Overlay + API-Calls).
  */
-function scrollNavToActive() {
-  const scroll = document.querySelector('.nav-bottom__scroll');
-  if (!scroll) return;
-  const secondPage = navItems().slice(5).map(n => n.path);
-  if (secondPage.includes(currentPath)) {
-    scroll.scrollTo({ left: scroll.offsetWidth, behavior: 'smooth' });
+function initSearch(container) {
+  const searchBtn    = container.querySelector('#search-btn');
+  const searchClose  = container.querySelector('#search-close');
+  const overlay      = container.querySelector('#search-overlay');
+  const input        = container.querySelector('#search-input');
+  const results      = container.querySelector('#search-results');
+  if (!searchBtn || !overlay || !input || !results) return;
+
+  function openSearch() {
+    if (window._closeMoreSheet) window._closeMoreSheet();
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.add('search-overlay--visible');
+    setTimeout(() => input.focus(), 50);
+    if (window.lucide) window.lucide.createIcons();
   }
+
+  function closeSearch() {
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.classList.remove('search-overlay--visible');
+    input.value = '';
+    results.replaceChildren();
+  }
+
+  searchBtn.addEventListener('click', openSearch);
+  searchClose.addEventListener('click', closeSearch);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('search-overlay--visible')) {
+      closeSearch();
+    }
+  });
+
+  let searchTimer = null;
+  input.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = input.value.trim();
+    if (q.length < 2) {
+      results.replaceChildren();
+      return;
+    }
+    searchTimer = setTimeout(async () => {
+      try {
+        const data = await api.get(`/search?q=${encodeURIComponent(q)}`);
+        renderSearchResults(results, data, closeSearch);
+      } catch {
+        // Fehler still ignorieren - kein Overlay-Crash
+      }
+    }, 300);
+  });
+}
+
+/**
+ * Rendert Suchergebnisse in den Ergebnis-Container.
+ */
+function renderSearchResults(container, data, onClose) {
+  container.replaceChildren();
+  const { tasks = [], events = [], notes = [] } = data;
+  const total = tasks.length + events.length + notes.length;
+
+  if (total === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'search-overlay__empty';
+    empty.textContent = t('search.noResults');
+    container.appendChild(empty);
+    return;
+  }
+
+  function makeSection(labelKey, items, routeFn) {
+    if (!items.length) return;
+    const section = document.createElement('div');
+    section.className = 'search-section';
+    const heading = document.createElement('h3');
+    heading.className = 'search-section__heading';
+    heading.textContent = t(labelKey);
+    section.appendChild(heading);
+    items.forEach((item) => {
+      const btn = document.createElement('button');
+      btn.className = 'search-result';
+      const title = document.createElement('span');
+      title.className = 'search-result__title';
+      title.textContent = item.title;
+      btn.appendChild(title);
+      btn.addEventListener('click', () => {
+        onClose();
+        navigate(routeFn(item));
+      });
+      section.appendChild(btn);
+    });
+    container.appendChild(section);
+  }
+
+  makeSection('nav.tasks',    tasks,  (i) => `/tasks?open=${i.id}`);
+  makeSection('nav.calendar', events, ()  => '/calendar');
+  makeSection('nav.notes',    notes,  (i) => `/notes?open=${i.id}`);
 }
 
 function navItems() {
@@ -397,17 +585,45 @@ function navItems() {
   ];
 }
 
-function navItemHtml({ path, label, icon }) {
-  return `
-    <a href="${path}" data-route="${path}" class="nav-item" role="listitem" aria-label="${label}">
-      <i data-lucide="${icon}" class="nav-item__icon" aria-hidden="true"></i>
-      <span class="nav-item__label">${label}</span>
-    </a>
-  `;
+function navItemEl({ path, label, icon }) {
+  const a = document.createElement('a');
+  a.href = path;
+  a.dataset.route = path;
+  a.className = 'nav-item';
+  a.setAttribute('role', 'listitem');
+  a.setAttribute('aria-label', label);
+  const i = document.createElement('i');
+  i.dataset.lucide = icon;
+  i.className = 'nav-item__icon';
+  i.setAttribute('aria-hidden', 'true');
+  const span = document.createElement('span');
+  span.className = 'nav-item__label';
+  span.textContent = label;
+  a.appendChild(i);
+  a.appendChild(span);
+  return a;
+}
+
+function moreItemEl({ path, label, icon }) {
+  const a = document.createElement('a');
+  a.href = path;
+  a.dataset.route = path;
+  a.className = 'more-item';
+  const i = document.createElement('i');
+  i.dataset.lucide = icon;
+  i.className = 'more-item__icon';
+  i.setAttribute('aria-hidden', 'true');
+  const span = document.createElement('span');
+  span.className = 'more-item__label';
+  span.textContent = label;
+  a.appendChild(i);
+  a.appendChild(span);
+  return a;
 }
 
 /**
- * Aktiven Nav-Link hervorheben.
+ * Aktiven Nav-Link hervorheben und More-Button als aktiv markieren
+ * wenn die aktive Route im More-Sheet liegt.
  */
 function updateNav(path) {
   document.querySelectorAll('[data-route]').forEach((el) => {
@@ -417,15 +633,16 @@ function updateNav(path) {
     }
   });
 
-  // Lucide Icons neu rendern (nach DOM-Update)
+  const moreBtn = document.querySelector('#more-btn');
+  if (moreBtn) {
+    const inMoreSheet = navItems().slice(PRIMARY_NAV).some((n) => n.path === path);
+    moreBtn.classList.toggle('nav-item--active', inMoreSheet);
+    moreBtn.toggleAttribute('aria-current', inMoreSheet);
+  }
+
   if (window.lucide) {
     window.lucide.createIcons();
   }
-
-  // Bottom-Nav zur aktiven Seite scrollen
-  scrollNavToActive();
-
-  // Modul-Akzentfarbe wird in navigate() gesetzt, wo route bereits aufgelöst ist.
 }
 
 function renderError(container, err) {
@@ -548,25 +765,35 @@ window.addEventListener('auth:expired', () => {
 
 // Sprache geändert: Navigation neu rendern damit Labels aktualisiert werden
 window.addEventListener('locale-changed', () => {
+  const skipLink     = document.querySelector('.sr-only[href="#main-content"]');
+  const navSidebar   = document.querySelector('.nav-sidebar');
   const navSidebarItems = document.querySelector('.nav-sidebar__items');
-  const navBottomPages  = document.querySelectorAll('.nav-bottom__page');
-  const skipLink        = document.querySelector('.sr-only[href="#main-content"]');
-  const navSidebar      = document.querySelector('.nav-sidebar');
-  const navBottom       = document.querySelector('.nav-bottom');
+  const navBottom    = document.querySelector('.nav-bottom');
+  const bottomItems  = document.querySelector('.nav-bottom__items');
+  const moreSheet    = document.querySelector('#more-sheet');
+  const moreBtnLabel = document.querySelector('#more-btn .nav-item__label');
 
-  if (skipLink)  skipLink.textContent = t('common.skipToContent');
-  if (navSidebar) navSidebar.setAttribute('aria-label', t('nav.main'));
-  if (navBottom)  navBottom.setAttribute('aria-label', t('nav.navigation'));
+  if (skipLink)     skipLink.textContent = t('common.skipToContent');
+  if (navSidebar)   navSidebar.setAttribute('aria-label', t('nav.main'));
+  if (navBottom)    navBottom.setAttribute('aria-label', t('nav.navigation'));
+  if (moreBtnLabel) moreBtnLabel.textContent = t('nav.more');
 
   if (navSidebarItems) {
-    navSidebarItems.innerHTML = navItems().map(navItemHtml).join('');
+    navSidebarItems.replaceChildren(...navItems().map(navItemEl));
   }
-  if (navBottomPages.length >= 2) {
-    navBottomPages[0].innerHTML = navItems().slice(0, 5).map(navItemHtml).join('');
-    navBottomPages[1].innerHTML = navItems().slice(5).map(navItemHtml).join('');
+  if (bottomItems) {
+    const moreBtn = bottomItems.querySelector('#more-btn');
+    const newItems = navItems().slice(0, PRIMARY_NAV).map(navItemEl);
+    bottomItems.replaceChildren(...newItems, moreBtn);
+  }
+  if (moreSheet) {
+    const searchBtn = moreSheet.querySelector('#search-btn');
+    const searchLbl = searchBtn?.querySelector('.more-item__label');
+    if (searchLbl) searchLbl.textContent = t('search.title');
+    const newMoreItems = navItems().slice(PRIMARY_NAV).map(moreItemEl);
+    moreSheet.replaceChildren(searchBtn, ...newMoreItems);
   }
 
-  // Klick-Handler für neu gerenderte Nav-Links
   document.querySelectorAll('[data-route]').forEach((el) => {
     el.addEventListener('click', (e) => {
       e.preventDefault();
@@ -574,7 +801,6 @@ window.addEventListener('locale-changed', () => {
     });
   });
 
-  // Aktiven Zustand und Icons wiederherstellen
   updateNav(currentPath);
 });
 

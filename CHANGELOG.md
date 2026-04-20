@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.24] - 2026-04-20
+
+### Added
+- Tasks: subtle green edge indicator on touch devices hints at the swipe-left gesture without requiring an actual swipe (hidden during active swipe)
+- Global search: new search overlay accessible from the "More" sheet — searches tasks, calendar events, and notes simultaneously; results link directly to the relevant record
+- Navigation: bottom bar now shows 4 primary items plus a "More" button that opens a slide-up sheet with remaining sections and the search entry point; replaces the old 2-page swipe approach
+
+### Changed
+- Server: `VALID_CATEGORIES` in tasks route updated to English keys to match the v9 DB migration
+
 ## [0.20.23] - 2026-04-20
 
 ### Added
