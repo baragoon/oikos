@@ -1,3 +1,10 @@
+/**
+ * Modul: ICS-Parser
+ * Zweck: Gemeinsamer ICS/iCalendar-Parser für Apple Calendar und ICS-Abonnements.
+ *        Enthält RFC-5545-konformes Parsing, Zeitzonenkonvertierung und RRULE-Expansion.
+ * Abhängigkeiten: server/services/recurrence.js
+ */
+
 import { nextOccurrence } from './recurrence.js';
 
 function unfoldLines(ics) {
