@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.36] - 2026-04-20
+
+### Added
+- Migration v10: new `ics_subscriptions` table with fields for name, URL, color, shared flag, created_by, etag, last_modified, last_sync, and created_at
+- Migration v11: `calendar_events` table recreated to extend the `external_source` CHECK constraint to include `'ics'`, and two new columns added — `subscription_id` (FK to `ics_subscriptions` with CASCADE delete) and `user_modified` (integer flag, default 0)
+- Unique partial index `idx_calendar_sub_extid` on `(subscription_id, external_calendar_id)` prevents duplicate UIDs within a single ICS subscription while allowing the same UID across different subscriptions
+- `test:ics-sub` test suite with 10 tests covering subscription CRUD, ICS event insertion, UNIQUE constraint enforcement, cascade delete, visibility filtering, and CHECK constraint validation
+
 ## [0.20.35] - 2026-04-20
 
 ### Changed

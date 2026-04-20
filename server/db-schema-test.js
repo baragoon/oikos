@@ -192,6 +192,45 @@ const MIGRATIONS_SQL = {
     CREATE INDEX IF NOT EXISTS idx_reminders_remind ON reminders(remind_at);
     CREATE INDEX IF NOT EXISTS idx_reminders_user   ON reminders(created_by);
   `,
+  10: `
+    CREATE TABLE IF NOT EXISTS ics_subscriptions (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      name          TEXT    NOT NULL,
+      url           TEXT    NOT NULL,
+      color         TEXT    NOT NULL DEFAULT '#6366f1',
+      shared        INTEGER NOT NULL DEFAULT 0,
+      created_by    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      etag          TEXT,
+      last_modified TEXT,
+      last_sync     TEXT,
+      created_at    TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+  `,
+  11: `
+    CREATE TABLE calendar_events (
+      id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+      title                TEXT    NOT NULL,
+      description          TEXT,
+      start_datetime       TEXT    NOT NULL,
+      end_datetime         TEXT,
+      all_day              INTEGER NOT NULL DEFAULT 0,
+      location             TEXT,
+      color                TEXT    NOT NULL DEFAULT '#007AFF',
+      assigned_to          INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_by           INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      external_calendar_id TEXT,
+      external_source      TEXT    NOT NULL DEFAULT 'local'
+                                   CHECK(external_source IN ('local', 'google', 'apple', 'ics')),
+      recurrence_rule      TEXT,
+      subscription_id      INTEGER REFERENCES ics_subscriptions(id) ON DELETE CASCADE,
+      user_modified        INTEGER NOT NULL DEFAULT 0,
+      created_at           TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      updated_at           TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+    CREATE UNIQUE INDEX idx_calendar_sub_extid
+      ON calendar_events (subscription_id, external_calendar_id)
+      WHERE subscription_id IS NOT NULL;
+  `,
 };
 
 export { MIGRATIONS_SQL };
