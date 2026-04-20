@@ -328,7 +328,10 @@
     "dayLongThursday": "Donnerstag",
     "dayLongFriday": "Freitag",
     "dayLongSaturday": "Samstag",
-    "timeSuffix": "Uhr"
+    "timeSuffix": "Uhr",
+    "ics": {
+      "reset": "Auf Original zurücksetzen"
+    }
   },
   "notes": {
     "title": "Pinnwand",
@@ -570,7 +573,37 @@
     "sectionBudget": "Budget",
     "currencyLabel": "Währung",
     "currencyHint": "Legt die Währung für den gesamten Budget-Bereich fest.",
-    "currencySaved": "Währung gespeichert."
+    "currencySaved": "Währung gespeichert.",
+    "ics": {
+      "title": "ICS-Abonnements",
+      "add": "Abonnement hinzufügen",
+      "form": {
+        "url": "ICS-URL",
+        "name": "Name",
+        "color": "Farbe",
+        "shared": "Für alle sichtbar"
+      },
+      "actions": {
+        "sync": "Jetzt synchronisieren",
+        "edit": "Bearbeiten",
+        "delete": "Löschen",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "submit": "Hinzufügen"
+      },
+      "status": {
+        "lastSync": "Zuletzt synchronisiert:",
+        "never": "Noch nicht synchronisiert",
+        "syncing": "Synchronisiert...",
+        "syncError": "Synchronisierungsfehler"
+      },
+      "confirm_delete": "Möchtest du dieses Abonnement wirklich löschen? Alle zugehörigen Termine werden ebenfalls gelöscht.",
+      "badges": {
+        "private": "Privat",
+        "shared": "Geteilt"
+      },
+      "empty": "Noch keine Abonnements."
+    }
   },
   "login": {
     "tagline": "Familienplanung. Sicher. Datenschutzfreundlich. Open Source.",
