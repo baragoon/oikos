@@ -689,6 +689,26 @@ function showEventPopup(ev, anchor) {
   document.body.appendChild(popup);
   if (window.lucide) lucide.createIcons();
 
+  if (ev.external_source === 'ics' && ev.user_modified) {
+    const resetLink = document.createElement('a');
+    resetLink.href = '#';
+    resetLink.className = 'event-popup__reset-link';
+    resetLink.textContent = t('calendar.ics.reset');
+    resetLink.style.cssText = 'display:block;text-align:center;font-size:var(--text-xs);color:var(--color-text-secondary);margin-top:var(--space-2);cursor:pointer;text-decoration:underline;';
+    resetLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await api.post(`/calendar/${ev.id}/reset`, {});
+        popup.remove();
+        await reloadForView();
+        window.oikos?.showToast(t('calendar.ics.reset'), 'success');
+      } catch (err) {
+        window.oikos?.showToast(err.message, 'danger');
+      }
+    });
+    popup.querySelector('.event-popup__actions').before(resetLink);
+  }
+
   // Positionierung
   const rect = anchor.getBoundingClientRect();
   const top  = Math.min(rect.bottom + 8, window.innerHeight - 280);
