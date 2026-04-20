@@ -130,6 +130,7 @@
     "groupLater": "Più avanti",
     "groupNoDate": "Senza data",
     "markDone": "Segna {{title}} come completato",
+    "markOpen": "Segna {{title}} come non completato",
     "editButton": "Modifica compito",
     "swipeOpen": "Riapri",
     "swipeDone": "Completato",

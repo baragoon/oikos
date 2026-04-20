@@ -130,6 +130,7 @@
     "groupLater": "Senare",
     "groupNoDate": "Inget datum",
     "markDone": "Markera {{title}} som klar",
+    "markOpen": "Markera {{title}} som öppen",
     "editButton": "Redigera uppgift",
     "swipeOpen": "Öppna igen",
     "swipeDone": "Klart",

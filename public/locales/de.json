@@ -130,6 +130,7 @@
     "groupLater": "Später",
     "groupNoDate": "Kein Datum",
     "markDone": "{{title}} als erledigt markieren",
+    "markOpen": "{{title}} als offen markieren",
     "editButton": "Aufgabe bearbeiten",
     "swipeOpen": "Öffnen",
     "swipeDone": "Erledigt",

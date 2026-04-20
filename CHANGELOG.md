@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.20] - 2026-04-20
+
+### Fixed
+- Accessibility: `--module-notes` color raised from `#CA8A04` (4.08:1) to `#A16207` (6.3:1) — now WCAG AA compliant for normal text including nav labels
+- Accessibility: Task status button `aria-label` now reflects actual action — says "mark as open" for completed tasks instead of always "mark as done"
+- i18n: Added `tasks.markOpen` key to all 15 locale files for the corrected aria-label
+
 ## [0.20.19] - 2026-04-20
 
 ### Changed

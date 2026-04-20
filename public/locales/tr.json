@@ -130,6 +130,7 @@
     "groupLater": "Sonra",
     "groupNoDate": "Tarih yok",
     "markDone": "{{title}} tamamlandı olarak işaretle",
+    "markOpen": "{{title}} açık olarak işaretle",
     "editButton": "Görevi düzenle",
     "swipeOpen": "Yeniden aç",
     "swipeDone": "Tamamlandı",

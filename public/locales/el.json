@@ -130,6 +130,7 @@
     "groupLater": "Αργότερα",
     "groupNoDate": "Χωρίς ημερομηνία",
     "markDone": "Επισήμανση {{title}} ως ολοκληρωμένο",
+    "markOpen": "Επισήμανση {{title}} ως ανοιχτό",
     "editButton": "Επεξεργασία εργασίας",
     "swipeOpen": "Επαναφορά",
     "swipeDone": "Ολοκληρώθηκε",

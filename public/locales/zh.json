@@ -130,6 +130,7 @@
     "groupLater": "以后",
     "groupNoDate": "无日期",
     "markDone": "将 {{title}} 标记为完成",
+    "markOpen": "将 {{title}} 标记为未完成",
     "editButton": "编辑任务",
     "swipeOpen": "打开",
     "swipeDone": "完成",

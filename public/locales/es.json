@@ -130,6 +130,7 @@
     "groupLater": "Más tarde",
     "groupNoDate": "Sin fecha",
     "markDone": "Marcar {{title}} como completada",
+    "markOpen": "Marcar {{title}} como pendiente",
     "editButton": "Editar tarea",
     "swipeOpen": "Abrir",
     "swipeDone": "Completar",

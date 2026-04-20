@@ -139,8 +139,8 @@
   --module-meals:      var(--_module-meals);       /* Orange-700 - Essen, Wärme */
   --_module-shopping:  #DB2777;
   --module-shopping:   var(--_module-shopping);    /* Pink-600 - Einkaufen (trennt von Meals) */
-  --_module-notes:     #CA8A04;
-  --module-notes:      var(--_module-notes);       /* Gold - Notizen (nur Icons/Large-Text: 4.08:1) */
+  --_module-notes:     #A16207;
+  --module-notes:      var(--_module-notes);       /* Amber-700 - Notizen (6.3:1 auf weiß — WCAG AA) */
   --_module-contacts:  #0969DA;
   --module-contacts:   var(--_module-contacts);    /* Kräftiges Blau - Kontakte */
   --_module-budget:    #0F766E;

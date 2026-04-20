@@ -130,6 +130,7 @@
     "groupLater": "Depois",
     "groupNoDate": "Sem data",
     "markDone": "Marcar {{title}} como concluído",
+    "markOpen": "Marcar {{title}} como pendente",
     "editButton": "Editar tarefa",
     "swipeOpen": "Abrir",
     "swipeDone": "Concluído",

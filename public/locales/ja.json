@@ -130,6 +130,7 @@
     "groupLater": "後で",
     "groupNoDate": "日付なし",
     "markDone": "{{title}} を完了としてマーク",
+    "markOpen": "{{title}} を未完了としてマーク",
     "editButton": "タスクを編集",
     "swipeOpen": "開く",
     "swipeDone": "完了",

@@ -130,6 +130,7 @@
     "groupLater": "बाद में",
     "groupNoDate": "कोई तारीख नहीं",
     "markDone": "{{title}} को पूर्ण के रूप में चिह्नित करें",
+    "markOpen": "{{title}} को अपूर्ण के रूप में चिह्नित करें",
     "editButton": "कार्य संपादित करें",
     "swipeOpen": "खोलें",
     "swipeDone": "पूर्ण",

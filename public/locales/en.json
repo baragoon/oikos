@@ -130,6 +130,7 @@
     "groupLater": "Later",
     "groupNoDate": "No date",
     "markDone": "Mark {{title}} as done",
+    "markOpen": "Mark {{title}} as open",
     "editButton": "Edit task",
     "swipeOpen": "Reopen",
     "swipeDone": "Done",

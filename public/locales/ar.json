@@ -130,6 +130,7 @@
     "groupLater": "لاحقاً",
     "groupNoDate": "بلا تاريخ",
     "markDone": "وضع علامة منجز على {{title}}",
+    "markOpen": "وضع علامة مفتوح على {{title}}",
     "editButton": "تعديل المهمة",
     "swipeOpen": "فتح",
     "swipeDone": "منجز",

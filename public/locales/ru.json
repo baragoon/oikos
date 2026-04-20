@@ -130,6 +130,7 @@
     "groupLater": "Позже",
     "groupNoDate": "Без даты",
     "markDone": "Отметить {{title}} как выполненное",
+    "markOpen": "Отметить {{title}} как открытое",
     "editButton": "Редактировать задачу",
     "swipeOpen": "Открыть снова",
     "swipeDone": "Выполнено",

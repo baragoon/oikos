@@ -168,7 +168,7 @@ function renderTaskCard(task, opts = {}) {
       <div class="task-card__main">
         <button class="task-status-btn task-status-btn--${task.status}"
                 data-action="toggle-status" data-id="${task.id}" data-status="${task.status}"
-                aria-label="${t('tasks.markDone', { title: esc(task.title) })}">
+                aria-label="${isDone ? t('tasks.markOpen', { title: esc(task.title) }) : t('tasks.markDone', { title: esc(task.title) })}">
           <i data-lucide="check" class="task-status-btn__check" aria-hidden="true"></i>
         </button>
 

@@ -130,6 +130,7 @@
     "groupLater": "Plus tard",
     "groupNoDate": "Sans date",
     "markDone": "Marquer {{title}} comme terminé",
+    "markOpen": "Marquer {{title}} comme non terminé",
     "editButton": "Modifier la tâche",
     "swipeOpen": "Rouvrir",
     "swipeDone": "Terminé",
