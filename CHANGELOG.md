@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.22] - 2026-04-20
+
+### Added
+- Tasks: Kanban board now supports touch drag-and-drop on mobile — a ghost card follows the finger and drops into the target column on release
+- Tasks: swipe-left to mark done/open now shows a 5-second undo toast that reverts the status change
+- Tasks: opening a task card from the Dashboard now navigates to `/tasks` and immediately opens the edit modal for that task (deep-link via `?open=<id>`)
+
+### Fixed
+- Router: query parameters (e.g. `?open=123`) are now stripped before route matching, so parameterised URLs resolve correctly without falling back to the home page
+
 ## [0.20.21] - 2026-04-20
 
 ### Changed

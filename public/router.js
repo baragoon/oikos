@@ -155,9 +155,10 @@ async function navigate(path, userOrPushState = true, pushState = true) {
 
     // Alten Pfad merken, bevor currentPath aktualisiert wird - für Richtungsberechnung
     const previousPath = currentPath;
-    currentPath = path;
+    const basePath = path.split('?')[0];
+    currentPath = basePath;
 
-    const route = ROUTES.find((r) => r.path === path) ?? ROUTES.find((r) => r.path === '/');
+    const route = ROUTES.find((r) => r.path === basePath) ?? ROUTES.find((r) => r.path === '/');
 
     // Auth-Guard
     if (route.requiresAuth && !currentUser) {
@@ -188,7 +189,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
     document.documentElement.style.setProperty('--active-module-accent', accent);
 
     await renderPage(route, previousPath);
-    updateNav(path);
+    updateNav(basePath);
     updateThemeColorForRoute(route);
   } finally {
     isNavigating = false;

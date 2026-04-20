@@ -152,7 +152,9 @@
     "kanbanMoveToOpen": "Erneut öffnen",
     "recurring": "Wiederkehrend",
     "listView": "Listenansicht",
-    "kanbanView": "Kanban-Ansicht"
+    "kanbanView": "Kanban-Ansicht",
+    "swipedDoneToast": "Als erledigt markiert.",
+    "swipedOpenToast": "Als offen markiert."
   },
   "shopping": {
     "title": "Einkauf",

@@ -197,7 +197,7 @@ function renderUrgentTasks(tasks) {
   const items = tasks.map((t) => {
     const due = formatDueDate(t.due_date);
     return `
-      <div class="task-item" data-route="/tasks" role="button" tabindex="0">
+      <div class="task-item" data-route="/tasks?open=${t.id}" role="button" tabindex="0">
         ${t.priority !== 'none' ? `<div class="task-item__priority task-item__priority--${t.priority}" aria-hidden="true"></div>` : ''}
         <span class="sr-only">${PRIORITY_LABELS()[t.priority] ?? t.priority}</span>
         <div class="task-item__content">

@@ -645,6 +645,7 @@ function renderKanban(container) {
 
   if (window.lucide) window.lucide.createIcons();
   wireKanbanDrag(container);
+  wireKanbanTouch(container);
   updateOverdueBadge();
 }
 
@@ -750,6 +751,115 @@ function wireKanbanDrag(container) {
       }
     }
   });
+}
+
+// --------------------------------------------------------
+// Kanban-Touch-Drag (Mobile)
+// --------------------------------------------------------
+
+function wireKanbanTouch(container) {
+  const board = container.querySelector('.kanban-board');
+  if (!board) return;
+
+  let dragging = null;
+  let ghost = null;
+  let taskId = null;
+  let originX = 0, originY = 0;
+  let originLeft = 0, originTop = 0;
+  let activeZone = null;
+  let started = false;
+
+  function cleanup() {
+    ghost?.remove();
+    ghost = null;
+    if (dragging) {
+      dragging.classList.remove('kanban-card--dragging');
+      dragging = null;
+    }
+    board.querySelectorAll('.kanban-col__body--over').forEach((el) =>
+      el.classList.remove('kanban-col__body--over')
+    );
+    activeZone = null;
+    started = false;
+    taskId = null;
+  }
+
+  board.addEventListener('touchstart', (e) => {
+    const card = e.target.closest('.kanban-card[data-task-id]');
+    if (!card || e.target.closest('[data-next-status]')) return;
+    dragging = card;
+    taskId = card.dataset.taskId;
+    const touch = e.touches[0];
+    originX = touch.clientX;
+    originY = touch.clientY;
+    const rect = card.getBoundingClientRect();
+    originLeft = rect.left;
+    originTop = rect.top;
+    started = false;
+  }, { passive: true });
+
+  board.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - originX;
+    const dy = touch.clientY - originY;
+
+    if (!started && Math.sqrt(dx * dx + dy * dy) < 8) return;
+
+    if (!started) {
+      started = true;
+      ghost = dragging.cloneNode(true);
+      ghost.className = 'kanban-card kanban-card--ghost';
+      ghost.style.width = dragging.getBoundingClientRect().width + 'px';
+      ghost.style.left = originLeft + 'px';
+      ghost.style.top = originTop + 'px';
+      document.body.appendChild(ghost);
+      dragging.classList.add('kanban-card--dragging');
+    }
+
+    e.preventDefault();
+    ghost.style.left = (originLeft + dx) + 'px';
+    ghost.style.top = (originTop + dy) + 'px';
+
+    ghost.style.visibility = 'hidden';
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    ghost.style.visibility = '';
+
+    const zone = el?.closest('[data-drop-zone]');
+    board.querySelectorAll('.kanban-col__body--over').forEach((z) =>
+      z.classList.remove('kanban-col__body--over')
+    );
+    if (zone) {
+      zone.classList.add('kanban-col__body--over');
+      activeZone = zone;
+    } else {
+      activeZone = null;
+    }
+  }, { passive: false });
+
+  board.addEventListener('touchend', async () => {
+    if (!dragging) return;
+    const zone = activeZone;
+    const tid = taskId;
+    const task = state.tasks.find((tk) => String(tk.id) === String(tid));
+    cleanup();
+
+    if (!zone || !task) return;
+    const newStatus = zone.dataset.dropZone;
+    if (task.status === newStatus) return;
+
+    task.status = newStatus;
+    renderKanban(container);
+    try {
+      await api.patch(`/tasks/${tid}/status`, { status: newStatus });
+      await loadTasks(container);
+    } catch (err) {
+      window.oikos.showToast(err.message, 'danger');
+      await loadTasks(container);
+    }
+  }, { passive: true });
+
+  board.addEventListener('touchcancel', cleanup, { passive: true });
 }
 
 // --------------------------------------------------------
@@ -952,11 +1062,26 @@ function wireSwipeGestures(container) {
         card.style.transition = 'transform 0.2s ease';
         card.style.transform  = 'translateX(-110%)';
         vibrate(40);
+        const capturedStatus = status;
+        const nextStatus = capturedStatus === 'done' ? 'open' : 'done';
         setTimeout(async () => {
           resetCard(false);
           try {
-            await toggleTaskStatus(taskId, status);
+            await toggleTaskStatus(taskId, capturedStatus);
             await loadTasks(container);
+            window.oikos.showToast(
+              t(nextStatus === 'done' ? 'tasks.swipedDoneToast' : 'tasks.swipedOpenToast'),
+              'default',
+              5000,
+              async () => {
+                try {
+                  await toggleTaskStatus(taskId, nextStatus);
+                  await loadTasks(container);
+                } catch (err) {
+                  window.oikos.showToast(err.message, 'danger');
+                }
+              },
+            );
           } catch (err) {
             window.oikos.showToast(err.message, 'danger');
             await loadTasks(container);
@@ -1212,4 +1337,16 @@ export async function render(container, { user }) {
   wireTaskList(container);
   renderFilters(container);
   renderTaskList(container);
+
+  // Deep-Link: ?open=<id> öffnet direkt das Edit-Modal
+  const openId = new URLSearchParams(window.location.search).get('open');
+  if (openId) {
+    try {
+      const [task, reminder] = await Promise.all([
+        loadTaskForEdit(openId),
+        loadReminderForTask(openId),
+      ]);
+      openTaskModal({ task, users: state.users, reminder }, container);
+    } catch { /* Task existiert nicht oder kein Zugriff */ }
+  }
 }

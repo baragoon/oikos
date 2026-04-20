@@ -557,6 +557,16 @@
   transform: rotate(1.5deg);
 }
 
+.kanban-card--ghost {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0.88;
+  box-shadow: var(--shadow-xl);
+  transform: rotate(2deg) scale(1.03);
+  transition: none;
+}
+
 .kanban-card--done {
   opacity: 0.6;
 }
