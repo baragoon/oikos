@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.2] - 2026-04-21
+
+### Fixed
+- Locale file (`de.json`) no longer causes a JSON parse error that made the app completely unusable. The `recipes.deleteConfirm` value contained a bare ASCII double-quote inside a JSON string, which prematurely terminated the string and broke every page load.
+- ICS calendar subscriptions now respect the `COUNT` parameter in RRULE (RFC 5545). Previously, events with a limited number of occurrences (e.g. `RRULE:FREQ=WEEKLY;COUNT=3`) were incorrectly shown as upcoming because the expansion loop iterated to the sync window end regardless of the occurrence limit.
+
 ## [0.22.1] - 2026-04-21
 
 ### Fixed

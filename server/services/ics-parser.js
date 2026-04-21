@@ -117,10 +117,14 @@ function expandRRULE(vevent, windowStart, windowEnd) {
     const e = new Date(vevent.allDay ? vevent.dtend   + 'T00:00:00Z' : vevent.dtend);
     if (!isNaN(s) && !isNaN(e)) durationMs = e - s;
   }
+  const countMatch = /;COUNT=(\d+)/i.exec(vevent.rrule);
+  const maxCount   = countMatch ? parseInt(countMatch[1], 10) : null;
   let current = startDate, iterations = 0;
   const MAX_ITER = 1500;
   while (current <= windowEnd && iterations < MAX_ITER) {
     iterations++;
+    if (maxCount !== null && iterations > maxCount) break;
+
     if (current >= windowStart) {
       const occStart = current + timeSuffix;
       let occEnd = null;
