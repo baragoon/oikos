@@ -187,6 +187,8 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4) var(--space-2);
+  position: relative;
+  z-index: 2;
 }
 
 .widget__title {

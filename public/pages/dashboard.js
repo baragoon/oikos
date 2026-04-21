@@ -119,9 +119,9 @@ function widgetHeader(icon, title, count, linkHref, linkLabel) {
         ${title}
         ${badge}
       </span>
-      <a href="${linkHref}" data-route="${linkHref}" class="widget__link">
+      <button type="button" data-route="${linkHref}" class="widget__link">
         ${linkLabel}
-      </a>
+      </button>
     </div>
   `;
 }
