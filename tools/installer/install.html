@@ -141,6 +141,7 @@
         </div>
       </div>
       <div class="card-foot">
+        <div id="cfg-err" class="error" style="display:none"></div>
         <button class="btn btn-primary" id="cfg-next">Continue</button>
       </div>
     </div>
@@ -443,8 +444,19 @@ document.addEventListener('click', async e => {
 });
 
 $('cfg-next').addEventListener('click', () => {
-  S.host = $('cfg-host').value.trim() || 'localhost';
-  S.port = $('cfg-port').value.trim() || '3000';
+  const rawHost = $('cfg-host').value.trim() || 'localhost';
+  const rawPort = parseInt($('cfg-port').value.trim(), 10);
+  if (!/^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?$/.test(rawHost) && rawHost !== 'localhost') {
+    showErr('cfg-err', 'Invalid hostname. Use only letters, digits, hyphens and dots.');
+    return;
+  }
+  if (isNaN(rawPort) || rawPort < 1 || rawPort > 65535) {
+    showErr('cfg-err', 'Invalid port. Must be a number between 1 and 65535.');
+    return;
+  }
+  showErr('cfg-err', '');
+  S.host = rawHost;
+  S.port = String(rawPort);
   S.tz   = $('cfg-tz').value.trim() || 'UTC';
   showStep(1);
 });
