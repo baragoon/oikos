@@ -8,7 +8,7 @@ import { api } from '/api.js';
 import { renderRRuleFields, bindRRuleEvents, getRRuleValues } from '/rrule-ui.js';
 import { openModal as openSharedModal, closeModal, wireBlurValidation, validateAll, btnSuccess, btnError, promptModal, confirmModal } from '/components/modal.js';
 import { stagger, vibrate } from '/utils/ux.js';
-import { t, formatDate } from '/i18n.js';
+import { t, formatDate, formatTime } from '/i18n.js';
 import { esc } from '/utils/html.js';
 import { refresh as refreshReminders } from '/reminders.js';
 
@@ -57,17 +57,29 @@ function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function formatDueDate(dateStr) {
+function formatDueDate(dateStr, timeStr) {
   if (!dateStr) return null;
-  const due  = new Date(dateStr);
-  const now  = new Date();
-  now.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((due - now) / 86400000);
+  const dueDate = timeStr ? new Date(`${dateStr}T${timeStr}`) : new Date(`${dateStr}T23:59:59`);
+  if (isNaN(dueDate)) return null;
 
-  if (diffDays < 0)  return { label: t('tasks.overdueDay', { count: Math.abs(diffDays) }), cls: 'due-date--overdue' };
-  if (diffDays === 0) return { label: t('tasks.dueToday'),   cls: 'due-date--today' };
-  if (diffDays === 1) return { label: t('tasks.dueTomorrow'), cls: ''                };
-  return { label: formatDate(due), cls: '' };
+  const now    = new Date();
+  const today  = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dueDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+  const calDayDiff = Math.round((dueDay - today) / (1000 * 60 * 60 * 24));
+
+  const timeLabel = timeStr ? ` – ${formatTime(dueDate)}` : '';
+  const fullLabel = timeStr ? `${formatDate(dueDate)}, ${formatTime(dueDate)}` : formatDate(dueDate);
+
+  if (dueDate < now) {
+    return { label: `${t('tasks.overdue')} – ${fullLabel}`, cls: 'due-date--overdue' };
+  }
+  if (calDayDiff === 0) {
+    return { label: `${t('tasks.dueToday')}${timeLabel}`, cls: 'due-date--today' };
+  }
+  if (calDayDiff === 1) {
+    return { label: `${t('tasks.dueTomorrow')}${timeLabel}`, cls: '' };
+  }
+  return { label: fullLabel, cls: '' };
 }
 
 function groupBy(tasks, mode) {
@@ -119,8 +131,8 @@ function renderPriorityBadge(priority) {
   </span>`;
 }
 
-function renderDueDate(dateStr) {
-  const d = formatDueDate(dateStr);
+function renderDueDate(dateStr, timeStr) {
+  const d = formatDueDate(dateStr, timeStr);
   if (!d) return '';
   return `<span class="due-date ${d.cls}">
     <i data-lucide="clock" class="icon-11" aria-hidden="true"></i> ${d.label}
@@ -178,7 +190,7 @@ function renderTaskCard(task, opts = {}) {
           </div>
           <div class="task-card__meta">
             ${renderPriorityBadge(task.priority)}
-            ${renderDueDate(task.due_date)}
+            ${renderDueDate(task.due_date, task.due_time)}
             ${task.is_recurring ? `<span class="due-date" aria-label="${t('tasks.recurring')}"><i data-lucide="repeat" class="icon-sm" aria-hidden="true"></i></span>` : ''}
             ${task.category !== 'misc' ? `<span class="due-date">${CATEGORY_LABELS()[task.category] ?? task.category}</span>` : ''}
           </div>
@@ -584,7 +596,7 @@ function kanbanNextStatus(status) {
 }
 
 function renderKanbanCard(task) {
-  const due  = formatDueDate(task.due_date);
+  const due  = formatDueDate(task.due_date, task.due_time);
   const next = kanbanNextStatus(task.status);
   const icon = next === 'done' ? 'check' : next === 'in_progress' ? 'circle-play' : 'rotate-ccw';
   const nextLabel = next === 'done'
