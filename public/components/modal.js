@@ -132,16 +132,23 @@ function _wireSheetSwipe(panel) {
     if (!dragging) return;
     const dy = e.touches[0].clientY - startY;
     if (dy < 0) { dragging = false; return; } // Aufwärts-Scroll: Swipe abbrechen
-    panel.style.transform = `translateY(${dy * 0.6}px)`;
+    // Erst ab 10px Bewegung animieren: Verhindert winzige Transforms durch
+    // normale Taps, die danach zurückgesetzt werden müssten.
+    if (dy > 10) panel.style.transform = `translateY(${(dy - 10) * 0.6}px)`;
   }, { passive: true });
 
   panel.addEventListener('touchend', (e) => {
     if (!dragging) return;
     dragging = false;
     const dy = e.changedTouches[0].clientY - startY;
-    panel.style.transform = '';
     if (dy > 80) {
+      panel.style.transform = '';
       closeModal();
+    } else {
+      // Transform-Reset per rAF verzögern: DOM-Mutationen direkt in touchend
+      // unterbrechen auf iOS WebKit die Touch→Click-Konvertierung – der click-Event
+      // auf Child-Elementen (Buttons) wird gecancelt → Buttons reagieren nicht.
+      requestAnimationFrame(() => { panel.style.transform = ''; });
     }
   });
 }
@@ -150,23 +157,30 @@ function _wireSheetSwipe(panel) {
 // _doClose - gemeinsame Cleanup-Logik
 // --------------------------------------------------------
 
-function _doClose() {
-  if (!activeOverlay) return;
-  activeOverlay.remove();
-  activeOverlay = null;
+function _doClose(overlayEl) {
+  const target = overlayEl ?? activeOverlay;
+  if (!target) return;
 
-  // Scroll-Lock aufheben
-  document.body.style.overflow = '';
+  target.remove();
 
-  // Focus-Restore
-  if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-    previouslyFocused.focus();
-    previouslyFocused = null;
-  }
+  // Globalen State nur zurücksetzen wenn kein neues Modal zwischenzeitlich geöffnet wurde.
+  // (activeOverlay !== target bedeutet: openModal hat bereits ein neues Modal registriert)
+  if (activeOverlay === target) {
+    activeOverlay = null;
 
-  // Standalone: Statusbar-Farbe zur aktuellen Route wiederherstellen
-  if (window.oikos?.restoreThemeColor) {
-    window.oikos.restoreThemeColor();
+    // Scroll-Lock aufheben
+    document.body.style.overflow = '';
+
+    // Focus-Restore
+    if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+      previouslyFocused.focus();
+      previouslyFocused = null;
+    }
+
+    // Standalone: Statusbar-Farbe zur aktuellen Route wiederherstellen
+    if (window.oikos?.restoreThemeColor) {
+      window.oikos.restoreThemeColor();
+    }
   }
 }
 
@@ -186,8 +200,14 @@ function _doClose() {
  * @param {string}   [opts.size='md'] - 'sm' | 'md' | 'lg'
  */
 export function openModal({ title, content, onSave, onDelete, size = 'md' } = {}) {
-  // Vorheriges Modal schließen (kein Stacking)
-  if (activeOverlay) closeModal();
+  // Vorheriges Modal schließen (kein Stacking).
+  // ID sofort entfernen damit getElementById() nach dem Einfügen des neuen Modals
+  // nicht die noch animierende alte Instanz zurückgibt – sonst landen alle
+  // Event-Listener am falschen Element und Buttons reagieren nicht.
+  if (activeOverlay) {
+    activeOverlay.removeAttribute('id');
+    closeModal();
+  }
 
   // Focus-Restore vorbereiten
   previouslyFocused = document.activeElement;
@@ -264,7 +284,11 @@ export function closeModal() {
 
   document.removeEventListener('keydown', onEscape);
 
-  const panel = activeOverlay.querySelector('.modal-panel');
+  // Overlay sofort sichern: Bei Mobile-Animation öffnet openModal() ein neues Modal
+  // bevor animationend feuert. Ohne capturedOverlay würde _doClose() das neue Modal
+  // statt des alten entfernen (Race Condition → Buttons im Confirm-Dialog reagieren nicht).
+  const capturedOverlay = activeOverlay;
+  const panel = capturedOverlay.querySelector('.modal-panel');
 
   // Focus-Trap-Handler und Virtual-Keyboard-Listener entfernen
   if (focusTrapHandler) {
@@ -280,15 +304,15 @@ export function closeModal() {
   if (isMobile && panel) {
     panel.classList.add('modal-panel--closing');
     // Fallback-Timer falls animationend nicht feuert (prefers-reduced-motion, Tab-Wechsel etc.)
-    const fallback = setTimeout(_doClose, 300);
+    const fallback = setTimeout(() => _doClose(capturedOverlay), 300);
     panel.addEventListener('animationend', () => {
       clearTimeout(fallback);
-      _doClose();
+      _doClose(capturedOverlay);
     }, { once: true });
     return;
   }
 
-  _doClose();
+  _doClose(capturedOverlay);
 }
 
 // --------------------------------------------------------
