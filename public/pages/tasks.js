@@ -397,7 +397,7 @@ function renderModalContent({ task = null, users = [], reminder = null } = {}) {
 let state = {
   tasks:           [],
   users:           [],
-  filters:         { status: '', priority: '', assigned_to: '' },
+  filters:         { status: 'open', priority: '', assigned_to: '' },
   groupMode:       'category',   // 'category' | 'due'
   viewMode:        'list',       // 'list' | 'kanban' (resolved at render time)
   expandedTasks:   new Set(),
