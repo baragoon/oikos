@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oikos Setup</title>
+  <style>
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --mono: 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
+      --bg: #f0f2f5; --surface: #fff; --surface-2: #f7f8fa;
+      --border: #e2e5ea; --text: #111827; --muted: #6b7280;
+      --accent: #2563eb; --accent-h: #1d4ed8;
+      --success: #16a34a; --danger: #dc2626;
+      --r: 12px; --r-sm: 7px;
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,.1), 0 4px 10px rgba(0,0,0,.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d0d0d; --surface: #181818; --surface-2: #222;
+        --border: #2a2a2a; --text: #f0f0f0; --muted: #8a8a8a;
+        --accent: #3b82f6; --accent-h: #60a5fa;
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 48px 16px 80px;
+    }
+    .progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--border); z-index: 100; }
+    .progress-fill  { height: 100%; background: var(--accent); transition: width .4s cubic-bezier(.4,0,.2,1); }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 560px;
+    }
+    .step { display: none; animation: up .25s ease; }
+    .step.active { display: block; }
+    @keyframes up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+    .card-head { padding: 28px 32px 22px; border-bottom: 1px solid var(--border); }
+    .step-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin-bottom: 8px; }
+    .card-head h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+    .card-head p  { font-size: 14px; color: var(--muted); margin-top: 7px; line-height: 1.55; }
+    .card-body { padding: 24px 32px; }
+    .card-foot { padding: 16px 32px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .opt { font-weight: 400; color: var(--muted); font-size: 12px; }
+    input[type=text], input[type=password], input[type=email], select {
+      width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      background: var(--surface); color: var(--text); font-family: var(--font); font-size: 14px;
+      outline: none; transition: border-color .15s;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .secret-row { display: flex; gap: 7px; }
+    .secret-row input { flex: 1; font-family: var(--mono); font-size: 12px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+    .hint a { color: var(--accent); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px; padding: 9px 20px;
+      border-radius: var(--r-sm); font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: background .12s, opacity .12s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+    .btn-ghost   { background: var(--surface-2); color: var(--text); border: 1.5px solid var(--border); }
+    .btn-ghost:hover:not(:disabled) { background: var(--border); }
+    .btn-sm      { padding: 6px 11px; font-size: 12px; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .error-banner {
+      display: none; margin-top: 12px; padding: 10px 14px; border-radius: var(--r-sm);
+      background: color-mix(in srgb, var(--danger) 8%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--danger) 25%, transparent);
+      color: var(--danger); font-size: 13px;
+    }
+    .toggle-card { border: 1.5px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 14px; }
+    .toggle-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600;
+    }
+    .toggle-head:hover { background: var(--surface-2); }
+    .toggle-badge { font-size: 11px; font-weight: 500; color: var(--muted); }
+    .toggle-body { display: none; padding: 16px; border-top: 1.5px solid var(--border); background: var(--surface-2); }
+    .toggle-body.open { display: block; }
+    .status-box { background: var(--surface-2); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 16px; }
+    .status-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .65s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ok-icon  { color: var(--success); font-size: 20px; line-height: 1; }
+    .err-icon { color: var(--danger);  font-size: 20px; line-height: 1; }
+    .elapsed  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .log-box  {
+      display: none; font-family: var(--mono); font-size: 11px; color: var(--muted);
+      white-space: pre-wrap; max-height: 180px; overflow-y: auto;
+      margin-top: 12px; padding: 10px; background: var(--bg); border-radius: 5px;
+    }
+    .review-grid { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; font-size: 14px; }
+    .review-key  { color: var(--muted); }
+    .masked      { font-family: var(--mono); letter-spacing: 3px; color: var(--muted); }
+    .done-wrap   { text-align: center; padding: 20px 0 8px; }
+    .done-wrap .icon { font-size: 52px; margin-bottom: 14px; }
+    .done-wrap h2 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+    .done-wrap p  { color: var(--muted); margin: 8px 0 28px; font-size: 15px; }
+    .open-link {
+      display: inline-flex; align-items: center; gap: 8px; padding: 13px 32px;
+      background: var(--accent); color: #fff; text-decoration: none;
+      border-radius: var(--r-sm); font-weight: 700; font-size: 15px;
+      transition: background .12s;
+    }
+    .open-link:hover { background: var(--accent-h); }
+  </style>
+</head>
+<body>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <div class="card">
+
+    <!-- Step 1: Basic Config -->
+    <div class="step" id="step-config">
+      <div class="card-head">
+        <div class="step-tag">Step 1 of 7</div>
+        <h1>Basic Configuration</h1>
+        <p>How will you access Oikos?</p>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="cfg-host">Domain or IP address</label>
+          <input type="text" id="cfg-host" value="localhost" placeholder="localhost or 192.168.1.x">
+          <div class="hint">The address you'll use to open Oikos in your browser.</div>
+        </div>
+        <div class="field">
+          <label for="cfg-port">Port</label>
+          <input type="text" id="cfg-port" value="3000">
+        </div>
+        <div class="field">
+          <label for="cfg-tz">Timezone</label>
+          <input type="text" id="cfg-tz" placeholder="Europe/Berlin">
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-primary" id="cfg-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Secrets -->
+    <div class="step" id="step-secrets">
+      <div class="card-head">
+        <div class="step-tag">Step 2 of 7</div>
+        <h1>Security Keys</h1>
+        <p>These protect your session and encrypt the database. Store your <code>.env</code> file safely — losing these keys means losing access to your data.</p>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="sec-session">Session Secret</label>
+          <div class="secret-row">
+            <input type="password" id="sec-session" autocomplete="off" spellcheck="false">
+            <button class="btn btn-ghost btn-sm" data-eye="sec-session">&#x1F441;</button>
+            <button class="btn btn-ghost btn-sm" data-gen="sec-session">Generate</button>
+          </div>
+          <div class="hint">Signs browser session cookies.</div>
+        </div>
+        <div class="field">
+          <label for="sec-db">Database Encryption Key</label>
+          <div class="secret-row">
+            <input type="password" id="sec-db" autocomplete="off" spellcheck="false">
+            <button class="btn btn-ghost btn-sm" data-eye="sec-db">&#x1F441;</button>
+            <button class="btn btn-ghost btn-sm" data-gen="sec-db">Generate</button>
+          </div>
+          <div class="hint">Encrypts the SQLite database at rest.</div>
+        </div>
+        <div class="error-banner" id="sec-err"></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-ghost" data-back>Back</button>
+        <button class="btn btn-primary" id="sec-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Weather -->
+    <div class="step" id="step-weather">
+      <div class="card-head">
+        <div class="step-tag">Step 3 of 7</div>
+        <h1>Weather Widget</h1>
+        <p>Show live weather on your dashboard. Requires a free OpenWeatherMap API key.</p>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label><input type="checkbox" id="wea-enable"> Enable weather widget</label>
+        </div>
+        <div id="wea-fields" style="display:none">
+          <div class="field">
+            <label for="wea-key">API Key <span class="opt">(free tier)</span></label>
+            <input type="text" id="wea-key" placeholder="your_api_key">
+            <div class="hint">Get one free at <a href="https://openweathermap.org/api" target="_blank" rel="noopener">openweathermap.org/api</a></div>
+          </div>
+          <div class="field">
+            <label for="wea-city">City</label>
+            <input type="text" id="wea-city" value="Berlin">
+          </div>
+          <div class="field">
+            <label for="wea-units">Units</label>
+            <select id="wea-units">
+              <option value="metric">Metric (&#xB0;C)</option>
+              <option value="imperial">Imperial (&#xB0;F)</option>
+            </select>
+          </div>
+        </div>
+        <div class="error-banner" id="wea-err"></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-ghost" data-back>Back</button>
+        <button class="btn btn-primary" id="wea-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Calendar -->
+    <div class="step" id="step-calendar">
+      <div class="card-head">
+        <div class="step-tag">Step 4 of 7</div>
+        <h1>Calendar Sync</h1>
+        <p>Connect Oikos to Google Calendar or Apple iCloud. Both optional — expand to configure.</p>
+      </div>
+      <div class="card-body">
+        <div class="toggle-card">
+          <div class="toggle-head" data-toggle="gcal-body">
+            <span>Google Calendar</span>
+            <span class="toggle-badge" id="gcal-badge">Optional</span>
+          </div>
+          <div class="toggle-body" id="gcal-body">
+            <p class="hint" style="margin-bottom:12px">
+              Create OAuth credentials at <a href="https://console.cloud.google.com" target="_blank" rel="noopener">console.cloud.google.com</a>.
+              Redirect URI: <code id="gcal-redirect-hint"></code>
+            </p>
+            <div class="field">
+              <label for="gcal-id">Client ID</label>
+              <input type="text" id="gcal-id">
+            </div>
+            <div class="field">
+              <label for="gcal-secret">Client Secret</label>
+              <input type="password" id="gcal-secret">
+            </div>
+          </div>
+        </div>
+        <div class="toggle-card">
+          <div class="toggle-head" data-toggle="apple-body">
+            <span>Apple iCloud CalDAV</span>
+            <span class="toggle-badge" id="apple-badge">Optional</span>
+          </div>
+          <div class="toggle-body" id="apple-body">
+            <p class="hint" style="margin-bottom:12px">
+              Create an app-specific password at <a href="https://appleid.apple.com" target="_blank" rel="noopener">appleid.apple.com</a>.
+            </p>
+            <div class="field">
+              <label for="apple-user">Apple ID (email)</label>
+              <input type="email" id="apple-user">
+            </div>
+            <div class="field">
+              <label for="apple-pass">App-Specific Password</label>
+              <input type="password" id="apple-pass">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-ghost" data-back>Back</button>
+        <button class="btn btn-primary" id="cal-next">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Review -->
+    <div class="step" id="step-review">
+      <div class="card-head">
+        <div class="step-tag">Step 5 of 7</div>
+        <h1>Review</h1>
+        <p>Check your settings before writing <code>.env</code> and starting the container.</p>
+      </div>
+      <div class="card-body">
+        <div class="review-grid">
+          <div class="review-key">Host</div>           <div id="rv-host"></div>
+          <div class="review-key">Port</div>           <div id="rv-port"></div>
+          <div class="review-key">Timezone</div>       <div id="rv-tz"></div>
+          <div class="review-key">SESSION_SECRET</div> <div class="masked">&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</div>
+          <div class="review-key">DB_ENCRYPT_KEY</div> <div class="masked">&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</div>
+          <div class="review-key">Weather</div>        <div id="rv-weather"></div>
+          <div class="review-key">Google Calendar</div><div id="rv-google"></div>
+          <div class="review-key">Apple CalDAV</div>   <div id="rv-apple"></div>
+        </div>
+        <div class="error-banner" id="rev-err"></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-ghost" data-back>Back</button>
+        <button class="btn btn-primary" id="rev-next">Save &amp; Start Docker</button>
+      </div>
+    </div>
+
+    <!-- Step 6: Docker -->
+    <div class="step" id="step-docker">
+      <div class="card-head">
+        <div class="step-tag">Step 6 of 7</div>
+        <h1>Starting Oikos</h1>
+        <p>Pulling the image and starting the Docker container.</p>
+      </div>
+      <div class="card-body">
+        <div class="status-box">
+          <div class="status-row">
+            <div class="spinner" id="dkr-icon"></div>
+            <div>
+              <div id="dkr-text">Starting container&#x2026;</div>
+              <div class="elapsed" id="dkr-elapsed"></div>
+            </div>
+          </div>
+          <div class="log-box" id="dkr-log"></div>
+        </div>
+      </div>
+      <div class="card-foot" id="dkr-foot" style="display:none">
+        <button class="btn btn-primary" id="dkr-next">Continue to Admin Setup</button>
+      </div>
+    </div>
+
+    <!-- Step 7: Admin -->
+    <div class="step" id="step-admin">
+      <div class="card-head">
+        <div class="step-tag">Step 7 of 7</div>
+        <h1>Create Admin Account</h1>
+        <p>Set up your first login. This account has full access to Oikos.</p>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label for="adm-user">Username</label>
+          <input type="text" id="adm-user" placeholder="jane" autocomplete="username">
+          <div class="hint">3&#x2013;64 characters: letters, numbers, . - _</div>
+        </div>
+        <div class="field">
+          <label for="adm-name">Display Name</label>
+          <input type="text" id="adm-name" placeholder="Jane Smith" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="adm-pass">Password</label>
+          <div class="secret-row">
+            <input type="password" id="adm-pass" placeholder="At least 8 characters" autocomplete="new-password">
+            <button class="btn btn-ghost btn-sm" data-eye="adm-pass">&#x1F441;</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="adm-conf">Confirm Password</label>
+          <input type="password" id="adm-conf" autocomplete="new-password">
+        </div>
+        <div class="error-banner" id="adm-err"></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-primary" id="adm-next">Create Account</button>
+      </div>
+    </div>
+
+    <!-- Step 8: Done -->
+    <div class="step" id="step-done">
+      <div class="card-body">
+        <div class="done-wrap">
+          <div class="icon">&#x1F389;</div>
+          <h2>Oikos is ready!</h2>
+          <p>Your family planner is running and your admin account is set up.</p>
+          <a id="done-link" class="open-link" href="#" target="_blank" rel="noopener">Open Oikos &#x2192;</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script type="module">
+// All step panels live in the static HTML above.
+// JS only: toggles active class, reads/writes input values, sets textContent.
+// No dynamic DOM generation. DOM API only (textContent, classList, style).
+
+const $ = id => document.getElementById(id);
+const STEPS = ['config','secrets','weather','calendar','review','docker','admin','done'];
+let currentStep = 0;
+
+const S = {
+  host: 'localhost', port: '3000', tz: '',
+  SESSION_SECRET: '', DB_ENCRYPTION_KEY: '',
+  OPENWEATHER_API_KEY: '', OPENWEATHER_CITY: 'Berlin',
+  OPENWEATHER_UNITS: 'metric', OPENWEATHER_LANG: 'de',
+  GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '', GOOGLE_REDIRECT_URI: '',
+  APPLE_USERNAME: '', APPLE_APP_SPECIFIC_PASSWORD: '',
+};
+
+S.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+$('cfg-tz').value = S.tz;
+
+function setProgress(n) {
+  $('prog').style.width = `${n / (STEPS.length - 1) * 100}%`;
+}
+
+function showStep(n) {
+  currentStep = n;
+  STEPS.forEach((name, i) => {
+    const el = $(`step-${name}`);
+    if (el) el.classList.toggle('active', i === n);
+  });
+  setProgress(n);
+  window.scrollTo(0, 0);
+}
+
+function showErr(id, msg) {
+  const el = $(id);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+document.addEventListener('click', async e => {
+  const genId = e.target.closest('[data-gen]')?.dataset.gen;
+  if (genId) {
+    const btn = e.target.closest('[data-gen]');
+    btn.disabled = true;
+    btn.textContent = '...';
+    const r = await fetch('/api/generate-secret', { method: 'POST' });
+    const d = await r.json();
+    $(genId).value = d.secret;
+    btn.disabled = false;
+    btn.textContent = 'Generate';
+    return;
+  }
+
+  const eyeId = e.target.closest('[data-eye]')?.dataset.eye;
+  if (eyeId) {
+    const inp = $(eyeId);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    return;
+  }
+
+  const toggleId = e.target.closest('[data-toggle]')?.dataset.toggle;
+  if (toggleId) {
+    $(toggleId).classList.toggle('open');
+    return;
+  }
+
+  if (e.target.closest('[data-back]') !== null) {
+    showStep(currentStep - 1);
+  }
+});
+
+$('cfg-next').addEventListener('click', () => {
+  S.host = $('cfg-host').value.trim() || 'localhost';
+  S.port = $('cfg-port').value.trim() || '3000';
+  S.tz   = $('cfg-tz').value.trim() || 'UTC';
+  showStep(1);
+});
+
+$('sec-next').addEventListener('click', () => {
+  const ss = $('sec-session').value.trim();
+  const dk = $('sec-db').value.trim();
+  if (!ss || !dk) { showErr('sec-err', 'Both keys are required.'); return; }
+  showErr('sec-err', '');
+  S.SESSION_SECRET = ss;
+  S.DB_ENCRYPTION_KEY = dk;
+  showStep(2);
+});
+
+$('wea-enable').addEventListener('change', function() {
+  $('wea-fields').style.display = this.checked ? 'block' : 'none';
+});
+
+$('wea-next').addEventListener('click', () => {
+  if ($('wea-enable').checked) {
+    const k = $('wea-key').value.trim();
+    if (!k) { showErr('wea-err', 'API key is required when weather is enabled.'); return; }
+    S.OPENWEATHER_API_KEY = k;
+    S.OPENWEATHER_CITY = $('wea-city').value.trim() || 'Berlin';
+    S.OPENWEATHER_UNITS = $('wea-units').value;
+  } else {
+    S.OPENWEATHER_API_KEY = '';
+  }
+  showErr('wea-err', '');
+  $('gcal-redirect-hint').textContent =
+    `http://${S.host}:${S.port}/api/v1/calendar/google/callback`;
+  showStep(3);
+});
+
+$('cal-next').addEventListener('click', () => {
+  S.GOOGLE_CLIENT_ID = $('gcal-id').value.trim();
+  S.GOOGLE_CLIENT_SECRET = $('gcal-secret').value.trim();
+  S.GOOGLE_REDIRECT_URI = S.GOOGLE_CLIENT_ID
+    ? `http://${S.host}:${S.port}/api/v1/calendar/google/callback` : '';
+  S.APPLE_USERNAME = $('apple-user').value.trim();
+  S.APPLE_APP_SPECIFIC_PASSWORD = $('apple-pass').value.trim();
+
+  $('rv-host').textContent    = S.host;
+  $('rv-port').textContent    = S.port;
+  $('rv-tz').textContent      = S.tz;
+  $('rv-weather').textContent = S.OPENWEATHER_API_KEY ? `enabled (${S.OPENWEATHER_CITY})` : '-';
+  $('rv-google').textContent  = S.GOOGLE_CLIENT_ID ? 'configured' : '-';
+  $('rv-apple').textContent   = S.APPLE_USERNAME || '-';
+
+  showStep(4);
+});
+
+$('rev-next').addEventListener('click', async () => {
+  const btn = $('rev-next');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const env = {
+    SESSION_SECRET: S.SESSION_SECRET, DB_ENCRYPTION_KEY: S.DB_ENCRYPTION_KEY,
+    OPENWEATHER_API_KEY: S.OPENWEATHER_API_KEY, OPENWEATHER_CITY: S.OPENWEATHER_CITY,
+    OPENWEATHER_UNITS: S.OPENWEATHER_UNITS, OPENWEATHER_LANG: S.OPENWEATHER_LANG,
+    GOOGLE_CLIENT_ID: S.GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET: S.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: S.GOOGLE_REDIRECT_URI,
+    APPLE_USERNAME: S.APPLE_USERNAME, APPLE_APP_SPECIFIC_PASSWORD: S.APPLE_APP_SPECIFIC_PASSWORD,
+    SYNC_INTERVAL_MINUTES: '15',
+  };
+  try {
+    const r = await fetch('/api/save-env', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ env }),
+    });
+    if (!r.ok) throw new Error('Failed to save .env');
+    showStep(5);
+    startDocker();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Save & Start Docker';
+    showErr('rev-err', e.message);
+  }
+});
+
+let pollInterval = null;
+let dockerStart = null;
+
+async function startDocker() {
+  dockerStart = Date.now();
+  tickElapsed();
+  try {
+    await fetch('/api/start', { method: 'POST' });
+  } catch (e) {
+    dockerFailed(e.message);
+    return;
+  }
+  pollInterval = setInterval(pollDocker, 2000);
+}
+
+function tickElapsed() {
+  const el = $('dkr-elapsed');
+  if (!el || currentStep !== 5) return;
+  el.textContent = `${Math.floor((Date.now() - dockerStart) / 1000)}s elapsed`;
+  setTimeout(tickElapsed, 1000);
+}
+
+async function pollDocker() {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    if (d.status === 'running') {
+      clearInterval(pollInterval);
+      $('dkr-icon').className = 'ok-icon';
+      $('dkr-icon').textContent = '✓';
+      $('dkr-text').textContent = 'Container is healthy and running';
+      $('dkr-foot').style.display = 'flex';
+      $('dkr-next').addEventListener('click', () => showStep(6));
+    } else if (d.status === 'error') {
+      clearInterval(pollInterval);
+      dockerFailed(d.logs || 'Unknown error');
+    }
+  } catch { /* keep polling during startup */ }
+}
+
+function dockerFailed(logs) {
+  $('dkr-icon').className = 'err-icon';
+  $('dkr-icon').textContent = '✗';
+  $('dkr-text').textContent = 'Container failed to start';
+  const logEl = $('dkr-log');
+  logEl.style.display = 'block';
+  logEl.textContent = logs;
+  $('dkr-foot').style.display = 'flex';
+  $('dkr-next').textContent = 'Retry';
+  $('dkr-next').addEventListener('click', () => { showStep(5); startDocker(); }, { once: true });
+}
+
+$('adm-next').addEventListener('click', createAdmin);
+
+async function createAdmin() {
+  const u  = $('adm-user').value.trim();
+  const dn = $('adm-name').value.trim();
+  const p  = $('adm-pass').value;
+  const c  = $('adm-conf').value;
+  if (!u || !dn || !p) { showErr('adm-err', 'All fields are required.'); return; }
+  if (!/^[a-zA-Z0-9._-]{3,64}$/.test(u)) { showErr('adm-err', 'Invalid username format (3-64 chars, letters/numbers/._-).'); return; }
+  if (p.length < 8) { showErr('adm-err', 'Password must be at least 8 characters.'); return; }
+  if (p !== c) { showErr('adm-err', 'Passwords do not match.'); return; }
+
+  const btn = $('adm-next');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const r = await fetch('/api/create-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, display_name: dn, password: p, port: parseInt(S.port, 10) }),
+    });
+    const d = await r.json();
+    if (r.status === 201 || r.status === 403) {
+      $('done-link').href = `http://${S.host}:${S.port}`;
+      showStep(7);
+    } else {
+      btn.disabled = false; btn.textContent = 'Create Account';
+      showErr('adm-err', d.error || 'Failed to create admin account.');
+    }
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Create Account';
+    showErr('adm-err', e.message);
+  }
+}
+
+showStep(0);
+</script>
+</body>
+</html>
