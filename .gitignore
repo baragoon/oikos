@@ -31,8 +31,9 @@ data/
 *.swp
 *.swo
 
-# Claude Code (contains local permissions and possibly tokens)
-.claude/
+# Claude Code — share skills/agents/rules/hooks/settings; keep local permissions and worktrees out
+.claude/settings.local.json
+.claude/worktrees/
 
 # Git worktrees
 .worktrees/

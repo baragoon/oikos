@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.42] - 2026-04-21
+
+### Added
+- `.claude/` tooling committed with the repo: skills (`release-prep`, `fix-issue`, `pr-review`, `issue-triage`), subagents (`pr-reviewer`, `repo-auditor`), path-scoped rules (`server-routes`, `public-pages`, `tests`, `db-migrations`), and a PostToolUse hook (`block-innerhtml.sh`) that enforces the innerHTML ban on save. Contributors using Claude Code now get the same guardrails and workflows automatically.
+
+### Changed
+- `.gitignore`: no longer excludes the entire `.claude/` directory — only `.claude/settings.local.json` and `.claude/worktrees/` stay out, so shared tooling is versioned while local permissions remain private.
+
 ## [0.20.41] - 2026-04-21
 
 ### Fixed
