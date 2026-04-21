@@ -934,7 +934,7 @@
 .fab-container {
   position: fixed;
   bottom: calc(var(--nav-bottom-height) + 24px + var(--safe-area-inset-bottom));
-  right: var(--space-4);
+  right: calc(var(--space-4) * 2);
   z-index: calc(var(--z-nav) - 1);
   display: flex;
   flex-direction: column-reverse;

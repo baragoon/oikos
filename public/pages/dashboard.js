@@ -471,6 +471,14 @@ function initFab(container, signal) {
   const fabBackdrop = container.querySelector('#fab-backdrop');
   if (!fabMain) return;
 
+  // "Neu"-Button-Selector auf der jeweiligen Zielseite
+  const FAB_NEW_BTN = {
+    '/tasks':    '#btn-new-task',
+    '/calendar': '#fab-new-event',
+    '/shopping': '#fab-new-item',
+    '/notes':    '#fab-new-note',
+  };
+
   let open = false;
 
   function toggleFab(force) {
@@ -489,7 +497,12 @@ function initFab(container, signal) {
   fabMain.addEventListener('click', (e) => { e.stopPropagation(); toggleFab(); });
 
   fabActions.querySelectorAll('[data-route]').forEach((el) => {
-    const go = () => { toggleFab(false); window.oikos.navigate(el.dataset.route); };
+    const go = async () => {
+      toggleFab(false);
+      await window.oikos.navigate(el.dataset.route);
+      const btnSelector = FAB_NEW_BTN[el.dataset.route];
+      if (btnSelector) document.querySelector(btnSelector)?.click();
+    };
     el.addEventListener('click', go);
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
