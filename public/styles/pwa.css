@@ -84,16 +84,7 @@ nav,
    * Im Überlappungsbereich (Nav-Padding = Safe-Area) liegt die Nav darüber;
    * in einem eventuellen Spalt zwischen Nav-Unterkante und Displayrand liegt
    * body::after sichtbar - optisch identisch mit der Nav. */
-  body::after {
-    content: '';
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-bottom, 0px);
-    background-color: color-mix(in srgb, var(--color-surface) 85%, transparent);
-    backdrop-filter: var(--blur-md) saturate(180%);
-    -webkit-backdrop-filter: var(--blur-md) saturate(180%);
-    z-index: calc(var(--z-nav) - 1);
-  }
+  /* body::after-Ansatz entfernt: layout.css setzt padding-bottom auf .nav-bottom
+   * direkt via env(safe-area-inset-bottom), was zuverlässiger ist als ein
+   * Fixed-Pseudo-Element (kann bei overflow:hidden auf html/body geclipt werden). */
 }
