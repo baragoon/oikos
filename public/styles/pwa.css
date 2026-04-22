@@ -84,7 +84,7 @@ nav,
    * Im Überlappungsbereich (Nav-Padding = Safe-Area) liegt die Nav darüber;
    * in einem eventuellen Spalt zwischen Nav-Unterkante und Displayrand liegt
    * body::after sichtbar - optisch identisch mit der Nav. */
-/*  body::after {
+  body::after {
     content: '';
     position: fixed;
     bottom: 0;
@@ -95,5 +95,5 @@ nav,
     backdrop-filter: var(--blur-md) saturate(180%);
     -webkit-backdrop-filter: var(--blur-md) saturate(180%);
     z-index: calc(var(--z-nav) - 1);
-  }*/
+  }
 }

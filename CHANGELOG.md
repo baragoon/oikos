@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.9] - 2026-04-22
+
+### Fixed
+- iOS PWA: a `body::after` pseudo-element now fills the home indicator safe area with the same glass background as the bottom navigation, eliminating the gap between the nav bar and the screen edge
+
 ## [0.23.8] - 2026-04-22
 
 ### Fixed
