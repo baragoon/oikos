@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.3] - 2026-04-22
+
+### Fixed
+- Weather widget: wind speed is no longer multiplied by 3.6 when `OPENWEATHER_UNITS=imperial` (the API already returns mph; the conversion was only correct for metric/standard)
+- Weather widget: wind unit label now shows `mph` for imperial and `km/h` for metric/standard instead of always showing `km/h`
+
 ## [0.23.2] - 2026-04-22
 
 ### Fixed
