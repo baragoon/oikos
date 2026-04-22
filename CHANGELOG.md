@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.8] - 2026-04-22
+
+### Fixed
+- iOS PWA: bottom navigation bar now extends into the home indicator safe area, removing the gap between the nav and the screen edge
+
 ## [0.23.7] - 2026-04-22
 
 ### Fixed
