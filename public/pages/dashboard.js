@@ -215,7 +215,7 @@ function renderGreeting(user, stats = {}) {
 
 function renderUrgentTasks(tasks) {
   if (!tasks.length) {
-    return `<div class="widget">
+    return `<div class="widget widget--tasks">
       ${widgetHeader('check-square', t('nav.tasks'), 0, '/tasks')}
       <div class="widget__empty">
         <i data-lucide="check-circle" class="empty-state__icon" style="color:var(--color-success)" aria-hidden="true"></i>
@@ -241,7 +241,7 @@ function renderUrgentTasks(tasks) {
     `;
   }).join('');
 
-  return `<div class="widget">
+  return `<div class="widget widget--tasks">
     ${widgetHeader('check-square', t('nav.tasks'), tasks.length, '/tasks')}
     <div class="widget__body">${items}</div>
   </div>`;
@@ -249,7 +249,7 @@ function renderUrgentTasks(tasks) {
 
 function renderUpcomingEvents(events) {
   if (!events.length) {
-    return `<div class="widget">
+    return `<div class="widget widget--calendar">
       ${widgetHeader('calendar', t('nav.calendar'), 0, '/calendar')}
       <div class="widget__empty">
         <i data-lucide="calendar-check" class="empty-state__icon" aria-hidden="true"></i>
@@ -280,7 +280,7 @@ function renderUpcomingEvents(events) {
     `;
   }).join('');
 
-  return `<div class="widget">
+  return `<div class="widget widget--calendar">
     ${widgetHeader('calendar', t('nav.calendar'), events.length, '/calendar')}
     <div class="widget__body">${items}</div>
   </div>`;
@@ -293,7 +293,7 @@ function renderTodayMeals(meals) {
   const slots = MEAL_ORDER.map((type) => {
     const meal = meals.find((m) => m.meal_type === type);
     return `
-      <div class="meal-slot ${meal ? 'meal-slot--filled' : ''}" data-route="/meals" role="button" tabindex="0">
+      <div class="meal-slot ${meal ? 'meal-slot--filled' : ''}" data-type="${type}" data-route="/meals" role="button" tabindex="0">
         <i data-lucide="${MEAL_ICONS[type]}" class="meal-slot__icon" aria-hidden="true"></i>
         <div class="meal-slot__type">${mealLabels[type]}</div>
         <div class="meal-slot__title">${meal ? esc(meal.title) : '-'}</div>
@@ -309,7 +309,7 @@ function renderTodayMeals(meals) {
 
 function renderPinnedNotes(notes) {
   if (!notes.length) {
-    return `<div class="widget">
+    return `<div class="widget widget--notes">
       ${widgetHeader('pin', t('nav.notes'), 0, '/notes')}
       <div class="widget__empty">
         <i data-lucide="sticky-note" class="empty-state__icon" aria-hidden="true"></i>
@@ -326,7 +326,7 @@ function renderPinnedNotes(notes) {
     </div>
   `).join('');
 
-  return `<div class="widget widget--wide">
+  return `<div class="widget widget--notes widget--wide">
     ${widgetHeader('pin', t('nav.notes'), notes.length, '/notes')}
     <div class="notes-grid-widget">${items}</div>
   </div>`;
@@ -373,7 +373,7 @@ function renderShoppingLists(lists) {
     `;
   }).join('');
 
-  return `<div class="widget">
+  return `<div class="widget widget--shopping">
     ${widgetHeader('shopping-cart', t('nav.shopping'), totalOpen, '/shopping')}
     <div class="widget__body">${listsHtml}</div>
   </div>`;
@@ -409,7 +409,7 @@ function renderWeatherWidget(weather) {
   }).join('');
 
   return `
-    <div class="widget weather-widget" id="weather-widget">
+    <div class="widget widget--weather weather-widget" id="weather-widget">
       <button class="weather-widget__refresh" id="weather-refresh-btn" aria-label="${t('dashboard.weatherRefresh')}" title="${t('dashboard.weatherRefreshTitle')}">
         <i data-lucide="refresh-cw" class="icon-md" aria-hidden="true"></i>
       </button>

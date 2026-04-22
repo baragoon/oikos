@@ -408,6 +408,15 @@
   color: var(--active-module-accent, var(--color-accent));
 }
 
+/* Pill-Hintergrund hinter dem Icon (nur Bottom-Nav, nicht Sidebar) */
+.nav-bottom .nav-item[aria-current="page"] .nav-item__icon-wrap {
+  background-color: color-mix(in srgb, var(--active-module-accent, var(--color-accent)) 14%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1) var(--space-4);
+  margin-bottom: 1px;
+  transition: background-color var(--transition-fast);
+}
+
 .nav-item__icon {
   width: var(--space-5);
   height: var(--space-5);
@@ -776,7 +785,7 @@
 }
 
 .card--interactive:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 

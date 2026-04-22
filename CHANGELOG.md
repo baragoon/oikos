@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.5] - 2026-04-22
+
+### Changed
+- Dashboard: each widget now uses its module accent color (green for tasks, violet for calendar, orange for meals, pink for shopping, amber for notes) for its header icon, badge, and link instead of the global indigo accent
+- Dashboard: meal slots now display their type-specific color (amber for breakfast, green for lunch, indigo for dinner, orange for snack) on icon and label when a meal is planned
+- Dashboard: pinned note cards now show a subtle background tint matching the note's color
+- Dashboard: widget and card hover lift increased from 1 px to 2 px for more perceptible feedback on desktop
+- Navigation: active bottom-nav tab now shows a pill-shaped highlight behind the icon for a clearer location indicator
+- Shopping widget: progress bar height increased from 4 px to 6 px for better visual weight
+- Empty state icons inside widgets now use the tertiary text color instead of the disabled color for improved visibility
+
 ## [0.23.4] - 2026-04-22
 
 ### Changed
