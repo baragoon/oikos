@@ -302,6 +302,27 @@ function renderAppShell(container) {
   sidebar.setAttribute('aria-label', t('nav.main'));
   const sidebarLogo = document.createElement('div');
   sidebarLogo.className = 'nav-sidebar__logo';
+
+  // SVG-Logomark: Haus-Symbol (Lucide "home" path, 24×24 viewBox)
+  const logomark = document.createElement('div');
+  logomark.className = 'nav-sidebar__logomark';
+  logomark.setAttribute('aria-hidden', 'true');
+  const logoSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  logoSvg.setAttribute('viewBox', '0 0 24 24');
+  logoSvg.setAttribute('fill', 'none');
+  logoSvg.setAttribute('stroke', 'currentColor');
+  logoSvg.setAttribute('stroke-width', '2.5');
+  logoSvg.setAttribute('stroke-linecap', 'round');
+  logoSvg.setAttribute('stroke-linejoin', 'round');
+  const housePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  housePath.setAttribute('d', 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z');
+  const doorPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  doorPath.setAttribute('points', '9 22 9 12 15 12 15 22');
+  logoSvg.appendChild(housePath);
+  logoSvg.appendChild(doorPath);
+  logomark.appendChild(logoSvg);
+  sidebarLogo.appendChild(logomark);
+
   const sidebarLogoSpan = document.createElement('span');
   sidebarLogoSpan.textContent = 'Oikos';
   sidebarLogo.appendChild(sidebarLogoSpan);

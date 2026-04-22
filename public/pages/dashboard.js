@@ -196,9 +196,11 @@ function renderGreeting(user, stats = {}) {
     </span>`);
 
   const time = formatTime(new Date());
+  const hour = new Date().getHours();
+  const timeVariant = hour < 11 ? 'morning' : hour < 18 ? 'day' : 'evening';
 
   return `
-    <div class="widget-greeting">
+    <div class="widget-greeting" data-time-variant="${timeVariant}">
       <div class="widget-greeting__inner">
         <div class="widget-greeting__content">
           <div class="widget-greeting__title">${formatDate(new Date())} - ${time}</div>

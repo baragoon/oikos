@@ -92,10 +92,21 @@
   --greeting-from: var(--color-accent-active);
   --greeting-to: var(--color-accent);
   background: linear-gradient(135deg, var(--greeting-from), var(--greeting-to));
+  transition: background var(--transition-slow);
   border-radius: var(--radius-md);
   padding: var(--space-4) var(--space-5);
   color: var(--color-text-on-accent);
   grid-column: 1 / -1;
+}
+
+/* Tageszeit-Varianten */
+.widget-greeting[data-time-variant="morning"] {
+  --greeting-from: var(--greeting-morning-from);
+  --greeting-to:   var(--greeting-morning-to);
+}
+.widget-greeting[data-time-variant="evening"] {
+  --greeting-from: var(--greeting-evening-from);
+  --greeting-to:   var(--greeting-evening-to);
 }
 
 .widget-greeting__inner {
@@ -974,7 +985,7 @@
   justify-content: center;
   cursor: pointer;
   transition:
-    transform var(--transition-base),
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
     background-color var(--transition-fast);
   border: none;
   flex-shrink: 0;

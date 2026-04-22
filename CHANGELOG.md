@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.6] - 2026-04-22
+
+### Changed
+- Dashboard: greeting widget now adapts its gradient to the time of day — warm amber-orange in the morning (before 11:00), indigo during the day, and violet in the evening (after 18:00)
+- Dashboard: FAB speed-dial open/close rotation now uses a spring cubic-bezier for a more natural feel
+- Navigation: sidebar logo is now a proper SVG house icon on a gradient background instead of the CSS letter placeholder
+
 ## [0.23.5] - 2026-04-22
 
 ### Changed
