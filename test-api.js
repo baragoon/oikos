@@ -43,7 +43,7 @@ function setup() {
 
 test('auth.login: 401 feuert kein auth:expired', async () => {
   setup();
-  _mockFetch = () => mockResponse(401, { error: 'Ungültige Anmeldedaten.', code: 401 });
+  _mockFetch = () => mockResponse(401, { error: 'Invalid credentials.', code: 401 });
 
   await assert.rejects(
     () => auth.login('user', 'wrong'),
@@ -60,7 +60,7 @@ test('auth.login: 401 feuert kein auth:expired', async () => {
 
 test('auth.login: 401 wirft ApiError mit status 401', async () => {
   setup();
-  _mockFetch = () => mockResponse(401, { error: 'Ungültige Anmeldedaten.', code: 401 });
+  _mockFetch = () => mockResponse(401, { error: 'Invalid credentials.', code: 401 });
 
   let thrownErr;
   try {
@@ -77,7 +77,7 @@ test('auth.login: 401 wirft ApiError mit status 401', async () => {
 
 test('api.get: 401 auf geschütztem Endpunkt feuert auth:expired', async () => {
   setup();
-  _mockFetch = () => mockResponse(401, { error: 'Nicht authentifiziert.', code: 401 });
+  _mockFetch = () => mockResponse(401, { error: 'Not authenticated.', code: 401 });
 
   await assert.rejects(() => api.get('/tasks'));
 
@@ -87,7 +87,7 @@ test('api.get: 401 auf geschütztem Endpunkt feuert auth:expired', async () => {
 
 test('api.post: 401 auf Logout-Endpunkt feuert auth:expired', async () => {
   setup();
-  _mockFetch = () => mockResponse(401, { error: 'Nicht authentifiziert.', code: 401 });
+  _mockFetch = () => mockResponse(401, { error: 'Not authenticated.', code: 401 });
 
   await assert.rejects(() => api.post('/auth/logout', {}));
 

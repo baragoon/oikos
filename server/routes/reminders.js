@@ -41,8 +41,8 @@ router.get('/pending', (req, res) => {
 
     res.json({ data: rows });
   } catch (err) {
-    log.error('Fehler beim Laden fälliger Erinnerungen:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error loading due reminders:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 
@@ -69,8 +69,8 @@ router.get('/', (req, res) => {
 
     res.json({ data: row || null });
   } catch (err) {
-    log.error('Fehler beim Laden der Erinnerung:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error loading reminder:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 
@@ -115,8 +115,8 @@ router.post('/', (req, res) => {
     const row = db.get().prepare('SELECT * FROM reminders WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json({ data: row });
   } catch (err) {
-    log.error('Fehler beim Erstellen der Erinnerung:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error creating reminder:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 
@@ -145,8 +145,8 @@ router.patch('/:id/dismiss', (req, res) => {
     db.get().prepare('UPDATE reminders SET dismissed = 1 WHERE id = ?').run(reminderId);
     res.json({ data: { id: reminderId } });
   } catch (err) {
-    log.error('Fehler beim Verwerfen der Erinnerung:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error dismissing reminder:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 
@@ -175,8 +175,8 @@ router.delete('/:id', (req, res) => {
     db.get().prepare('DELETE FROM reminders WHERE id = ?').run(reminderId);
     res.status(204).end();
   } catch (err) {
-    log.error('Fehler beim Löschen der Erinnerung:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error deleting reminder:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 
@@ -202,8 +202,8 @@ router.delete('/', (req, res) => {
 
     res.status(204).end();
   } catch (err) {
-    log.error('Fehler beim Löschen der Erinnerungen:', err.message);
-    res.status(500).json({ error: 'Interner Fehler.', code: 500 });
+    log.error('Error deleting reminders:', err.message);
+    res.status(500).json({ error: 'Internal error.', code: 500 });
   }
 });
 

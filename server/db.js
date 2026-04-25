@@ -41,7 +41,7 @@ function init() {
     try {
       db.prepare('SELECT count(*) FROM sqlite_master').get();
     } catch {
-      throw new Error('[DB] Falscher Verschlüsselungsschlüssel oder keine SQLCipher-Unterstützung.');
+      throw new Error('[DB] Wrong encryption key or SQLCipher support is unavailable.');
     }
   }
 
@@ -52,7 +52,7 @@ function init() {
 
   migrate();
 
-  log.info(`Verbunden: ${DB_PATH} | Schema v${currentVersion()}`);
+  log.info(`Connected: ${DB_PATH} | Schema v${currentVersion()}`);
   return db;
 }
 
@@ -67,7 +67,7 @@ function init() {
 const MIGRATIONS = [
   {
     version: 1,
-    description: 'Initiales Schema',
+    description: 'Initial schema',
     up: `
       -- Benutzer
       CREATE TABLE IF NOT EXISTS users (
@@ -269,7 +269,7 @@ const MIGRATIONS = [
   },
   {
     version: 2,
-    description: 'Sync-Konfigurationstabelle für Google/Apple Calendar',
+    description: 'Sync configuration table for Google/Apple Calendar',
     up: `
       CREATE TABLE IF NOT EXISTS sync_config (
         key        TEXT PRIMARY KEY,
@@ -282,7 +282,7 @@ const MIGRATIONS = [
   },
   {
     version: 3,
-    description: 'Wiederkehrende Budget-Einträge: parent-Referenz und Skip-Tabelle',
+    description: 'Recurring budget entries: parent reference and skip table',
     up: `
       ALTER TABLE budget_entries ADD COLUMN recurrence_parent_id INTEGER
         REFERENCES budget_entries(id) ON DELETE SET NULL;
@@ -298,7 +298,7 @@ const MIGRATIONS = [
   },
   {
     version: 4,
-    description: 'Priorität "none" erlauben und als Default setzen',
+    description: 'Allow "none" priority and set it as default',
     up: `
       -- SQLite erlaubt kein ALTER CHECK, daher Tabelle neu erstellen
       CREATE TABLE tasks_new (
@@ -333,7 +333,7 @@ const MIGRATIONS = [
   },
   {
     version: 5,
-    description: 'Einkaufskategorien als eigene Tabelle (anpassbar, sortierbar)',
+    description: 'Shopping categories as a separate table (customizable, sortable)',
     up: `
       CREATE TABLE IF NOT EXISTS shopping_categories (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -357,21 +357,21 @@ const MIGRATIONS = [
   },
   {
     version: 6,
-    description: 'Rezept-URL für Mahlzeiten',
+    description: 'Recipe URL for meals',
     up: `
       ALTER TABLE meals ADD COLUMN recipe_url TEXT;
     `,
   },
   {
     version: 7,
-    description: 'Kategorie pro Zutat für Einkaufslisten-Transfer',
+    description: 'Category per ingredient for shopping list transfer',
     up: `
       ALTER TABLE meal_ingredients ADD COLUMN category TEXT NOT NULL DEFAULT 'Sonstiges';
     `,
   },
   {
     version: 8,
-    description: 'Erinnerungen (Reminders) für Aufgaben und Kalender-Events',
+    description: 'Reminders for tasks and calendar events',
     up: `
       CREATE TABLE IF NOT EXISTS reminders (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -390,7 +390,7 @@ const MIGRATIONS = [
   },
   {
     version: 9,
-    description: 'Task-Kategorien auf englische Schlüssel migrieren',
+    description: 'Migrate task categories to English keys',
     up: `
       UPDATE tasks SET category = CASE category
         WHEN 'Haushalt'   THEN 'household'
@@ -407,7 +407,7 @@ const MIGRATIONS = [
   },
   {
     version: 10,
-    description: 'ICS-Abonnements Tabelle',
+    description: 'ICS subscriptions table',
     up: `
       CREATE TABLE IF NOT EXISTS ics_subscriptions (
         id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -477,7 +477,7 @@ const MIGRATIONS = [
   },
   {
     version: 12,
-    description: 'calendar_events: partiellen Unique-Index durch vollständigen ersetzen (ON CONFLICT support)',
+    description: 'calendar_events: replace partial unique index with full index (ON CONFLICT support)',
     up: `
       DROP INDEX IF EXISTS idx_calendar_sub_extid;
       CREATE UNIQUE INDEX idx_calendar_sub_extid
@@ -486,7 +486,7 @@ const MIGRATIONS = [
   },
   {
     version: 13,
-    description: 'Rezepte-Tabelle und Mahlzeiten-Verknuepfung',
+    description: 'Recipes table and meal association',
     up: `
       CREATE TABLE IF NOT EXISTS recipes (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -525,7 +525,7 @@ const MIGRATIONS = [
   },
   {
     version: 14,
-    description: 'Externe Kalender-Metadaten (Name, Farbe) und Verknüpfung mit Events',
+    description: 'External calendar metadata (name, color) and event association',
     up: `
       CREATE TABLE IF NOT EXISTS external_calendars (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -542,6 +542,133 @@ const MIGRATIONS = [
         REFERENCES external_calendars(id) ON DELETE SET NULL;
 
       CREATE INDEX IF NOT EXISTS idx_cal_events_ref ON calendar_events(calendar_ref_id);
+    `,
+  },
+  {
+    version: 15,
+    description: 'Budget expense categories as stable keys with subcategories',
+    up: `
+      ALTER TABLE budget_entries ADD COLUMN subcategory TEXT NOT NULL DEFAULT '';
+
+      UPDATE budget_entries
+      SET category = CASE category
+        WHEN 'Lebensmittel' THEN 'food'
+        WHEN 'Miete' THEN 'housing'
+        WHEN 'Versicherung' THEN 'financial_other'
+        WHEN 'Mobilität' THEN 'transport'
+        WHEN 'Freizeit' THEN 'leisure'
+        WHEN 'Kleidung' THEN 'shopping_clothing'
+        WHEN 'Gesundheit' THEN 'personal_health'
+        WHEN 'Bildung' THEN 'education'
+        WHEN 'Sonstiges' THEN 'financial_other'
+        ELSE category
+      END
+      WHERE amount < 0;
+
+      UPDATE budget_entries
+      SET subcategory = CASE category
+        WHEN 'housing' THEN 'rent_mortgage'
+        WHEN 'food' THEN 'groceries'
+        WHEN 'transport' THEN 'fuel'
+        WHEN 'personal_health' THEN 'pharmacy'
+        WHEN 'leisure' THEN 'events'
+        WHEN 'shopping_clothing' THEN 'clothes_shoes'
+        WHEN 'education' THEN 'courses_college'
+        WHEN 'financial_other' THEN 'insurance_other'
+        ELSE ''
+      END
+      WHERE amount < 0 AND subcategory = '';
+
+      UPDATE budget_entries
+      SET category = 'Sonstiges Einkommen'
+      WHERE amount > 0 AND category = 'Sonstiges';
+    `,
+  },
+  {
+    version: 16,
+    description: 'Move budget categories and subcategories to separate tables',
+    up: `
+      CREATE TABLE IF NOT EXISTS budget_categories (
+        key        TEXT PRIMARY KEY,
+        name       TEXT    NOT NULL,
+        type       TEXT    NOT NULL CHECK(type IN ('expense', 'income')),
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS budget_subcategories (
+        key          TEXT PRIMARY KEY,
+        category_key TEXT    NOT NULL REFERENCES budget_categories(key) ON DELETE CASCADE,
+        name         TEXT    NOT NULL,
+        sort_order   INTEGER NOT NULL DEFAULT 0,
+        created_at   TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+        UNIQUE(category_key, name)
+      );
+
+      INSERT OR IGNORE INTO budget_categories (key, name, type, sort_order) VALUES
+        ('housing', 'Housing / Home', 'expense', 0),
+        ('food', 'Food', 'expense', 1),
+        ('transport', 'Transport', 'expense', 2),
+        ('personal_health', 'Personal Care / Health', 'expense', 3),
+        ('leisure', 'Leisure and Entertainment', 'expense', 4),
+        ('shopping_clothing', 'Shopping and Clothing', 'expense', 5),
+        ('education', 'Education', 'expense', 6),
+        ('financial_other', 'Financial Services and Other', 'expense', 7),
+        ('Erwerbseinkommen', 'Erwerbseinkommen', 'income', 0),
+        ('Kapitalerträge', 'Kapitalerträge', 'income', 1),
+        ('Geschenke & Transfers', 'Geschenke & Transfers', 'income', 2),
+        ('Sozialleistungen', 'Sozialleistungen', 'income', 3),
+        ('Sonstiges Einkommen', 'Sonstiges Einkommen', 'income', 4);
+
+      INSERT OR IGNORE INTO budget_subcategories (key, category_key, name, sort_order) VALUES
+        ('rent_mortgage', 'housing', 'Rent / Mortgage', 0),
+        ('condominium', 'housing', 'Condominium fees', 1),
+        ('utilities', 'housing', 'Electricity / Water / Gas', 2),
+        ('internet_tv_phone', 'housing', 'Internet / TV / Phone', 3),
+        ('renovation_maintenance', 'housing', 'Renovation / Maintenance', 4),
+        ('cleaning', 'housing', 'Cleaning', 5),
+        ('groceries', 'food', 'Groceries', 0),
+        ('restaurants_bars', 'food', 'Restaurants / Bars', 1),
+        ('snacks_fast_food', 'food', 'Snacks / Fast Food', 2),
+        ('bakery', 'food', 'Bakery', 3),
+        ('fuel', 'transport', 'Fuel', 0),
+        ('parking_tolls', 'transport', 'Parking / Tolls', 1),
+        ('public_transport', 'transport', 'Public transport', 2),
+        ('apps_taxi', 'transport', 'Apps / Taxi', 3),
+        ('maintenance_insurance', 'transport', 'Maintenance / Insurance', 4),
+        ('pharmacy', 'personal_health', 'Pharmacy', 0),
+        ('health_insurance', 'personal_health', 'Health insurance', 1),
+        ('gym_sports', 'personal_health', 'Gym / Sports', 2),
+        ('beauty_cosmetics', 'personal_health', 'Beauty / Cosmetics', 3),
+        ('travel', 'leisure', 'Travel', 0),
+        ('streaming', 'leisure', 'Streaming', 1),
+        ('events', 'leisure', 'Events', 2),
+        ('hobbies', 'leisure', 'Hobbies', 3),
+        ('clothes_shoes', 'shopping_clothing', 'Clothes / Shoes', 0),
+        ('electronics', 'shopping_clothing', 'Electronics', 1),
+        ('gifts', 'shopping_clothing', 'Gifts', 2),
+        ('courses_college', 'education', 'Courses / College', 0),
+        ('school_supplies', 'education', 'School supplies', 1),
+        ('languages', 'education', 'Languages', 2),
+        ('loans_interest', 'financial_other', 'Loans / Interest', 0),
+        ('bank_fees', 'financial_other', 'Bank fees', 1),
+        ('insurance_other', 'financial_other', 'Insurance', 2),
+        ('investments', 'financial_other', 'Investments', 3),
+        ('taxes', 'financial_other', 'Taxes', 4);
+
+      INSERT OR IGNORE INTO budget_categories (key, name, type, sort_order)
+      SELECT category, category, CASE WHEN amount < 0 THEN 'expense' ELSE 'income' END, 1000
+      FROM budget_entries
+      WHERE category NOT IN (SELECT key FROM budget_categories)
+      GROUP BY category;
+
+      INSERT OR IGNORE INTO budget_subcategories (key, category_key, name, sort_order)
+      SELECT subcategory, category, subcategory, 1000
+      FROM budget_entries
+      WHERE subcategory != ''
+        AND subcategory NOT IN (SELECT key FROM budget_subcategories)
+        AND category IN (SELECT key FROM budget_categories WHERE type = 'expense')
+      GROUP BY category, subcategory;
     `,
   },
 ];
@@ -571,7 +698,7 @@ function migrate() {
     db.exec(migration.up);
     db.prepare('INSERT INTO schema_migrations (version, description) VALUES (?, ?)')
       .run(migration.version, migration.description);
-    log.info(`Migration ${migration.version} angewendet: ${migration.description}`);
+    log.info(`Migration ${migration.version} applied: ${migration.description}`);
   });
 
   for (const migration of pending) {
@@ -602,7 +729,7 @@ function currentVersion() {
  * @returns {import('better-sqlite3').Database}
  */
 function get() {
-  if (!db) throw new Error('[DB] Nicht initialisiert - init() zuerst aufrufen.');
+  if (!db) throw new Error('[DB] Not initialized - call init() first.');
   return db;
 }
 

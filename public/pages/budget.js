@@ -15,29 +15,16 @@ import { esc } from '/utils/html.js';
 // Konstanten
 // --------------------------------------------------------
 
-const EXPENSE_CATEGORIES = [
-  'Lebensmittel', 'Miete', 'Versicherung', 'Mobilität',
-  'Freizeit', 'Kleidung', 'Gesundheit', 'Bildung', 'Sonstiges',
-];
-
-const INCOME_CATEGORIES = [
-  'Erwerbseinkommen', 'Kapitalerträge', 'Geschenke & Transfers',
-  'Sozialleistungen', 'Sonstiges Einkommen',
-];
-
-const CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
-
-const CATEGORY_LABELS = () => ({
+const CATEGORY_I18N = () => ({
   // Expense categories
-  'Lebensmittel': t('budget.catFood'),
-  'Miete':        t('budget.catRent'),
-  'Versicherung': t('budget.catInsurance'),
-  'Mobilität':    t('budget.catMobility'),
-  'Freizeit':     t('budget.catLeisure'),
-  'Kleidung':     t('budget.catClothing'),
-  'Gesundheit':   t('budget.catHealth'),
-  'Bildung':      t('budget.catEducation'),
-  'Sonstiges':    t('budget.catMisc'),
+  housing:            t('budget.catHousing'),
+  food:               t('budget.catFood'),
+  transport:          t('budget.catTransport'),
+  personal_health:    t('budget.catPersonalHealth'),
+  leisure:            t('budget.catLeisure'),
+  shopping_clothing:  t('budget.catShoppingClothing'),
+  education:          t('budget.catEducation'),
+  financial_other:    t('budget.catFinancialOther'),
   // Income categories
   'Erwerbseinkommen':      t('budget.catEarnedIncome'),
   'Kapitalerträge':        t('budget.catInvestmentIncome'),
@@ -45,6 +32,82 @@ const CATEGORY_LABELS = () => ({
   'Sozialleistungen':      t('budget.catGovernmentBenefits'),
   'Sonstiges Einkommen':   t('budget.catOtherIncome'),
 });
+
+const SUBCATEGORY_I18N = () => ({
+  rent_mortgage:            t('budget.subcatRentMortgage'),
+  condominium:              t('budget.subcatCondominium'),
+  utilities:                t('budget.subcatUtilities'),
+  internet_tv_phone:        t('budget.subcatInternetTvPhone'),
+  renovation_maintenance:   t('budget.subcatRenovationMaintenance'),
+  cleaning:                 t('budget.subcatCleaning'),
+  groceries:                t('budget.subcatGroceries'),
+  restaurants_bars:         t('budget.subcatRestaurantsBars'),
+  snacks_fast_food:         t('budget.subcatSnacksFastFood'),
+  bakery:                   t('budget.subcatBakery'),
+  fuel:                     t('budget.subcatFuel'),
+  parking_tolls:            t('budget.subcatParkingTolls'),
+  public_transport:         t('budget.subcatPublicTransport'),
+  apps_taxi:                t('budget.subcatAppsTaxi'),
+  maintenance_insurance:    t('budget.subcatMaintenanceInsurance'),
+  pharmacy:                 t('budget.subcatPharmacy'),
+  health_insurance:         t('budget.subcatHealthInsurance'),
+  gym_sports:               t('budget.subcatGymSports'),
+  beauty_cosmetics:         t('budget.subcatBeautyCosmetics'),
+  travel:                   t('budget.subcatTravel'),
+  streaming:                t('budget.subcatStreaming'),
+  events:                   t('budget.subcatEvents'),
+  hobbies:                  t('budget.subcatHobbies'),
+  clothes_shoes:            t('budget.subcatClothesShoes'),
+  electronics:              t('budget.subcatElectronics'),
+  gifts:                    t('budget.subcatGifts'),
+  courses_college:          t('budget.subcatCoursesCollege'),
+  school_supplies:          t('budget.subcatSchoolSupplies'),
+  languages:                t('budget.subcatLanguages'),
+  loans_interest:           t('budget.subcatLoansInterest'),
+  bank_fees:                t('budget.subcatBankFees'),
+  insurance_other:          t('budget.subcatInsuranceOther'),
+  investments:              t('budget.subcatInvestments'),
+  taxes:                    t('budget.subcatTaxes'),
+});
+
+function categoryLabel(category) {
+  const item = typeof category === 'object'
+    ? category
+    : [...expenseCategories(), ...incomeCategories()].find((c) => c.key === category);
+  const key = item?.key ?? category;
+  const name = item?.name ?? category;
+  return CATEGORY_I18N()[key] ?? name;
+}
+
+function subcategoryLabel(subcategory) {
+  const item = typeof subcategory === 'object'
+    ? subcategory
+    : Object.values(state.meta.expenseSubcategories ?? {}).flat().find((s) => s.key === subcategory);
+  const key = item?.key ?? subcategory;
+  const name = item?.name ?? subcategory;
+  return SUBCATEGORY_I18N()[key] ?? name;
+}
+
+function expenseCategories() {
+  return state.meta.expenseCategories ?? [];
+}
+
+function incomeCategories() {
+  return state.meta.incomeCategories ?? [];
+}
+
+function getSubcategories(category) {
+  return state.meta.expenseSubcategories?.[category] || [];
+}
+
+function defaultSubcategory(category) {
+  return getSubcategories(category)[0]?.key || '';
+}
+
+function defaultCategory(type) {
+  const cats = type === 'income' ? incomeCategories() : expenseCategories();
+  return cats[0]?.key || '';
+}
 
 function getMonthName(monthIndex) {
   // monthIndex: 0-based (0=Januar, 11=Dezember)
@@ -62,6 +125,7 @@ let state = {
   summary:     null,
   prevSummary: null, // Vormonat für Monatsvergleich
   currency:    'EUR',
+  meta:        { expenseCategories: [], incomeCategories: [], expenseSubcategories: {} },
 };
 let _container = null;
 
@@ -110,6 +174,21 @@ async function loadMonth(month) {
   }
 }
 
+async function loadBudgetMeta() {
+  try {
+    const res = await api.get('/budget/meta');
+    state.meta = {
+      expenseCategories: res.data?.expenseCategories ?? [],
+      incomeCategories: res.data?.incomeCategories ?? [],
+      expenseSubcategories: res.data?.expenseSubcategories ?? {},
+    };
+  } catch (err) {
+    console.error('[Budget] meta Fehler:', err);
+    state.meta = { expenseCategories: [], incomeCategories: [], expenseSubcategories: {} };
+    window.oikos?.showToast(t('budget.metaLoadError'), 'danger');
+  }
+}
+
 // --------------------------------------------------------
 // Entry Point
 // --------------------------------------------------------
@@ -120,7 +199,10 @@ export async function render(container, { user }) {
   state.month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
   try {
-    const prefsRes = await api.get('/preferences');
+    const [prefsRes] = await Promise.all([
+      api.get('/preferences'),
+      loadBudgetMeta(),
+    ]);
     state.currency = prefsRes.data?.currency ?? 'EUR';
   } catch (_) { /* Fallback auf EUR */ }
 
@@ -274,7 +356,7 @@ function renderCategoryBars(byCategory) {
 
     return `
       <div class="budget-bar-row">
-        <div class="budget-bar-row__label" title="${esc(CATEGORY_LABELS()[c.category] ?? c.category)}">${esc(CATEGORY_LABELS()[c.category] ?? c.category)}</div>
+        <div class="budget-bar-row__label" title="${esc(categoryLabel(c.category))}">${esc(categoryLabel(c.category))}</div>
         <div class="budget-bar-row__track">
           <div class="budget-bar-row__fill ${cls}" style="width:${pct}%;"></div>
         </div>
@@ -305,13 +387,16 @@ function renderEntries() {
     const sign      = isIncome ? '+' : '';
     const date      = formatEntryDate(e.date);
     const recurTag  = e.is_recurring ? ' 🔁' : (e.recurrence_parent_id ? ' ↩' : '');
+    const categoryMeta = isIncome || !e.subcategory
+      ? categoryLabel(e.category)
+      : `${categoryLabel(e.category)} · ${subcategoryLabel(e.subcategory)}`;
 
     return `
       <div class="budget-entry" data-id="${e.id}">
         <div class="budget-entry__indicator ${indClass}"></div>
         <div class="budget-entry__body">
           <div class="budget-entry__title">${esc(e.title)}</div>
-          <div class="budget-entry__meta">${date} · ${esc(CATEGORY_LABELS()[e.category] ?? e.category)}${recurTag}</div>
+          <div class="budget-entry__meta">${date} · ${esc(categoryMeta)}${recurTag}</div>
         </div>
         <div class="budget-entry__amount ${amtClass}">${sign}${formatAmount(e.amount)}</div>
         <button class="budget-entry__delete" data-action="delete" data-id="${e.id}" aria-label="${t('budget.deleteLabel')}">
@@ -359,10 +444,14 @@ function openBudgetModal({ mode, entry = null }) {
   const isExpense  = isEdit ? entry.amount < 0 : true;
   const absAmount  = isEdit ? Math.abs(entry.amount).toFixed(2) : '';
 
-  const catLabels   = CATEGORY_LABELS();
-  const initialCats = isExpense ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+  const initialCats = isExpense ? expenseCategories() : incomeCategories();
   const catOpts     = initialCats.map((c) =>
-    `<option value="${c}" ${isEdit && entry.category === c ? 'selected' : ''}>${catLabels[c] || c}</option>`
+    `<option value="${esc(c.key)}" ${isEdit && entry.category === c.key ? 'selected' : ''}>${esc(categoryLabel(c))}</option>`
+  ).join('');
+  const initialCategory = isEdit ? entry.category : initialCats[0]?.key;
+  const initialSubcategory = isEdit ? entry.subcategory : defaultSubcategory(initialCategory);
+  const subcatOpts = getSubcategories(initialCategory).map((s) =>
+    `<option value="${esc(s.key)}" ${initialSubcategory === s.key ? 'selected' : ''}>${esc(subcategoryLabel(s))}</option>`
   ).join('');
 
   const content = `
@@ -387,8 +476,19 @@ function openBudgetModal({ mode, entry = null }) {
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="bm-category">${t('budget.categoryLabel')}</label>
+      <div class="budget-field-header">
+        <label class="form-label" for="bm-category">${t('budget.categoryLabel')}</label>
+        <button class="btn btn--secondary budget-inline-add" type="button" id="bm-add-category">${t('budget.addCategory')}</button>
+      </div>
       <select class="form-input" id="bm-category">${catOpts}</select>
+    </div>
+
+    <div class="form-group" id="bm-subcategory-group" ${isExpense ? '' : 'hidden'}>
+      <div class="budget-field-header">
+        <label class="form-label" for="bm-subcategory">${t('budget.subcategoryLabel')}</label>
+        <button class="btn btn--secondary budget-inline-add" type="button" id="bm-add-subcategory">${t('budget.addSubcategory')}</button>
+      </div>
+      <select class="form-input" id="bm-subcategory">${subcatOpts}</select>
     </div>
 
     <div class="form-group">
@@ -422,20 +522,70 @@ function openBudgetModal({ mode, entry = null }) {
     onSave(panel) {
       let currentType = isExpense ? 'expense' : 'income';
 
-      const updateCategoryOptions = () => {
-        const catLabels = CATEGORY_LABELS();
-        const cats = currentType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      const updateCategoryOptions = (preferredCategory = '') => {
+        const cats = currentType === 'income' ? incomeCategories() : expenseCategories();
         const catSelect = panel.querySelector('#bm-category');
-        const currentValue = catSelect.value;
+        const currentValue = preferredCategory || catSelect.value;
 
         const options = cats.map((c) => {
           const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = catLabels[c] || c;
-          opt.selected = currentValue === c;
+          opt.value = c.key;
+          opt.textContent = categoryLabel(c);
+          opt.selected = currentValue === c.key;
           return opt;
         });
         catSelect.replaceChildren(...options);
+        if (!cats.some((c) => c.key === catSelect.value)) catSelect.value = cats[0]?.key || '';
+        updateSubcategoryOptions();
+      };
+
+      const updateSubcategoryOptions = (preferredSubcategory = '') => {
+        const catSelect = panel.querySelector('#bm-category');
+        const subcatGroup = panel.querySelector('#bm-subcategory-group');
+        const subcatSelect = panel.querySelector('#bm-subcategory');
+        const subcategories = currentType === 'expense' ? getSubcategories(catSelect.value) : [];
+        const currentValue = preferredSubcategory || subcatSelect.value;
+
+        subcatGroup.hidden = currentType !== 'expense';
+        subcatSelect.replaceChildren(...subcategories.map((s) => {
+          const opt = document.createElement('option');
+          opt.value = s.key;
+          opt.textContent = subcategoryLabel(s);
+          opt.selected = currentValue === s.key;
+          return opt;
+        }));
+        if (subcategories.length && !subcategories.some((s) => s.key === subcatSelect.value)) {
+          subcatSelect.value = subcategories[0].key;
+        }
+      };
+
+      const addCategory = async () => {
+        const name = window.prompt(t('budget.newCategoryPrompt'));
+        if (!name?.trim()) return;
+        try {
+          const res = await api.post('/budget/categories', { name: name.trim(), type: currentType });
+          await loadBudgetMeta();
+          updateCategoryOptions(res.data.key);
+          window.oikos?.showToast(t('budget.categoryAddedToast'), 'success');
+        } catch (err) {
+          window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'error');
+        }
+      };
+
+      const addSubcategory = async () => {
+        if (currentType !== 'expense') return;
+        const category = panel.querySelector('#bm-category').value;
+        if (!category) return;
+        const name = window.prompt(t('budget.newSubcategoryPrompt'));
+        if (!name?.trim()) return;
+        try {
+          const res = await api.post(`/budget/categories/${encodeURIComponent(category)}/subcategories`, { name: name.trim() });
+          await loadBudgetMeta();
+          updateSubcategoryOptions(res.data.key);
+          window.oikos?.showToast(t('budget.subcategoryAddedToast'), 'success');
+        } catch (err) {
+          window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'error');
+        }
       };
 
       panel.querySelector('#type-expense').addEventListener('click', () => {
@@ -450,6 +600,9 @@ function openBudgetModal({ mode, entry = null }) {
         panel.querySelector('#type-expense').classList.remove('amount-type-btn--active');
         updateCategoryOptions();
       });
+      panel.querySelector('#bm-category').addEventListener('change', () => updateSubcategoryOptions());
+      panel.querySelector('#bm-add-category').addEventListener('click', addCategory);
+      panel.querySelector('#bm-add-subcategory').addEventListener('click', addSubcategory);
 
       panel.querySelector('#bm-cancel').addEventListener('click', closeModal);
 
@@ -463,6 +616,7 @@ function openBudgetModal({ mode, entry = null }) {
         const title      = panel.querySelector('#bm-title').value.trim();
         const absVal     = parseFloat(panel.querySelector('#bm-amount').value);
         const category   = panel.querySelector('#bm-category').value;
+        const subcategory = currentType === 'expense' ? panel.querySelector('#bm-subcategory').value : '';
         const date       = panel.querySelector('#bm-date').value;
         const recurring  = panel.querySelector('#bm-recurring').checked ? 1 : 0;
 
@@ -476,7 +630,7 @@ function openBudgetModal({ mode, entry = null }) {
         saveBtn.textContent = '…';
 
         try {
-          const body = { title, amount, category, date, is_recurring: recurring };
+          const body = { title, amount, category, subcategory, date, is_recurring: recurring };
           if (mode === 'create') {
             const res = await api.post('/budget', body);
             state.entries.unshift(res.data);
@@ -523,4 +677,3 @@ async function deleteEntry(id) {
 // --------------------------------------------------------
 // Hilfsfunktion
 // --------------------------------------------------------
-

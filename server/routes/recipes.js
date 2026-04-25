@@ -59,8 +59,8 @@ router.get('/', (_req, res) => {
 
     res.json({ data: recipes.map((r) => ({ ...r, ingredients: ingredientMap[r.id] || [] })) });
   } catch (err) {
-    log.error('GET / Fehler:', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    log.error('GET / error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -100,8 +100,8 @@ router.post('/', (req, res) => {
     const created = loadRecipeWithIngredients(recipeId);
     res.status(201).json({ data: created });
   } catch (err) {
-    log.error('POST / Fehler:', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    log.error('POST / error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -111,8 +111,8 @@ router.put('/:id', (req, res) => {
     if (!id) return res.status(400).json({ error: 'Ungueltige Rezept-ID', code: 400 });
 
     const existing = db.get().prepare('SELECT id, created_by FROM recipes WHERE id = ?').get(id);
-    if (!existing) return res.status(404).json({ error: 'Rezept nicht gefunden', code: 404 });
-    if (existing.created_by !== req.session.userId) return res.status(403).json({ error: 'Nicht autorisiert.', code: 403 });
+    if (!existing) return res.status(404).json({ error: 'Recipe not found', code: 404 });
+    if (existing.created_by !== req.session.userId) return res.status(403).json({ error: 'Not authorized.', code: 403 });
 
     const { ingredients = [] } = req.body;
 
@@ -147,27 +147,27 @@ router.put('/:id', (req, res) => {
     const updated = loadRecipeWithIngredients(id);
     res.json({ data: updated });
   } catch (err) {
-    log.error('PUT /:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    log.error('PUT /:id error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
 router.delete('/:id', (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (!id) return res.status(400).json({ error: 'Ungültige Rezept-ID.', code: 400 });
+    if (!id) return res.status(400).json({ error: 'Invalid recipe ID.', code: 400 });
 
     const existing = db.get().prepare('SELECT id, created_by FROM recipes WHERE id = ?').get(id);
-    if (!existing) return res.status(404).json({ error: 'Rezept nicht gefunden.', code: 404 });
-    if (existing.created_by !== req.session.userId) return res.status(403).json({ error: 'Nicht autorisiert.', code: 403 });
+    if (!existing) return res.status(404).json({ error: 'Recipe not found.', code: 404 });
+    if (existing.created_by !== req.session.userId) return res.status(403).json({ error: 'Not authorized.', code: 403 });
 
     const result = db.get().prepare('DELETE FROM recipes WHERE id = ?').run(id);
-    if (result.changes === 0) return res.status(404).json({ error: 'Rezept nicht gefunden', code: 404 });
+    if (result.changes === 0) return res.status(404).json({ error: 'Recipe not found', code: 404 });
 
     res.status(204).end();
   } catch (err) {
-    log.error('DELETE /:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    log.error('DELETE /:id error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 

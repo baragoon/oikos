@@ -27,7 +27,7 @@ const syncingNow = new Set();
 
 function normalizeUrl(raw) {
   const url = new URL(raw.replace(/^webcal:\/\//i, 'https://'));
-  if (url.protocol !== 'https:') throw new Error('Nur https:// und webcal:// URLs sind erlaubt.');
+  if (url.protocol !== 'https:') throw new Error('Only https:// and webcal:// URLs are allowed.');
   return url.href;
 }
 
@@ -37,7 +37,7 @@ async function checkSSRF(urlStr) {
   const v6 = await dns.resolve6(hostname).catch(() => []);
   for (const addr of [...v4, ...v6]) {
     if (PRIVATE_RANGES.some((re) => re.test(addr))) {
-      throw new Error(`URL löst auf eine private IP-Adresse auf: ${addr}`);
+      throw new Error(`URL resolves to a private IP address: ${addr}`);
     }
   }
 }
@@ -61,12 +61,12 @@ async function fetchAndParse(urlRaw, etag, lastModified) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   const cl = parseInt(res.headers.get('content-length') || '0', 10);
-  if (cl > MAX_RESPONSE_BYTES) throw new Error('ICS-Datei überschreitet 10 MB Limit.');
+  if (cl > MAX_RESPONSE_BYTES) throw new Error('ICS file exceeds the 10 MB limit.');
 
   let body = '', received = 0;
   for await (const chunk of res.body) {
     received += chunk.length;
-    if (received > MAX_RESPONSE_BYTES) throw new Error('ICS-Datei überschreitet 10 MB Limit.');
+    if (received > MAX_RESPONSE_BYTES) throw new Error('ICS file exceeds the 10 MB limit.');
     body += chunk.toString();
   }
 
@@ -87,7 +87,7 @@ function syncWindow() {
 
 async function syncOne(sub) {
   if (syncingNow.has(sub.id)) {
-    log.info(`Abonnement ${sub.id} wird bereits synchronisiert - übersprungen.`);
+    log.info(`Subscription ${sub.id} is already syncing - skipped.`);
     return;
   }
   syncingNow.add(sub.id);
@@ -95,7 +95,7 @@ async function syncOne(sub) {
     let result;
     try { result = await fetchAndParse(sub.url, sub.etag, sub.last_modified); }
     catch (err) {
-      log.warn(`Abonnement ${sub.id} (${sub.name}): Fetch fehlgeschlagen - ${err.message}`);
+      log.warn(`Subscription ${sub.id} (${sub.name}): fetch failed - ${err.message}`);
       return;
     }
 
@@ -109,7 +109,7 @@ async function syncOne(sub) {
     const { windowStart, windowEnd } = syncWindow();
     const owner    = db.get().prepare('SELECT id FROM users ORDER BY id ASC LIMIT 1').get();
     const createdBy = sub.created_by ?? owner?.id;
-    if (!createdBy) { log.warn('Kein User gefunden.'); return; }
+    if (!createdBy) { log.warn('No user found.'); return; }
 
     const flatEvents = [];
     for (const ev of events) {
@@ -157,7 +157,7 @@ async function syncOne(sub) {
         .run(new Date().toISOString(), newEtag, newLastModified, sub.id);
     })();
 
-    log.info(`Abonnement ${sub.id} (${sub.name}): ${flatEvents.length} Events synchronisiert.`);
+    log.info(`Subscription ${sub.id} (${sub.name}): ${flatEvents.length} events synced.`);
   } finally { syncingNow.delete(sub.id); }
 }
 
@@ -167,7 +167,7 @@ async function sync(subscriptionId) {
     : db.get().prepare('SELECT * FROM ics_subscriptions').all();
   for (const sub of subs) {
     try { await syncOne(sub); }
-    catch (err) { log.error(`Sync Abonnement ${sub.id} fehlgeschlagen: ${err.message}`); }
+    catch (err) { log.error(`Subscription ${sub.id} sync failed: ${err.message}`); }
   }
 }
 
@@ -192,7 +192,7 @@ async function create(userId, { name, url, color, shared }) {
 function update(userId, subId, fields, isAdmin) {
   const sub = db.get().prepare('SELECT * FROM ics_subscriptions WHERE id = ?').get(subId);
   if (!sub) return null;
-  if (!isAdmin && sub.created_by !== userId) throw new Error('Nicht autorisiert.');
+  if (!isAdmin && sub.created_by !== userId) throw new Error('Not authorized.');
   const name   = fields.name   !== undefined ? fields.name   : sub.name;
   const color  = fields.color  !== undefined ? fields.color  : sub.color;
   const shared = fields.shared !== undefined ? (fields.shared ? 1 : 0) : sub.shared;
@@ -204,7 +204,7 @@ function update(userId, subId, fields, isAdmin) {
 function remove(userId, subId, isAdmin) {
   const sub = db.get().prepare('SELECT * FROM ics_subscriptions WHERE id = ?').get(subId);
   if (!sub) return false;
-  if (!isAdmin && sub.created_by !== userId) throw new Error('Nicht autorisiert.');
+  if (!isAdmin && sub.created_by !== userId) throw new Error('Not authorized.');
   db.get().prepare('DELETE FROM ics_subscriptions WHERE id = ?').run(subId);
   return true;
 }

@@ -7,7 +7,7 @@
 import { createLogger } from '../logger.js';
 import express from 'express';
 import * as db from '../db.js';
-import { str, oneOf, date as validateDate, num, rrule, collectErrors, MAX_TITLE, MONTH_RE } from '../middleware/validate.js';
+import { str, oneOf, date as validateDate, num, rrule, collectErrors, MAX_TITLE, MAX_SHORT, MONTH_RE } from '../middleware/validate.js';
 
 const log = createLogger('Budget');
 
@@ -57,23 +57,87 @@ function generateRecurringInstances(database, month) {
 
     database.prepare(`
       INSERT INTO budget_entries
-        (title, amount, category, date, is_recurring, recurrence_parent_id, created_by)
-      VALUES (?, ?, ?, ?, 0, ?, ?)
-    `).run(orig.title, orig.amount, orig.category, instanceDate, orig.id, orig.created_by);
+        (title, amount, category, subcategory, date, is_recurring, recurrence_parent_id, created_by)
+      VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+    `).run(orig.title, orig.amount, orig.category, orig.subcategory || '', instanceDate, orig.id, orig.created_by);
   }
 }
 
-const EXPENSE_CATEGORIES = [
-  'Lebensmittel', 'Miete', 'Versicherung', 'Mobilität',
-  'Freizeit', 'Kleidung', 'Gesundheit', 'Bildung', 'Sonstiges',
-];
+function slugify(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 48) || 'category';
+}
 
-const INCOME_CATEGORIES = [
-  'Erwerbseinkommen', 'Kapitalerträge', 'Geschenke & Transfers',
-  'Sozialleistungen', 'Sonstiges Einkommen',
-];
+function uniqueKey(table, base) {
+  const normalized = slugify(base);
+  let key = normalized;
+  let i = 2;
+  const exists = db.get().prepare(`SELECT 1 FROM ${table} WHERE key = ?`);
+  while (exists.get(key)) {
+    key = `${normalized}_${i}`;
+    i += 1;
+  }
+  return key;
+}
 
-const VALID_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
+function loadBudgetMeta() {
+  const categories = db.get().prepare(`
+    SELECT key, name, type, sort_order
+    FROM budget_categories
+    ORDER BY type DESC, sort_order ASC, name COLLATE NOCASE ASC
+  `).all();
+  const subcategories = db.get().prepare(`
+    SELECT key, category_key, name, sort_order
+    FROM budget_subcategories
+    ORDER BY sort_order ASC, name COLLATE NOCASE ASC
+  `).all();
+
+  const expenseCategories = categories.filter((c) => c.type === 'expense');
+  const incomeCategories = categories.filter((c) => c.type === 'income');
+  const expenseSubcategories = {};
+  for (const sub of subcategories) {
+    if (!expenseSubcategories[sub.category_key]) expenseSubcategories[sub.category_key] = [];
+    expenseSubcategories[sub.category_key].push(sub);
+  }
+
+  return { categories, expenseCategories, incomeCategories, expenseSubcategories };
+}
+
+function validCategoryKeys() {
+  return db.get().prepare('SELECT key FROM budget_categories').all().map((c) => c.key);
+}
+
+function validExpenseCategoryKeys() {
+  return db.get().prepare("SELECT key FROM budget_categories WHERE type = 'expense'").all().map((c) => c.key);
+}
+
+function defaultCategory(type) {
+  const row = db.get().prepare(`
+    SELECT key FROM budget_categories WHERE type = ? ORDER BY sort_order ASC, name COLLATE NOCASE ASC LIMIT 1
+  `).get(type);
+  return row?.key || (type === 'expense' ? 'financial_other' : 'Sonstiges Einkommen');
+}
+
+function defaultSubcategory(category) {
+  const row = db.get().prepare(`
+    SELECT key FROM budget_subcategories WHERE category_key = ? ORDER BY sort_order ASC, name COLLATE NOCASE ASC LIMIT 1
+  `).get(category);
+  return row?.key || '';
+}
+
+function validateSubcategory(category, subcategory) {
+  if (!validExpenseCategoryKeys().includes(category)) return '';
+  if (!subcategory) return defaultSubcategory(category);
+  const row = db.get().prepare(`
+    SELECT 1 FROM budget_subcategories WHERE category_key = ? AND key = ?
+  `).get(category, subcategory);
+  return row ? subcategory : null;
+}
 
 // --------------------------------------------------------
 // Statische Routen vor /:id
@@ -127,7 +191,7 @@ router.get('/summary', (req, res) => {
     });
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -155,7 +219,7 @@ router.get('/export', (req, res) => {
       ORDER BY b.date ASC
     `).all(from, to);
 
-    const header = 'Datum,Titel,Betrag,Kategorie,Wiederkehrend,Erstellt von\n';
+    const header = 'Date,Title,Amount,Category,Subcategory,Recurring,Created by\n';
     const csvSafe = (val) => {
       let s = String(val || '').replace(/"/g, '""');
       if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
@@ -167,7 +231,8 @@ router.get('/export', (req, res) => {
         csvSafe(e.title),
         e.amount.toFixed(2).replace('.', ','),
         e.category,
-        e.is_recurring ? 'Ja' : 'Nein',
+        e.subcategory || '',
+        e.is_recurring ? 'Yes' : 'No',
         csvSafe(e.creator_name),
       ].join(',')
     ).join('\n');
@@ -177,7 +242,7 @@ router.get('/export', (req, res) => {
     res.send('\uFEFF' + header + rows); // BOM für Excel
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -187,7 +252,70 @@ router.get('/export', (req, res) => {
  * Response: { data: { categories } }
  */
 router.get('/meta', (req, res) => {
-  res.json({ data: { categories: VALID_CATEGORIES } });
+  res.json({ data: loadBudgetMeta() });
+});
+
+router.post('/categories', (req, res) => {
+  try {
+    const vName = str(req.body.name, 'Name', { max: MAX_SHORT });
+    const vType = oneOf(req.body.type || 'expense', ['expense', 'income'], 'Typ');
+    const errors = collectErrors([vName, vType]);
+    if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
+
+    const conflict = db.get().prepare(`
+      SELECT key FROM budget_categories WHERE type = ? AND name = ? COLLATE NOCASE
+    `).get(vType.value, vName.value);
+    if (conflict) return res.status(409).json({ error: 'Category already exists.', code: 409 });
+
+    const maxOrder = db.get().prepare(`
+      SELECT COALESCE(MAX(sort_order), -1) AS m FROM budget_categories WHERE type = ?
+    `).get(vType.value).m;
+    const key = uniqueKey('budget_categories', vName.value);
+
+    db.get().prepare(`
+      INSERT INTO budget_categories (key, name, type, sort_order) VALUES (?, ?, ?, ?)
+    `).run(key, vName.value, vType.value, maxOrder + 1);
+
+    const cat = db.get().prepare('SELECT key, name, type, sort_order FROM budget_categories WHERE key = ?').get(key);
+    res.status(201).json({ data: cat });
+  } catch (err) {
+    log.error('POST /categories error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
+  }
+});
+
+router.post('/categories/:categoryKey/subcategories', (req, res) => {
+  try {
+    const cat = db.get().prepare(`
+      SELECT * FROM budget_categories WHERE key = ? AND type = 'expense'
+    `).get(req.params.categoryKey);
+    if (!cat) return res.status(404).json({ error: 'Category not found.', code: 404 });
+
+    const vName = str(req.body.name, 'Name', { max: MAX_SHORT });
+    if (vName.error) return res.status(400).json({ error: vName.error, code: 400 });
+
+    const conflict = db.get().prepare(`
+      SELECT key FROM budget_subcategories WHERE category_key = ? AND name = ? COLLATE NOCASE
+    `).get(cat.key, vName.value);
+    if (conflict) return res.status(409).json({ error: 'Subcategory already exists.', code: 409 });
+
+    const maxOrder = db.get().prepare(`
+      SELECT COALESCE(MAX(sort_order), -1) AS m FROM budget_subcategories WHERE category_key = ?
+    `).get(cat.key).m;
+    const key = uniqueKey('budget_subcategories', `${cat.key}_${vName.value}`);
+
+    db.get().prepare(`
+      INSERT INTO budget_subcategories (key, category_key, name, sort_order) VALUES (?, ?, ?, ?)
+    `).run(key, cat.key, vName.value, maxOrder + 1);
+
+    const sub = db.get().prepare(`
+      SELECT key, category_key, name, sort_order FROM budget_subcategories WHERE key = ?
+    `).get(key);
+    res.status(201).json({ data: sub });
+  } catch (err) {
+    log.error('POST /categories/:categoryKey/subcategories error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
+  }
 });
 
 // --------------------------------------------------------
@@ -220,7 +348,7 @@ router.get('/', (req, res) => {
     `;
     const params = [from, to];
 
-    if (req.query.category && VALID_CATEGORIES.includes(req.query.category)) {
+    if (req.query.category && validCategoryKeys().includes(req.query.category)) {
       sql += ' AND b.category = ?';
       params.push(req.query.category);
     }
@@ -231,31 +359,36 @@ router.get('/', (req, res) => {
     res.json({ data: entries });
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
 /**
  * POST /api/v1/budget
  * Neuen Eintrag anlegen.
- * Body: { title, amount, category?, date, is_recurring?, recurrence_rule? }
+ * Body: { title, amount, category?, subcategory?, date, is_recurring?, recurrence_rule? }
  * Response: { data: Entry }
  */
 router.post('/', (req, res) => {
   try {
     const vTitle  = str(req.body.title,    'Titel',  { max: MAX_TITLE });
     const vAmount = num(req.body.amount,  'Betrag', { required: true });
-    const vCat    = oneOf(req.body.category || 'Sonstiges', VALID_CATEGORIES, 'Kategorie');
+    const fallbackCategory = defaultCategory(Number(req.body.amount) < 0 ? 'expense' : 'income');
+    const vCat    = oneOf(req.body.category || fallbackCategory, validCategoryKeys(), 'Kategorie');
     const vDate   = validateDate(req.body.date,   'Datum',  true);
     const vRrule  = rrule(req.body.recurrence_rule, 'Wiederholung');
     const errors  = collectErrors([vTitle, vAmount, vCat, vDate, vRrule]);
     if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
+    const subcategory = validateSubcategory(vCat.value, req.body.subcategory);
+    if (subcategory === null) {
+      return res.status(400).json({ error: 'Invalid subcategory.', code: 400 });
+    }
 
     const result = db.get().prepare(`
-      INSERT INTO budget_entries (title, amount, category, date, is_recurring, recurrence_rule, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO budget_entries (title, amount, category, subcategory, date, is_recurring, recurrence_rule, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      vTitle.value, vAmount.value, vCat.value || 'Sonstiges', vDate.value,
+      vTitle.value, vAmount.value, vCat.value || fallbackCategory, subcategory, vDate.value,
       req.body.is_recurring ? 1 : 0, vRrule.value,
       req.session.userId
     );
@@ -269,7 +402,7 @@ router.post('/', (req, res) => {
     res.status(201).json({ data: entry });
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -283,23 +416,31 @@ router.put('/:id', (req, res) => {
   try {
     const id    = parseInt(req.params.id, 10);
     const entry = db.get().prepare('SELECT * FROM budget_entries WHERE id = ?').get(id);
-    if (!entry) return res.status(404).json({ error: 'Eintrag nicht gefunden', code: 404 });
+    if (!entry) return res.status(404).json({ error: 'Entry not found', code: 404 });
 
     const checks = [];
     if (req.body.title    !== undefined) checks.push(str(req.body.title,    'Titel',  { max: MAX_TITLE, required: false }));
     if (req.body.amount   !== undefined) checks.push(num(req.body.amount,   'Betrag'));
-    if (req.body.category !== undefined) checks.push(oneOf(req.body.category, VALID_CATEGORIES, 'Kategorie'));
+    if (req.body.category !== undefined) checks.push(oneOf(req.body.category, validCategoryKeys(), 'Kategorie'));
     if (req.body.date     !== undefined) checks.push(validateDate(req.body.date,    'Datum'));
     if (req.body.recurrence_rule !== undefined) checks.push(rrule(req.body.recurrence_rule, 'Wiederholung'));
     const errors = collectErrors(checks);
     if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
-    const { title, amount, category, date, is_recurring, recurrence_rule } = req.body;
+    const { title, amount, category, subcategory: requestedSubcategory, date, is_recurring, recurrence_rule } = req.body;
+    const nextCategory = category ?? entry.category;
+    const subcategory = requestedSubcategory !== undefined || category !== undefined
+      ? validateSubcategory(nextCategory, requestedSubcategory ?? entry.subcategory)
+      : undefined;
+    if (subcategory === null) {
+      return res.status(400).json({ error: 'Invalid subcategory.', code: 400 });
+    }
 
     db.get().prepare(`
       UPDATE budget_entries
       SET title           = COALESCE(?, title),
           amount          = COALESCE(?, amount),
           category        = COALESCE(?, category),
+          subcategory     = COALESCE(?, subcategory),
           date            = COALESCE(?, date),
           is_recurring    = COALESCE(?, is_recurring),
           recurrence_rule = ?
@@ -308,6 +449,7 @@ router.put('/:id', (req, res) => {
       title?.trim() ?? null,
       amount !== undefined ? Number(amount) : null,
       category ?? null,
+      subcategory !== undefined ? subcategory : null,
       date ?? null,
       is_recurring !== undefined ? (is_recurring ? 1 : 0) : null,
       recurrence_rule !== undefined ? (recurrence_rule || null) : entry.recurrence_rule,
@@ -322,7 +464,7 @@ router.put('/:id', (req, res) => {
     res.json({ data: updated });
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
@@ -335,7 +477,7 @@ router.delete('/:id', (req, res) => {
   try {
     const id    = parseInt(req.params.id, 10);
     const entry = db.get().prepare('SELECT * FROM budget_entries WHERE id = ?').get(id);
-    if (!entry) return res.status(404).json({ error: 'Eintrag nicht gefunden', code: 404 });
+    if (!entry) return res.status(404).json({ error: 'Entry not found', code: 404 });
 
     db.get().prepare('DELETE FROM budget_entries WHERE id = ?').run(id);
 
@@ -350,7 +492,7 @@ router.delete('/:id', (req, res) => {
     res.status(204).end();
   } catch (err) {
     log.error('', err);
-    res.status(500).json({ error: 'Interner Fehler', code: 500 });
+    res.status(500).json({ error: 'Internal error', code: 500 });
   }
 });
 
