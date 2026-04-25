@@ -69,6 +69,20 @@ function idParam(name = 'id', description = 'Resource ID') {
   };
 }
 
+function langParam() {
+  return {
+    name: 'lang',
+    in: 'query',
+    required: false,
+    description: 'Language code for localized labels. Supported values: ar, de, el, en, es, fr, hi, it, ja, pt, ru, sv, tr, uk, zh. Defaults to en.',
+    schema: {
+      type: 'string',
+      default: 'en',
+      enum: ['ar', 'de', 'el', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'pt', 'ru', 'sv', 'tr', 'uk', 'zh'],
+    },
+  };
+}
+
 function buildPaths() {
   return {
     '/health': {
@@ -360,9 +374,11 @@ function buildPaths() {
     '/api/v1/budget/export': { get: op({ summary: 'Export budget entries as CSV', tag: 'Budget' }) },
     '/api/v1/budget/meta': { get: op({ summary: 'Get budget categories and subcategories', tag: 'Budget' }) },
     '/api/v1/budget/categories': {
+      get: op({ summary: 'List budget categories', tag: 'Budget', params: [langParam()] }),
       post: op({ summary: 'Create budget category', tag: 'Budget', stateChanging: true, requestBody: jsonBody(null) }),
     },
     '/api/v1/budget/categories/{categoryKey}/subcategories': {
+      get: op({ summary: 'List subcategories for a budget category', tag: 'Budget', params: [{ name: 'categoryKey', in: 'path', required: true, schema: { type: 'string' } }, langParam()] }),
       post: op({ summary: 'Create budget subcategory', tag: 'Budget', params: [{ name: 'categoryKey', in: 'path', required: true, schema: { type: 'string' } }], stateChanging: true, requestBody: jsonBody(null) }),
     },
     '/api/v1/budget': {
