@@ -103,8 +103,8 @@ router.get('/', (req, res) => {
 
     res.json({ data: db.get().prepare(sql).all(...params) });
   } catch (err) {
-    log.error('GET / Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET / error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -122,13 +122,13 @@ router.get('/:id', (req, res) => {
       WHERE t.id = ? AND t.parent_task_id IS NULL
     `).get(req.params.id);
 
-    if (!task) return res.status(404).json({ error: 'Aufgabe nicht gefunden.', code: 404 });
+    if (!task) return res.status(404).json({ error: 'Task not found.', code: 404 });
 
     task.subtasks = loadSubtasks(task.id);
     res.json({ data: task });
   } catch (err) {
-    log.error('GET /:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET /:id error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -161,7 +161,7 @@ router.post('/', (req, res) => {
     if (parent_task_id) {
       const parent = db.get().prepare('SELECT parent_task_id FROM tasks WHERE id = ?')
         .get(parent_task_id);
-      if (!parent) return res.status(404).json({ error: 'Übergeordnete Aufgabe nicht gefunden.', code: 404 });
+      if (!parent) return res.status(404).json({ error: 'Parent task not found.', code: 404 });
       if (parent.parent_task_id)
         return res.status(400).json({ error: 'Maximal 2 Verschachtelungsebenen erlaubt.', code: 400 });
     }
@@ -185,8 +185,8 @@ router.post('/', (req, res) => {
 
     res.status(201).json({ data: task });
   } catch (err) {
-    log.error('POST / Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('POST / error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -200,7 +200,7 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const task = db.get().prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id);
-    if (!task) return res.status(404).json({ error: 'Aufgabe nicht gefunden.', code: 404 });
+    if (!task) return res.status(404).json({ error: 'Task not found.', code: 404 });
 
     const errors = validateTaskInput(req.body, false);
     if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
@@ -237,8 +237,8 @@ router.put('/:id', (req, res) => {
 
     res.json({ data: updated });
   } catch (err) {
-    log.error('PUT /:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PUT /:id error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -252,13 +252,13 @@ router.patch('/:id/status', (req, res) => {
   try {
     const { status } = req.body;
     if (!VALID_STATUSES.includes(status))
-      return res.status(400).json({ error: `Ungültiger Status. Erlaubt: ${VALID_STATUSES.join(', ')}`, code: 400 });
+      return res.status(400).json({ error: `Invalid status. Allowed: ${VALID_STATUSES.join(', ')}`, code: 400 });
 
     const result = db.get().prepare('UPDATE tasks SET status = ? WHERE id = ?')
       .run(status, req.params.id);
 
     if (result.changes === 0)
-      return res.status(404).json({ error: 'Aufgabe nicht gefunden.', code: 404 });
+      return res.status(404).json({ error: 'Task not found.', code: 404 });
 
     // Wiederkehrende Aufgabe: nächste Instanz erstellen wenn erledigt
     if (status === 'done') {
@@ -281,8 +281,8 @@ router.patch('/:id/status', (req, res) => {
 
     res.json({ data: { id: Number(req.params.id), status } });
   } catch (err) {
-    log.error('PATCH /:id/status Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PATCH /:id/status error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -295,11 +295,11 @@ router.delete('/:id', (req, res) => {
   try {
     const result = db.get().prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id);
     if (result.changes === 0)
-      return res.status(404).json({ error: 'Aufgabe nicht gefunden.', code: 404 });
+      return res.status(404).json({ error: 'Task not found.', code: 404 });
     res.json({ ok: true });
   } catch (err) {
-    log.error('DELETE /:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('DELETE /:id error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -315,8 +315,8 @@ router.get('/meta/options', (req, res) => {
     ).all();
     res.json({ users, priorities: VALID_PRIORITIES, statuses: VALID_STATUSES, categories: VALID_CATEGORIES });
   } catch (err) {
-    log.error('GET /meta/options Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET /meta/options error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 

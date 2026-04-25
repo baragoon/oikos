@@ -41,7 +41,7 @@ function init() {
     try {
       db.prepare('SELECT count(*) FROM sqlite_master').get();
     } catch {
-      throw new Error('[DB] Falscher Verschlüsselungsschlüssel oder keine SQLCipher-Unterstützung.');
+      throw new Error('[DB] Wrong encryption key or SQLCipher support is unavailable.');
     }
   }
 
@@ -52,7 +52,7 @@ function init() {
 
   migrate();
 
-  log.info(`Verbunden: ${DB_PATH} | Schema v${currentVersion()}`);
+  log.info(`Connected: ${DB_PATH} | Schema v${currentVersion()}`);
   return db;
 }
 
@@ -67,7 +67,7 @@ function init() {
 const MIGRATIONS = [
   {
     version: 1,
-    description: 'Initiales Schema',
+    description: 'Initial schema',
     up: `
       -- Benutzer
       CREATE TABLE IF NOT EXISTS users (
@@ -269,7 +269,7 @@ const MIGRATIONS = [
   },
   {
     version: 2,
-    description: 'Sync-Konfigurationstabelle für Google/Apple Calendar',
+    description: 'Sync configuration table for Google/Apple Calendar',
     up: `
       CREATE TABLE IF NOT EXISTS sync_config (
         key        TEXT PRIMARY KEY,
@@ -282,7 +282,7 @@ const MIGRATIONS = [
   },
   {
     version: 3,
-    description: 'Wiederkehrende Budget-Einträge: parent-Referenz und Skip-Tabelle',
+    description: 'Recurring budget entries: parent reference and skip table',
     up: `
       ALTER TABLE budget_entries ADD COLUMN recurrence_parent_id INTEGER
         REFERENCES budget_entries(id) ON DELETE SET NULL;
@@ -298,7 +298,7 @@ const MIGRATIONS = [
   },
   {
     version: 4,
-    description: 'Priorität "none" erlauben und als Default setzen',
+    description: 'Allow "none" priority and set it as default',
     up: `
       -- SQLite erlaubt kein ALTER CHECK, daher Tabelle neu erstellen
       CREATE TABLE tasks_new (
@@ -333,7 +333,7 @@ const MIGRATIONS = [
   },
   {
     version: 5,
-    description: 'Einkaufskategorien als eigene Tabelle (anpassbar, sortierbar)',
+    description: 'Shopping categories as a separate table (customizable, sortable)',
     up: `
       CREATE TABLE IF NOT EXISTS shopping_categories (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -357,21 +357,21 @@ const MIGRATIONS = [
   },
   {
     version: 6,
-    description: 'Rezept-URL für Mahlzeiten',
+    description: 'Recipe URL for meals',
     up: `
       ALTER TABLE meals ADD COLUMN recipe_url TEXT;
     `,
   },
   {
     version: 7,
-    description: 'Kategorie pro Zutat für Einkaufslisten-Transfer',
+    description: 'Category per ingredient for shopping list transfer',
     up: `
       ALTER TABLE meal_ingredients ADD COLUMN category TEXT NOT NULL DEFAULT 'Sonstiges';
     `,
   },
   {
     version: 8,
-    description: 'Erinnerungen (Reminders) für Aufgaben und Kalender-Events',
+    description: 'Reminders for tasks and calendar events',
     up: `
       CREATE TABLE IF NOT EXISTS reminders (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -390,7 +390,7 @@ const MIGRATIONS = [
   },
   {
     version: 9,
-    description: 'Task-Kategorien auf englische Schlüssel migrieren',
+    description: 'Migrate task categories to English keys',
     up: `
       UPDATE tasks SET category = CASE category
         WHEN 'Haushalt'   THEN 'household'
@@ -407,7 +407,7 @@ const MIGRATIONS = [
   },
   {
     version: 10,
-    description: 'ICS-Abonnements Tabelle',
+    description: 'ICS subscriptions table',
     up: `
       CREATE TABLE IF NOT EXISTS ics_subscriptions (
         id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -477,7 +477,7 @@ const MIGRATIONS = [
   },
   {
     version: 12,
-    description: 'calendar_events: partiellen Unique-Index durch vollständigen ersetzen (ON CONFLICT support)',
+    description: 'calendar_events: replace partial unique index with full index (ON CONFLICT support)',
     up: `
       DROP INDEX IF EXISTS idx_calendar_sub_extid;
       CREATE UNIQUE INDEX idx_calendar_sub_extid
@@ -486,7 +486,7 @@ const MIGRATIONS = [
   },
   {
     version: 13,
-    description: 'Rezepte-Tabelle und Mahlzeiten-Verknuepfung',
+    description: 'Recipes table and meal association',
     up: `
       CREATE TABLE IF NOT EXISTS recipes (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -525,7 +525,7 @@ const MIGRATIONS = [
   },
   {
     version: 14,
-    description: 'Externe Kalender-Metadaten (Name, Farbe) und Verknüpfung mit Events',
+    description: 'External calendar metadata (name, color) and event association',
     up: `
       CREATE TABLE IF NOT EXISTS external_calendars (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -546,7 +546,7 @@ const MIGRATIONS = [
   },
   {
     version: 15,
-    description: 'Budget-Ausgabenkategorien als stabile Schlüssel mit Unterkategorien',
+    description: 'Budget expense categories as stable keys with subcategories',
     up: `
       ALTER TABLE budget_entries ADD COLUMN subcategory TEXT NOT NULL DEFAULT '';
 
@@ -586,7 +586,7 @@ const MIGRATIONS = [
   },
   {
     version: 16,
-    description: 'Budget-Kategorien und Unterkategorien in eigene Tabellen auslagern',
+    description: 'Move budget categories and subcategories to separate tables',
     up: `
       CREATE TABLE IF NOT EXISTS budget_categories (
         key        TEXT PRIMARY KEY,
@@ -698,7 +698,7 @@ function migrate() {
     db.exec(migration.up);
     db.prepare('INSERT INTO schema_migrations (version, description) VALUES (?, ?)')
       .run(migration.version, migration.description);
-    log.info(`Migration ${migration.version} angewendet: ${migration.description}`);
+    log.info(`Migration ${migration.version} applied: ${migration.description}`);
   });
 
   for (const migration of pending) {
@@ -729,7 +729,7 @@ function currentVersion() {
  * @returns {import('better-sqlite3').Database}
  */
 function get() {
-  if (!db) throw new Error('[DB] Nicht initialisiert - init() zuerst aufrufen.');
+  if (!db) throw new Error('[DB] Not initialized - call init() first.');
   return db;
 }
 

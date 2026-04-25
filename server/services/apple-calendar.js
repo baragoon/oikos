@@ -80,7 +80,7 @@ function getCredentials() {
 function saveCredentials(url, username, password) {
   // Warnung wenn DB-Verschluesselung nicht aktiv - Credentials liegen dann im Klartext
   if (!process.env.DB_ENCRYPTION_KEY) {
-    log.warn('WARNUNG: DB_ENCRYPTION_KEY nicht gesetzt - CalDAV-Credentials werden unverschluesselt gespeichert.');
+    log.warn('WARNING: DB_ENCRYPTION_KEY is not set - CalDAV credentials will be stored unencrypted.');
   }
   cfgSet('apple_caldav_url',  url);
   cfgSet('apple_username',    username);
@@ -89,7 +89,7 @@ function saveCredentials(url, username, password) {
 
 function clearCredentials() {
   ['apple_caldav_url', 'apple_username', 'apple_app_password', 'apple_last_sync'].forEach(cfgDel);
-  log.info('Verbindung getrennt.');
+  log.info('Disconnected.');
 }
 
 // --------------------------------------------------------
@@ -110,7 +110,7 @@ function getStatus() {
  */
 async function testConnection() {
   const creds = getCredentials();
-  if (!creds) throw new Error('[Apple] Keine Credentials konfiguriert.');
+  if (!creds) throw new Error('[Apple] No credentials configured.');
 
   const { createDAVClient } = await import('tsdav');
   const client = await createDAVClient({
@@ -121,7 +121,7 @@ async function testConnection() {
   });
 
   const calendars = await client.fetchCalendars();
-  if (!calendars.length) throw new Error('[Apple] Verbunden, aber keine Kalender gefunden.');
+  if (!calendars.length) throw new Error('[Apple] Connected, but no calendars found.');
   return { ok: true, calendarCount: calendars.length };
 }
 
@@ -196,7 +196,7 @@ function unescapeICS(str) {
 async function sync() {
   const creds = getCredentials();
   if (!creds) {
-    throw new Error('[Apple] Keine Credentials konfiguriert (weder in DB noch in .env).');
+    throw new Error('[Apple] No credentials configured (neither in DB nor in .env).');
   }
 
   // tsdav ist eine optionale Abhängigkeit - dynamischer Import für graceful degradation
@@ -211,14 +211,14 @@ async function sync() {
 
   const calendars = await client.fetchCalendars();
   if (!calendars.length) {
-    log.warn('Keine Kalender gefunden.');
+    log.warn('No calendars found.');
     return;
   }
 
   // created_by: ersten existierenden User verwenden (nicht hardcoded ID 1)
   const owner = db.get().prepare('SELECT id FROM users ORDER BY id ASC LIMIT 1').get();
   if (!owner) {
-    log.warn('Kein User in der Datenbank - Sync übersprungen.');
+    log.warn('No user in database - sync skipped.');
     return;
   }
   const createdBy = owner.id;
@@ -233,7 +233,7 @@ async function sync() {
     try {
       calObjects = await client.fetchCalendarObjects({ calendar: cal });
     } catch (err) {
-      log.warn(`Kalender "${cal.displayName || '(unbenannt)'}" nicht abrufbar: ${err.message}`);
+      log.warn(`Calendar "${cal.displayName || '(unnamed)'}" is not accessible: ${err.message}`);
       continue;
     }
 
@@ -277,7 +277,7 @@ async function sync() {
             );
           }
         } catch (err) {
-          log.error(`Upsert-Fehler für UID ${ev.uid}:`, err.message);
+          log.error(`Upsert error for UID ${ev.uid}:`, err.message);
         }
       }
     }
@@ -308,12 +308,12 @@ async function sync() {
         UPDATE calendar_events SET external_calendar_id = ?, external_source = 'apple' WHERE id = ?
       `).run(uid, event.id);
     } catch (err) {
-      log.error(`Outbound-Fehler für Event ${event.id}:`, err.message);
+      log.error(`Outbound error for event ${event.id}:`, err.message);
     }
   }
 
   cfgSet('apple_last_sync', new Date().toISOString());
-  log.info(`Sync abgeschlossen - ${totalObjects} Objekte aus ${syncCalendars.length} Kalendern inbound, ${localEvents.length} lokal → iCloud.`);
+  log.info(`Sync completed - ${totalObjects} objects from ${syncCalendars.length} calendars inbound, ${localEvents.length} local → iCloud.`);
 }
 
 export { sync, getStatus, saveCredentials, clearCredentials, testConnection };

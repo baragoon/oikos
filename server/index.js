@@ -90,10 +90,10 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 // JSON-Parse-Fehler abfangen (gibt sonst HTML zurück)
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: 'Ungültiges JSON im Request-Body.', code: 400 });
+    return res.status(400).json({ error: 'Invalid JSON in request body.', code: 400 });
   }
   if (err.type === 'entity.too.large') {
-    return res.status(413).json({ error: 'Request-Body zu groß (max. 1 MB).', code: 413 });
+    return res.status(413).json({ error: 'Request body too large (max. 1 MB).', code: 413 });
   }
   next(err);
 });
@@ -151,7 +151,7 @@ const apiLimiter = rateLimit({
   max: 300,                 // 300 Requests/Minute pro IP (großzügig für Familien-App)
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Zu viele Anfragen. Bitte warte kurz.', code: 429 },
+  message: { error: 'Too many requests. Please wait a moment.', code: 429 },
   skip: (req) => req.path === '/health', // Health-Check ausgenommen
 });
 app.use('/api/', apiLimiter);
@@ -198,7 +198,7 @@ const spaLimiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Zu viele Anfragen. Bitte warte kurz.', code: 429 },
+  message: { error: 'Too many requests. Please wait a moment.', code: 429 },
 });
 
 // --------------------------------------------------------
@@ -206,7 +206,7 @@ const spaLimiter = rateLimit({
 // --------------------------------------------------------
 app.get('/{*path}', spaLimiter, (req, res) => {
   if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'Nicht gefunden.', code: 404 });
+    return res.status(404).json({ error: 'Not found.', code: 404 });
   }
   res.sendFile(path.join(import.meta.dirname, '..', 'public', 'index.html'));
 });
@@ -215,8 +215,8 @@ app.get('/{*path}', spaLimiter, (req, res) => {
 // Globaler Error-Handler
 // --------------------------------------------------------
 app.use((err, req, res, _next) => {
-  log.error('Unbehandelter Fehler:', err);
-  res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+  log.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error.', code: 500 });
 });
 
 // --------------------------------------------------------
@@ -228,30 +228,30 @@ const SYNC_INTERVAL_MS = (parseInt(process.env.SYNC_INTERVAL_MINUTES, 10) || 15)
 async function runSync() {
   const { connected: googleConnected } = googleCalendar.getStatus();
   if (googleConnected) {
-    googleCalendar.sync().catch((e) => logSync.error('Google Fehler:', e.message));
+    googleCalendar.sync().catch((e) => logSync.error('Google error:', e.message));
   }
 
   const { configured: appleConfigured } = appleCalendar.getStatus();
   if (appleConfigured) {
-    appleCalendar.sync().catch((e) => logSync.error('Apple Fehler:', e.message));
+    appleCalendar.sync().catch((e) => logSync.error('Apple error:', e.message));
   }
 
   // ICS: kein Guard nötig — sync() fragt die DB ab und kehrt sofort zurück wenn keine Abonnements existieren
-  icsSubscription.sync().catch((e) => logSync.error('ICS Fehler:', e.message));
+  icsSubscription.sync().catch((e) => logSync.error('ICS error:', e.message));
 }
 
 // --------------------------------------------------------
 // Server starten
 // --------------------------------------------------------
 app.listen(PORT, () => {
-  logOikos.info(`Server laeuft auf Port ${PORT}`);
-  logOikos.info(`Umgebung: ${process.env.NODE_ENV || 'development'}`);
+  logOikos.info(`Server running on port ${PORT}`);
+  logOikos.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
   // Erster Sync nach 10 Sekunden (warten bis DB vollständig initialisiert)
   setTimeout(() => {
     runSync();
     setInterval(runSync, SYNC_INTERVAL_MS);
-    logSync.info(`Auto-Sync alle ${SYNC_INTERVAL_MS / 60_000} Minuten aktiv.`);
+    logSync.info(`Auto-sync active every ${SYNC_INTERVAL_MS / 60_000} minutes.`);
   }, 10_000);
 });
 

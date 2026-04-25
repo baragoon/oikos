@@ -42,7 +42,7 @@ function createClient() {
   const redirectUri  = process.env.GOOGLE_REDIRECT_URI;
 
   if (!clientId || !clientSecret || !redirectUri) {
-    throw new Error('[Google] GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET und GOOGLE_REDIRECT_URI müssen gesetzt sein.');
+    throw new Error('[Google] GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI must be set.');
   }
 
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
@@ -79,7 +79,7 @@ function loadAuthorizedClient() {
   const refreshToken = cfgGet('google_refresh_token');
 
   if (!accessToken || !refreshToken) {
-    throw new Error('[Google] Nicht konfiguriert - zuerst OAuth durchführen.');
+    throw new Error('[Google] Not configured - complete OAuth first.');
   }
 
   const client = createClient();
@@ -133,14 +133,14 @@ async function handleCallback(code) {
   const { tokens } = await client.getToken(code);
 
   if (!tokens.refresh_token) {
-    throw new Error('[Google] Kein Refresh Token erhalten. Bitte Zugriff in Google-Konto widerrufen und erneut verbinden.');
+    throw new Error('[Google] No refresh token received. Revoke access in your Google account and connect again.');
   }
 
   cfgSet('google_access_token',  tokens.access_token);
   cfgSet('google_refresh_token', tokens.refresh_token);
   if (tokens.expiry_date) cfgSet('google_token_expiry', String(tokens.expiry_date));
 
-  log.info('OAuth erfolgreich - Tokens gespeichert.');
+  log.info('OAuth successful - tokens saved.');
 }
 
 /**
@@ -160,7 +160,7 @@ function getStatus() {
 function disconnect() {
   ['google_access_token', 'google_refresh_token', 'google_token_expiry',
    'google_sync_token', 'google_last_sync'].forEach(cfgDel);
-  log.info('Verbindung getrennt.');
+  log.info('Disconnected.');
 }
 
 /**
@@ -181,7 +181,7 @@ async function sync() {
     const calName = meta.data.summary || 'Google Calendar';
     calRefId  = upsertExternalCalendar('google', 'primary', calName, calColor);
   } catch (err) {
-    log.warn('Kalender-Metadaten nicht abrufbar:', err.message);
+    log.warn('Calendar metadata is not accessible:', err.message);
   }
 
   // --------------------------------------------------------
@@ -214,7 +214,7 @@ async function sync() {
     } catch (err) {
       if (err.code === 410) {
         // syncToken abgelaufen → vollständiger Resync
-        log.warn('syncToken ungültig - vollständiger Resync.');
+        log.warn('syncToken invalid - full resync.');
         cfgDel('google_sync_token');
         syncToken = null;
         continue;
@@ -250,12 +250,12 @@ async function sync() {
         UPDATE calendar_events SET external_calendar_id = ?, external_source = 'google' WHERE id = ?
       `).run(created.data.id, event.id);
     } catch (err) {
-      log.error(`Outbound-Fehler für Event ${event.id}:`, err.message);
+      log.error(`Outbound error for event ${event.id}:`, err.message);
     }
   }
 
   cfgSet('google_last_sync', new Date().toISOString());
-  log.info(`Sync abgeschlossen - ${localEvents.length} lokal → Google, Inbound via syncToken.`);
+  log.info(`Sync completed - ${localEvents.length} local → Google, inbound via syncToken.`);
 }
 
 // --------------------------------------------------------
@@ -306,7 +306,7 @@ function upsertGoogleEvents(items, calRefId = null, calColor = GOOGLE_COLOR) {
     try {
       insertOrUpdate(item);
     } catch (err) {
-      log.error(`Upsert-Fehler für Event ${item.id}:`, err.message);
+      log.error(`Upsert error for event ${item.id}:`, err.message);
     }
   }
 }

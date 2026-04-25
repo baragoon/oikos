@@ -39,8 +39,8 @@ router.get('/categories', (_req, res) => {
   try {
     res.json({ data: loadCategories() });
   } catch (err) {
-    log.error('GET /categories Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET /categories error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -58,7 +58,7 @@ router.post('/categories', (req, res) => {
     const existing = db.get()
       .prepare('SELECT id FROM shopping_categories WHERE name = ? COLLATE NOCASE')
       .get(vName.value);
-    if (existing) return res.status(409).json({ error: 'Kategorie existiert bereits.', code: 409 });
+    if (existing) return res.status(409).json({ error: 'Category already exists.', code: 409 });
 
     const maxOrder = db.get()
       .prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM shopping_categories')
@@ -73,8 +73,8 @@ router.post('/categories', (req, res) => {
       .get(result.lastInsertRowid);
     res.status(201).json({ data: cat });
   } catch (err) {
-    log.error('POST /categories Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('POST /categories error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -89,7 +89,7 @@ router.put('/categories/:catId', (req, res) => {
     const cat = db.get()
       .prepare('SELECT * FROM shopping_categories WHERE id = ?')
       .get(req.params.catId);
-    if (!cat) return res.status(404).json({ error: 'Kategorie nicht gefunden.', code: 404 });
+    if (!cat) return res.status(404).json({ error: 'Category not found.', code: 404 });
 
     const vName = str(req.body.name, 'Name', { max: MAX_SHORT });
     if (vName.error) return res.status(400).json({ error: vName.error, code: 400 });
@@ -97,7 +97,7 @@ router.put('/categories/:catId', (req, res) => {
     const conflict = db.get()
       .prepare('SELECT id FROM shopping_categories WHERE name = ? COLLATE NOCASE AND id != ?')
       .get(vName.value, cat.id);
-    if (conflict) return res.status(409).json({ error: 'Kategorie existiert bereits.', code: 409 });
+    if (conflict) return res.status(409).json({ error: 'Category already exists.', code: 409 });
 
     // Artikel, die die alte Kategorie nutzen, mitumbenennen
     db.get().transaction(() => {
@@ -114,8 +114,8 @@ router.put('/categories/:catId', (req, res) => {
       .get(cat.id);
     res.json({ data: updated });
   } catch (err) {
-    log.error('PUT /categories/:catId Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PUT /categories/:catId error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -130,12 +130,12 @@ router.delete('/categories/:catId', (req, res) => {
     const cat = db.get()
       .prepare('SELECT * FROM shopping_categories WHERE id = ?')
       .get(req.params.catId);
-    if (!cat) return res.status(404).json({ error: 'Kategorie nicht gefunden.', code: 404 });
+    if (!cat) return res.status(404).json({ error: 'Category not found.', code: 404 });
 
     const total = db.get()
       .prepare('SELECT COUNT(*) AS c FROM shopping_categories')
       .get().c;
-    if (total <= 1) return res.status(400).json({ error: 'Letzte Kategorie kann nicht gelöscht werden.', code: 400 });
+    if (total <= 1) return res.status(400).json({ error: 'The last category cannot be deleted.', code: 400 });
 
     // Fallback-Kategorie: erste andere Kategorie nach sort_order
     const fallback = db.get()
@@ -153,8 +153,8 @@ router.delete('/categories/:catId', (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
-    log.error('DELETE /categories/:catId Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('DELETE /categories/:catId error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -177,8 +177,8 @@ router.patch('/categories/reorder', (req, res) => {
 
     res.json({ data: loadCategories() });
   } catch (err) {
-    log.error('PATCH /categories/reorder Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PATCH /categories/reorder error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -201,8 +201,8 @@ router.get('/suggestions', (req, res) => {
 
     res.json({ data: rows.map((r) => r.name) });
   } catch (err) {
-    log.error('suggestions Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('suggestions error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -217,7 +217,7 @@ router.patch('/items/:itemId', (req, res) => {
     const item = db.get()
       .prepare('SELECT * FROM shopping_items WHERE id = ?')
       .get(req.params.itemId);
-    if (!item) return res.status(404).json({ error: 'Artikel nicht gefunden.', code: 404 });
+    if (!item) return res.status(404).json({ error: 'Item not found.', code: 404 });
 
     const {
       is_checked = item.is_checked,
@@ -230,7 +230,7 @@ router.patch('/items/:itemId', (req, res) => {
 
     const validNames = validCategoryNames();
     if (category && !validNames.includes(category))
-      return res.status(400).json({ error: 'Ungültige Kategorie.', code: 400 });
+      return res.status(400).json({ error: 'Invalid category.', code: 400 });
 
     db.get().prepare(`
       UPDATE shopping_items
@@ -243,8 +243,8 @@ router.patch('/items/:itemId', (req, res) => {
       .get(req.params.itemId);
     res.json({ data: updated });
   } catch (err) {
-    log.error('PATCH items/:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PATCH items/:id error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -259,11 +259,11 @@ router.delete('/items/:itemId', (req, res) => {
       .prepare('DELETE FROM shopping_items WHERE id = ?')
       .run(req.params.itemId);
     if (result.changes === 0)
-      return res.status(404).json({ error: 'Artikel nicht gefunden.', code: 404 });
+      return res.status(404).json({ error: 'Item not found.', code: 404 });
     res.json({ ok: true });
   } catch (err) {
-    log.error('DELETE items/:id Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('DELETE items/:id error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -286,8 +286,8 @@ router.get('/', (req, res) => {
     `).all();
     res.json({ data: lists });
   } catch (err) {
-    log.error('GET / Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET / error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -311,8 +311,8 @@ router.post('/', (req, res) => {
       .get(result.lastInsertRowid);
     res.status(201).json({ data: list });
   } catch (err) {
-    log.error('POST / Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('POST / error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -331,15 +331,15 @@ router.put('/:listId', (req, res) => {
       .prepare('UPDATE shopping_lists SET name = ? WHERE id = ?')
       .run(vName.value, req.params.listId);
     if (result.changes === 0)
-      return res.status(404).json({ error: 'Liste nicht gefunden.', code: 404 });
+      return res.status(404).json({ error: 'List not found.', code: 404 });
 
     const list = db.get()
       .prepare('SELECT * FROM shopping_lists WHERE id = ?')
       .get(req.params.listId);
     res.json({ data: list });
   } catch (err) {
-    log.error('PUT /:listId Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('PUT /:listId error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -354,11 +354,11 @@ router.delete('/:listId', (req, res) => {
       .prepare('DELETE FROM shopping_lists WHERE id = ?')
       .run(req.params.listId);
     if (result.changes === 0)
-      return res.status(404).json({ error: 'Liste nicht gefunden.', code: 404 });
+      return res.status(404).json({ error: 'List not found.', code: 404 });
     res.json({ ok: true });
   } catch (err) {
-    log.error('DELETE /:listId Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('DELETE /:listId error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -373,7 +373,7 @@ router.get('/:listId/items', (req, res) => {
     const list = db.get()
       .prepare('SELECT * FROM shopping_lists WHERE id = ?')
       .get(req.params.listId);
-    if (!list) return res.status(404).json({ error: 'Liste nicht gefunden.', code: 404 });
+    if (!list) return res.status(404).json({ error: 'List not found.', code: 404 });
 
     const categories = loadCategories();
     const categoryOrder = categories.map((c, i) => `WHEN '${c.name.replace(/'/g, "''")}' THEN ${i}`).join(' ');
@@ -389,8 +389,8 @@ router.get('/:listId/items', (req, res) => {
 
     res.json({ data: items, list, categories });
   } catch (err) {
-    log.error('GET /:listId/items Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('GET /:listId/items error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -405,7 +405,7 @@ router.post('/:listId/items', (req, res) => {
     const list = db.get()
       .prepare('SELECT id FROM shopping_lists WHERE id = ?')
       .get(req.params.listId);
-    if (!list) return res.status(404).json({ error: 'Liste nicht gefunden.', code: 404 });
+    if (!list) return res.status(404).json({ error: 'List not found.', code: 404 });
 
     const validNames = validCategoryNames();
     const defaultCat = validNames[0] ?? 'Sonstiges';
@@ -427,8 +427,8 @@ router.post('/:listId/items', (req, res) => {
       .get(result.lastInsertRowid);
     res.status(201).json({ data: item });
   } catch (err) {
-    log.error('POST /:listId/items Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('POST /:listId/items error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 
@@ -444,8 +444,8 @@ router.delete('/:listId/items/checked', (req, res) => {
     `).run(req.params.listId);
     res.json({ deleted: result.changes });
   } catch (err) {
-    log.error('DELETE /:listId/items/checked Fehler:', err);
-    res.status(500).json({ error: 'Interner Serverfehler.', code: 500 });
+    log.error('DELETE /:listId/items/checked error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
 

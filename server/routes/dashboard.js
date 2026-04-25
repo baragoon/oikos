@@ -53,7 +53,7 @@ router.get('/', (req, res) => {
       LIMIT 5
     `).all(now.toISOString());
   } catch (err) {
-    log.error('upcomingEvents-Fehler:', err.message);
+    log.error('upcomingEvents error:', err.message);
     result.upcomingEvents = [];
   }
 
@@ -91,7 +91,7 @@ router.get('/', (req, res) => {
 
     result.urgentTasks = allOpen.slice(0, 5);
   } catch (err) {
-    log.error('urgentTasks-Fehler:', err.message);
+    log.error('urgentTasks error:', err.message);
     result.urgentTasks = [];
   }
 
@@ -116,7 +116,7 @@ router.get('/', (req, res) => {
         END
     `).all(todayStr, ...visibleTypes);
   } catch (err) {
-    log.error('todayMeals-Fehler:', err.message);
+    log.error('todayMeals error:', err.message);
     result.todayMeals = [];
   }
 
@@ -130,7 +130,7 @@ router.get('/', (req, res) => {
       LIMIT 3
     `).all();
   } catch (err) {
-    log.error('pinnedNotes-Fehler:', err.message);
+    log.error('pinnedNotes error:', err.message);
     result.pinnedNotes = [];
   }
 
@@ -157,7 +157,7 @@ router.get('/', (req, res) => {
     }
     result.shoppingLists = lists;
   } catch (err) {
-    log.error('shoppingLists-Fehler:', err.message);
+    log.error('shoppingLists error:', err.message);
     result.shoppingLists = [];
   }
 
@@ -172,8 +172,8 @@ router.get('/', (req, res) => {
 
   res.json(result);
   } catch (err) {
-    log.error('Kritischer Fehler:', err.message);
-    res.status(500).json({ error: 'Dashboard konnte nicht geladen werden.', code: 500 });
+    log.error('Critical error:', err.message);
+    res.status(500).json({ error: 'Dashboard could not be loaded.', code: 500 });
   }
 });
 

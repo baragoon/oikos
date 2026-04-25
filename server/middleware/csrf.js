@@ -71,7 +71,7 @@ function csrfMiddleware(req, res, next) {
   }
 
   if (!tokenValid) {
-    return res.status(403).json({ error: 'Ungültiges CSRF-Token.', code: 403 });
+    return res.status(403).json({ error: 'Invalid CSRF token.', code: 403 });
   }
 
   next();
