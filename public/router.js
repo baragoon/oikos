@@ -313,7 +313,8 @@ function renderAppShell(container) {
   logoSvg.setAttribute('fill', 'none');
   const defs = document.createElementNS(SVG_NS, 'defs');
   const grad = document.createElementNS(SVG_NS, 'linearGradient');
-  grad.setAttribute('id', 'oikos-logo-bg');
+  const gradId = `oikos-logo-bg-${Math.random().toString(36).slice(2, 7)}`;
+  grad.setAttribute('id', gradId);
   grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
   grad.setAttribute('x2', '160'); grad.setAttribute('y2', '160');
   grad.setAttribute('gradientUnits', 'userSpaceOnUse');
@@ -328,7 +329,7 @@ function renderAppShell(container) {
   logoSvg.appendChild(defs);
   const bgRect = document.createElementNS(SVG_NS, 'rect');
   bgRect.setAttribute('width', '160'); bgRect.setAttribute('height', '160');
-  bgRect.setAttribute('rx', '36'); bgRect.setAttribute('fill', 'url(#oikos-logo-bg)');
+  bgRect.setAttribute('rx', '36'); bgRect.setAttribute('fill', `url(#${gradId})`);
   logoSvg.appendChild(bgRect);
   const housePath = document.createElementNS(SVG_NS, 'path');
   housePath.setAttribute('d', 'M80 36L36 72V120C36 122.2 37.8 124 40 124H68V96H92V124H120C122.2 124 124 122.2 124 120V72L80 36Z');
