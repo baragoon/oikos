@@ -544,6 +544,133 @@ const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_cal_events_ref ON calendar_events(calendar_ref_id);
     `,
   },
+  {
+    version: 15,
+    description: 'Budget-Ausgabenkategorien als stabile Schlüssel mit Unterkategorien',
+    up: `
+      ALTER TABLE budget_entries ADD COLUMN subcategory TEXT NOT NULL DEFAULT '';
+
+      UPDATE budget_entries
+      SET category = CASE category
+        WHEN 'Lebensmittel' THEN 'food'
+        WHEN 'Miete' THEN 'housing'
+        WHEN 'Versicherung' THEN 'financial_other'
+        WHEN 'Mobilität' THEN 'transport'
+        WHEN 'Freizeit' THEN 'leisure'
+        WHEN 'Kleidung' THEN 'shopping_clothing'
+        WHEN 'Gesundheit' THEN 'personal_health'
+        WHEN 'Bildung' THEN 'education'
+        WHEN 'Sonstiges' THEN 'financial_other'
+        ELSE category
+      END
+      WHERE amount < 0;
+
+      UPDATE budget_entries
+      SET subcategory = CASE category
+        WHEN 'housing' THEN 'rent_mortgage'
+        WHEN 'food' THEN 'groceries'
+        WHEN 'transport' THEN 'fuel'
+        WHEN 'personal_health' THEN 'pharmacy'
+        WHEN 'leisure' THEN 'events'
+        WHEN 'shopping_clothing' THEN 'clothes_shoes'
+        WHEN 'education' THEN 'courses_college'
+        WHEN 'financial_other' THEN 'insurance_other'
+        ELSE ''
+      END
+      WHERE amount < 0 AND subcategory = '';
+
+      UPDATE budget_entries
+      SET category = 'Sonstiges Einkommen'
+      WHERE amount > 0 AND category = 'Sonstiges';
+    `,
+  },
+  {
+    version: 16,
+    description: 'Budget-Kategorien und Unterkategorien in eigene Tabellen auslagern',
+    up: `
+      CREATE TABLE IF NOT EXISTS budget_categories (
+        key        TEXT PRIMARY KEY,
+        name       TEXT    NOT NULL,
+        type       TEXT    NOT NULL CHECK(type IN ('expense', 'income')),
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS budget_subcategories (
+        key          TEXT PRIMARY KEY,
+        category_key TEXT    NOT NULL REFERENCES budget_categories(key) ON DELETE CASCADE,
+        name         TEXT    NOT NULL,
+        sort_order   INTEGER NOT NULL DEFAULT 0,
+        created_at   TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+        UNIQUE(category_key, name)
+      );
+
+      INSERT OR IGNORE INTO budget_categories (key, name, type, sort_order) VALUES
+        ('housing', 'Habitação / Casa', 'expense', 0),
+        ('food', 'Alimentação', 'expense', 1),
+        ('transport', 'Transporte', 'expense', 2),
+        ('personal_health', 'Cuidados Pessoais / Saúde', 'expense', 3),
+        ('leisure', 'Lazer e Entretenimento', 'expense', 4),
+        ('shopping_clothing', 'Compras e Vestuário', 'expense', 5),
+        ('education', 'Educação', 'expense', 6),
+        ('financial_other', 'Serviços Financeiros e Outros', 'expense', 7),
+        ('Erwerbseinkommen', 'Erwerbseinkommen', 'income', 0),
+        ('Kapitalerträge', 'Kapitalerträge', 'income', 1),
+        ('Geschenke & Transfers', 'Geschenke & Transfers', 'income', 2),
+        ('Sozialleistungen', 'Sozialleistungen', 'income', 3),
+        ('Sonstiges Einkommen', 'Sonstiges Einkommen', 'income', 4);
+
+      INSERT OR IGNORE INTO budget_subcategories (key, category_key, name, sort_order) VALUES
+        ('rent_mortgage', 'housing', 'Aluguel / Prestação', 0),
+        ('condominium', 'housing', 'Condomínio', 1),
+        ('utilities', 'housing', 'Luz / Água / Gás', 2),
+        ('internet_tv_phone', 'housing', 'Internet / TV / Telefone', 3),
+        ('renovation_maintenance', 'housing', 'Reforma / Manutenção', 4),
+        ('cleaning', 'housing', 'Limpeza', 5),
+        ('groceries', 'food', 'Supermercado', 0),
+        ('restaurants_bars', 'food', 'Restaurante / Bares', 1),
+        ('snacks_fast_food', 'food', 'Lanches / Fast Food', 2),
+        ('bakery', 'food', 'Padaria', 3),
+        ('fuel', 'transport', 'Combustível', 0),
+        ('parking_tolls', 'transport', 'Estacionamento / Pedágio', 1),
+        ('public_transport', 'transport', 'Transporte Público', 2),
+        ('apps_taxi', 'transport', 'Aplicativos / Táxi', 3),
+        ('maintenance_insurance', 'transport', 'Manutenção / Seguro', 4),
+        ('pharmacy', 'personal_health', 'Farmácia', 0),
+        ('health_insurance', 'personal_health', 'Plano de Saúde', 1),
+        ('gym_sports', 'personal_health', 'Academia / Esportes', 2),
+        ('beauty_cosmetics', 'personal_health', 'Beleza / Cosméticos', 3),
+        ('travel', 'leisure', 'Viagens', 0),
+        ('streaming', 'leisure', 'Streaming', 1),
+        ('events', 'leisure', 'Eventos', 2),
+        ('hobbies', 'leisure', 'Hobbies', 3),
+        ('clothes_shoes', 'shopping_clothing', 'Roupas / Calçados', 0),
+        ('electronics', 'shopping_clothing', 'Eletrônicos', 1),
+        ('gifts', 'shopping_clothing', 'Presentes', 2),
+        ('courses_college', 'education', 'Cursos / Faculdade', 0),
+        ('school_supplies', 'education', 'Material Escolar', 1),
+        ('languages', 'education', 'Idiomas', 2),
+        ('loans_interest', 'financial_other', 'Empréstimos / Juros', 0),
+        ('bank_fees', 'financial_other', 'Tarifas Bancárias', 1),
+        ('insurance_other', 'financial_other', 'Seguros', 2),
+        ('investments', 'financial_other', 'Investimentos', 3),
+        ('taxes', 'financial_other', 'Impostos', 4);
+
+      INSERT OR IGNORE INTO budget_categories (key, name, type, sort_order)
+      SELECT category, category, CASE WHEN amount < 0 THEN 'expense' ELSE 'income' END, 1000
+      FROM budget_entries
+      WHERE category NOT IN (SELECT key FROM budget_categories)
+      GROUP BY category;
+
+      INSERT OR IGNORE INTO budget_subcategories (key, category_key, name, sort_order)
+      SELECT subcategory, category, subcategory, 1000
+      FROM budget_entries
+      WHERE subcategory != ''
+        AND subcategory NOT IN (SELECT key FROM budget_subcategories)
+        AND category IN (SELECT key FROM budget_categories WHERE type = 'expense')
+      GROUP BY category, subcategory;
+    `,
+  },
 ];
 
 /**

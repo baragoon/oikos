@@ -178,30 +178,30 @@ console.log('\n[Budget-Test] Einnahmen, Ausgaben, Saldo, Aggregation, CSV-Vorber
 
 let bId1, bId2, bId3, bId4;
 
-test('Ausgabe eintragen (Lebensmittel)', () => {
-  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, date, created_by)
-    VALUES ('REWE', -85.40, 'Lebensmittel', '2026-03-10', ?)`).run(uid);
+test('Ausgabe eintragen (Supermarkt)', () => {
+  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, created_by)
+    VALUES ('REWE', -85.40, 'food', 'groceries', '2026-03-10', ?)`).run(uid);
   bId1 = r.lastInsertRowid;
   assert(bId1 > 0);
 });
 
 test('Einnahme eintragen (Gehalt)', () => {
   const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, date, created_by)
-    VALUES ('Gehalt März', 2800.00, 'Sonstiges', '2026-03-01', ?)`).run(uid);
+    VALUES ('Gehalt März', 2800.00, 'Sonstiges Einkommen', '2026-03-01', ?)`).run(uid);
   bId2 = r.lastInsertRowid;
   assert(bId2 > 0);
 });
 
-test('Ausgabe (Miete)', () => {
-  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, date, is_recurring, created_by)
-    VALUES ('Miete', -950.00, 'Miete', '2026-03-01', 1, ?)`).run(uid);
+test('Ausgabe (Aluguel / Prestação)', () => {
+  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, is_recurring, created_by)
+    VALUES ('Miete', -950.00, 'housing', 'rent_mortgage', '2026-03-01', 1, ?)`).run(uid);
   bId3 = r.lastInsertRowid;
   assert(bId3 > 0);
 });
 
 test('Ausgabe im anderen Monat (April)', () => {
-  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, date, created_by)
-    VALUES ('Strom April', -55.00, 'Sonstiges', '2026-04-15', ?)`).run(uid);
+  const r = db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, created_by)
+    VALUES ('Strom April', -55.00, 'housing', 'utilities', '2026-04-15', ?)`).run(uid);
   bId4 = r.lastInsertRowid;
   assert(bId4 > 0);
 });
@@ -258,10 +258,16 @@ test('Aggregation nach Kategorie', () => {
     GROUP BY category ORDER BY ABS(SUM(amount)) DESC
   `).all();
   assert(cats.length >= 2, `Mindestens 2 Kategorien, erhalten ${cats.length}`);
-  // Miete sollte die größte Ausgabe sein
-  const miete = cats.find((c) => c.category === 'Miete');
-  assert(miete, 'Miete in Kategorien vorhanden');
+  // Housing should be the largest expense category.
+  const miete = cats.find((c) => c.category === 'housing');
+  assert(miete, 'Housing in Kategorien vorhanden');
   assert(Math.abs(miete.expenses + 950.00) < 0.01, `Miete-Ausgaben: ${miete.expenses}`);
+});
+
+test('Unterkategorie gespeichert', () => {
+  const r = db.prepare('SELECT category, subcategory FROM budget_entries WHERE id = ?').get(bId1);
+  assert(r.category === 'food', `Kategorie: ${r.category}`);
+  assert(r.subcategory === 'groceries', `Unterkategorie: ${r.subcategory}`);
 });
 
 test('Wiederkehrend-Flag korrekt', () => {
