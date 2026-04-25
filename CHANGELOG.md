@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-04-25
+
+### Added
+- Budget: expense categories are now stored in the database (`budget_categories` table) as stable English slugs, replacing hardcoded German strings
+- Budget: subcategory support for all expense entries — 35 predefined subcategories across 8 top-level categories (housing, food, transport, personal_health, leisure, shopping_clothing, education, financial_other)
+- Budget: users can add custom categories and subcategories directly from the entry modal via inline "+ category" / "+ subcategory" buttons
+- Budget: new API endpoints `POST /api/v1/budget/categories` and `POST /api/v1/budget/categories/:key/subcategories` for custom category/subcategory creation
+- Budget: subcategory displayed alongside category in each entry's metadata line
+- Budget: CSV export now includes a subcategory column and English column headers
+- i18n: all 14 non-German locales extended with new budget category keys (`catHousing`, `catTransport`, `catPersonalHealth`, `catShoppingClothing`, `catFinancialOther`) and all 35 subcategory label keys
+- All server-side log messages and API error strings translated from German to English — contributed by @rafaelfoster
+
+### Changed
+- Budget category labels for existing entries migrated to new slug keys via DB migration 15; display names remain fully localised through the i18n system
+
+## [0.23.17] - 2026-04-25
+
+### Fixed
+- Italian (it) locale: translated all missing strings in the recipes section (`nav.recipes`, `meals.savedRecipeLabel`, `meals.savedRecipePlaceholder`, `meals.saveAsRecipe`, `meals.recipeScaleLabel`, and all `recipes.*` keys) — contributed by @albanobattistella
+
 ## [0.23.16] - 2026-04-24
 
 ### Changed
