@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.5] - 2026-04-26
+
+### Added
+- Navigation: the "More" button now shows the name and icon of the active secondary module instead of the generic label, making it clear which module is open
+- Dashboard: first-time onboarding overlay guides new users through the app's three core navigation areas
+
+### Changed
+- Navigation: renamed "Pinnwand" to "Notizen" for clarity
+- Login: submit button shows a spinner during authentication; empty fields are highlighted individually with red borders instead of a single generic error message
+
+### Fixed
+- Modal: closing a modal when the form has unsaved changes no longer double-fires the guard due to a missing `_isClosing` flag; the close button now uses an arrow-function listener to avoid stale closure issues
+
 ## [0.25.4] - 2026-04-26
 
 ### Added
