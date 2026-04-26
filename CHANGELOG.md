@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.8] - 2026-04-27
+
+### Fixed
+- Test suite: `makeInput` mock in `test-modal-utils.js` now implements `setAttribute`/`removeAttribute` so blur-validation tests correctly verify the new `aria-invalid` attribute behaviour
+
 ## [0.25.7] - 2026-04-27
 
 ### Added
