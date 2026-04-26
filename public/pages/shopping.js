@@ -786,13 +786,14 @@ function wireListContentEvents(container) {
       let undone = false;
       window.oikos.showToast(t('shopping.deletedListToast'), 'default', 5000, () => {
         undone = true;
+        // Liste wurde nie optimistisch ausgeblendet → kein visuelles Restore nötig
       });
 
       setTimeout(async () => {
         if (undone) return;
         try {
           await api.delete(`/shopping/${deletedListId}`);
-          state.lists = state.lists.filter((l) => l.id !== deletedListId);
+          await loadLists();
           state.activeListId = state.lists[0]?.id ?? null;
           if (state.activeListId) {
             await switchList(state.activeListId, container);
@@ -804,6 +805,8 @@ function wireListContentEvents(container) {
           }
         } catch (err) {
           window.oikos.showToast(err.message ?? t('common.unknownError'), 'danger');
+          await loadLists();
+          renderTabs(container);
         }
       }, 5000);
     }
