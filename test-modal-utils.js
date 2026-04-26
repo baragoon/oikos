@@ -50,15 +50,19 @@ function makeField() {
 
 function makeInput({ value = '', required = true } = {}) {
   const listeners = {};
+  const attrs = {};
   const field = makeField();
   return {
     value,
     required,
     _field: field,
     _listeners: listeners,
+    _attrs: attrs,
     addEventListener(event, fn) { listeners[event] = fn; },
     closest() { return field; },
     parentElement: field,
+    setAttribute(k, v) { attrs[k] = v; },
+    removeAttribute(k) { delete attrs[k]; },
   };
 }
 
@@ -109,6 +113,7 @@ test('wireBlurValidation: blur mit leerem Wert setzt form-field--error', () => {
   input._listeners['blur']();
   assert.ok(input._field._classes.has('form-field--error'));
   assert.ok(!input._field._classes.has('form-field--valid'));
+  assert.equal(input._attrs['aria-invalid'], 'true');
 });
 
 test('wireBlurValidation: blur mit gültigem Wert setzt form-field--valid', () => {
@@ -117,6 +122,7 @@ test('wireBlurValidation: blur mit gültigem Wert setzt form-field--valid', () =
   input._listeners['blur']();
   assert.ok(input._field._classes.has('form-field--valid'));
   assert.ok(!input._field._classes.has('form-field--error'));
+  assert.equal(input._attrs['aria-invalid'], 'false');
 });
 
 test('wireBlurValidation: Whitespace-only gilt als leer → form-field--error', () => {
@@ -124,6 +130,7 @@ test('wireBlurValidation: Whitespace-only gilt als leer → form-field--error', 
   wireBlurValidation(makeContainer([input]));
   input._listeners['blur']();
   assert.ok(input._field._classes.has('form-field--error'));
+  assert.equal(input._attrs['aria-invalid'], 'true');
 });
 
 test('wireBlurValidation: kein Fehler wenn closest() null zurückgibt', () => {
