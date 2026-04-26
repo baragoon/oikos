@@ -12,6 +12,8 @@ import '/components/oikos-locale-picker.js';
 
 const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'INR', 'JPY', 'NOK', 'PLN', 'RUB', 'SAR', 'SEK', 'TRY', 'UAH', 'USD'];
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
+const APP_NAME_STORAGE_KEY = 'oikos-app-name';
+const DEFAULT_APP_NAME = 'Oikos';
 
 const CATEGORY_I18N = {
   'Obst & Gemüse': 'shopping.catFruitVeg',
@@ -56,7 +58,7 @@ export async function render(container, { user }) {
   let users           = [];
   let googleStatus    = { configured: false, connected: false, lastSync: null };
   let appleStatus     = { configured: false, lastSync: null };
-  let prefs           = { visible_meal_types: ['breakfast', 'lunch', 'dinner', 'snack'], currency: 'EUR' };
+  let prefs           = { visible_meal_types: ['breakfast', 'lunch', 'dinner', 'snack'], currency: 'EUR', date_format: 'mdy', app_name: DEFAULT_APP_NAME };
   let categories      = [];
   let icsSubscriptions = [];
   let apiTokens       = [];
@@ -79,6 +81,13 @@ export async function render(container, { user }) {
     if (icsRes.status   === 'fulfilled')  icsSubscriptions = icsRes.value.data    ?? [];
     if (apiTokensRes.status === 'fulfilled') apiTokens     = apiTokensRes.value.data ?? [];
   } catch (_) { /* non-critical */ }
+
+  if (prefs.date_format) {
+    try { localStorage.setItem('oikos-date-format', prefs.date_format); } catch (_) {}
+  }
+  if (prefs.app_name) {
+    try { localStorage.setItem(APP_NAME_STORAGE_KEY, prefs.app_name); } catch (_) {}
+  }
 
   const googleStatusText = googleStatus.connected
     ? (googleStatus.lastSync ? t('settings.connectedLastSync', { date: formatDateTime(googleStatus.lastSync) }) : t('settings.connected'))
@@ -136,6 +145,48 @@ export async function render(container, { user }) {
                 ${t('settings.themeDark')}
               </button>
             </div>
+          </div>
+        </section>
+
+        ${user?.role === 'admin' ? `
+        <section class="settings-section">
+          <h2 class="settings-section__title">${t('settings.sectionAppName')}</h2>
+          <div class="settings-card">
+            <h3 class="settings-card__title">${t('settings.appNameTitle')}</h3>
+            <p class="form-hint" style="margin-bottom:var(--space-3)">${t('settings.appNameHint')}</p>
+            <form class="settings-form settings-form--compact" id="app-name-form" novalidate autocomplete="off">
+              <div class="form-group">
+                <label class="form-label" for="app-name-input">${t('settings.appNameLabel')}</label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="app-name-input"
+                  maxlength="60"
+                  placeholder="${t('settings.appNamePlaceholder')}"
+                  value="${esc(prefs.app_name || DEFAULT_APP_NAME)}"
+                />
+              </div>
+              <div id="app-name-error" class="form-error" hidden></div>
+              <div class="settings-form-actions">
+                <button type="submit" class="btn btn--primary">${t('common.save')}</button>
+                <button type="button" class="btn btn--secondary" id="app-name-reset-btn">${t('common.reset')}</button>
+              </div>
+            </form>
+          </div>
+        </section>
+        ` : ''}
+
+        <section class="settings-section">
+          <h2 class="settings-section__title">${t('settings.sectionDate')}</h2>
+          <div class="settings-card">
+            <h3 class="settings-card__title">${t('settings.dateFormatTitle')}</h3>
+            <p class="form-hint" style="margin-bottom:var(--space-3)">${t('settings.dateFormatHint')}</p>
+            <label class="form-label" for="date-format-select">${t('settings.dateFormatLabel')}</label>
+            <select class="form-input" id="date-format-select">
+              <option value="mdy"${prefs.date_format === 'mdy' ? ' selected' : ''}>MM/DD/YYYY</option>
+              <option value="dmy"${prefs.date_format === 'dmy' ? ' selected' : ''}>DD/MM/YYYY</option>
+              <option value="ymd"${prefs.date_format === 'ymd' ? ' selected' : ''}>YYYY-MM-DD</option>
+            </select>
           </div>
         </section>
 
@@ -510,6 +561,58 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
         window.oikos?.showToast(t('settings.currencySaved'), 'success');
       } catch (err) {
         window.oikos?.showToast(err.message ?? t('common.errorGeneric'), 'danger');
+      }
+    });
+  }
+
+  const dateFormatSelect = container.querySelector('#date-format-select');
+  if (dateFormatSelect) {
+    dateFormatSelect.addEventListener('change', async () => {
+      try {
+        await api.put('/preferences', { date_format: dateFormatSelect.value });
+        try { localStorage.setItem('oikos-date-format', dateFormatSelect.value); } catch (_) {}
+        window.dispatchEvent(new CustomEvent('date-format-changed', { detail: { dateFormat: dateFormatSelect.value } }));
+        window.oikos?.showToast(t('settings.dateFormatSavedToast'), 'success');
+      } catch (err) {
+        window.oikos?.showToast(err.message ?? t('common.errorGeneric'), 'danger');
+      }
+    });
+  }
+
+  const appNameForm = container.querySelector('#app-name-form');
+  if (appNameForm) {
+    appNameForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = container.querySelector('#app-name-error');
+      const input = container.querySelector('#app-name-input');
+      errorEl.hidden = true;
+      const value = input.value.trim();
+      try {
+        await api.put('/preferences', { app_name: value });
+        try {
+          if (value) localStorage.setItem(APP_NAME_STORAGE_KEY, value);
+          else localStorage.removeItem(APP_NAME_STORAGE_KEY);
+        } catch (_) {}
+        input.value = value || DEFAULT_APP_NAME;
+        window.dispatchEvent(new CustomEvent('app-name-changed', { detail: { appName: value || DEFAULT_APP_NAME } }));
+        window.oikos?.showToast(t('settings.appNameSavedToast'), 'success');
+      } catch (err) {
+        showError(errorEl, err.message ?? t('common.errorGeneric'));
+      }
+    });
+
+    container.querySelector('#app-name-reset-btn')?.addEventListener('click', async () => {
+      const errorEl = container.querySelector('#app-name-error');
+      const input = container.querySelector('#app-name-input');
+      errorEl.hidden = true;
+      input.value = DEFAULT_APP_NAME;
+      try {
+        await api.put('/preferences', { app_name: '' });
+        try { localStorage.removeItem(APP_NAME_STORAGE_KEY); } catch (_) {}
+        window.dispatchEvent(new CustomEvent('app-name-changed', { detail: { appName: DEFAULT_APP_NAME } }));
+        window.oikos?.showToast(t('settings.appNameSavedToast'), 'success');
+      } catch (err) {
+        showError(errorEl, err.message ?? t('common.errorGeneric'));
       }
     });
   }

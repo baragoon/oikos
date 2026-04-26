@@ -39,6 +39,7 @@ const logOikos = createLogger('Oikos');
 const { version: APP_VERSION } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf-8')
 );
+const DEFAULT_APP_NAME = 'Oikos';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -165,7 +166,14 @@ app.use('/api/v1/auth', authRouter);
 
 // Versionsinformation - keine Authentifizierung erforderlich (Login-Seite benötigt diese)
 app.get('/api/v1/version', (req, res) => {
-  res.json({ version: APP_VERSION });
+  let appName = DEFAULT_APP_NAME;
+  try {
+    const row = db.get().prepare('SELECT value FROM sync_config WHERE key = ?').get('app_name');
+    if (row?.value) appName = row.value;
+  } catch {
+    // fall back to default
+  }
+  res.json({ version: APP_VERSION, app_name: appName });
 });
 
 function sendOpenApi(req, res) {
