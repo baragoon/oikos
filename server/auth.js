@@ -8,12 +8,14 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
+import crypto from 'node:crypto';
 import * as db from './db.js';
 import { generateToken, csrfMiddleware } from './middleware/csrf.js';
 import { createLogger } from './logger.js';
 
 const log = createLogger('Auth');
 const router = express.Router();
+const API_TOKEN_PREFIX = 'oikos_';
 
 // --------------------------------------------------------
 // Session-Store (better-sqlite3, gleiche DB-Instanz wie App)
@@ -124,6 +126,60 @@ const loginLimiter = rateLimit({
   message: { error: 'Zu viele Login-Versuche. Bitte warte kurz.', code: 429 },
 });
 
+function hashApiToken(token) {
+  return crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+function extractApiToken(req) {
+  const auth = req.headers.authorization || '';
+  if (auth.toLowerCase().startsWith('bearer ')) return auth.slice(7).trim();
+  return String(req.headers['x-api-key'] || '').trim();
+}
+
+function publicApiToken(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    token_prefix: row.token_prefix,
+    created_by: row.created_by,
+    creator_name: row.creator_name,
+    expires_at: row.expires_at,
+    revoked_at: row.revoked_at,
+    last_used_at: row.last_used_at,
+    created_at: row.created_at,
+  };
+}
+
+function authenticateApiToken(req) {
+  const token = extractApiToken(req);
+  if (!token) return null;
+
+  const tokenHash = hashApiToken(token);
+  const row = db.get().prepare(`
+    SELECT t.*, u.role, u.username, u.display_name, u.avatar_color
+    FROM api_tokens t
+    JOIN users u ON u.id = t.created_by
+    WHERE t.token_hash = ?
+      AND t.revoked_at IS NULL
+      AND (t.expires_at IS NULL OR t.expires_at > strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+  `).get(tokenHash);
+  if (!row) return null;
+
+  db.get().prepare(`
+    UPDATE api_tokens SET last_used_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?
+  `).run(row.id);
+
+  req.apiToken = publicApiToken(row);
+  req.user = {
+    id: row.created_by,
+    username: row.username,
+    display_name: row.display_name,
+    avatar_color: row.avatar_color,
+    role: row.role,
+  };
+  return row;
+}
+
 // --------------------------------------------------------
 // Auth-Guard Middleware
 // --------------------------------------------------------
@@ -133,7 +189,18 @@ const loginLimiter = rateLimit({
  * Schützt alle API-Routen außer /auth/login.
  */
 function requireAuth(req, res, next) {
+  const apiToken = authenticateApiToken(req);
+  if (apiToken) {
+    req.authMethod = 'api_token';
+    req.authUserId = apiToken.created_by;
+    req.authRole = apiToken.role;
+    return next();
+  }
+
   if (req.session && req.session.userId) {
+    req.authMethod = 'session';
+    req.authUserId = req.session.userId;
+    req.authRole = req.session.role;
     return next();
   }
   res.status(401).json({ error: 'Not authenticated.', code: 401 });
@@ -143,7 +210,7 @@ function requireAuth(req, res, next) {
  * Prüft ob der authentifizierte User Admin-Rolle hat.
  */
 function requireAdmin(req, res, next) {
-  if (req.session && req.session.role === 'admin') {
+  if (req.authRole === 'admin') {
     return next();
   }
   res.status(403).json({ error: 'Permission denied.', code: 403 });
@@ -225,6 +292,9 @@ router.post('/login', loginLimiter, async (req, res) => {
  * Response: { ok: true }
  */
 router.post('/logout', requireAuth, csrfMiddleware, (req, res) => {
+  if (req.authMethod === 'api_token') {
+    return res.json({ ok: true });
+  }
   req.session.destroy((err) => {
     if (err) {
       log.error('Logout error:', err);
@@ -293,11 +363,17 @@ router.get('/me', requireAuth, (req, res) => {
   try {
     const user = db.get()
       .prepare('SELECT id, username, display_name, avatar_color, role FROM users WHERE id = ?')
-      .get(req.session.userId);
+      .get(req.authUserId);
 
     if (!user) {
-      req.session.destroy(() => {});
+      if (req.authMethod === 'session' && typeof req.session.destroy === 'function') {
+        req.session.destroy(() => {});
+      }
       return res.status(401).json({ error: 'User not found.', code: 401 });
+    }
+
+    if (req.authMethod === 'api_token') {
+      return res.json({ user });
     }
 
     // CSRF-Token erneuern falls vorhanden (wichtig fuer iOS-PWA-Resume:
@@ -333,6 +409,78 @@ router.get('/users', requireAuth, requireAdmin, (req, res) => {
     res.json({ data: users });
   } catch (err) {
     log.error('Users error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
+  }
+});
+
+router.get('/api-tokens', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const rows = db.get().prepare(`
+      SELECT t.*, u.display_name AS creator_name
+      FROM api_tokens t
+      LEFT JOIN users u ON u.id = t.created_by
+      ORDER BY t.created_at DESC
+    `).all();
+    res.json({ data: rows.map(publicApiToken) });
+  } catch (err) {
+    log.error('API token list error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
+  }
+});
+
+router.post('/api-tokens', requireAuth, requireAdmin, csrfMiddleware, (req, res) => {
+  try {
+    const name = String(req.body.name || '').trim();
+    const expiresAt = req.body.expires_at ? String(req.body.expires_at).trim() : null;
+
+    if (!name) return res.status(400).json({ error: 'Token name is required.', code: 400 });
+    if (name.length > 100) return res.status(400).json({ error: 'Token name may be at most 100 characters long.', code: 400 });
+    if (expiresAt && Number.isNaN(Date.parse(expiresAt))) {
+      return res.status(400).json({ error: 'expires_at must be a valid ISO date/time.', code: 400 });
+    }
+    if (expiresAt && new Date(expiresAt).getTime() <= Date.now()) {
+      return res.status(400).json({ error: 'Expiration date must be in the future.', code: 400 });
+    }
+
+    const token = API_TOKEN_PREFIX + crypto.randomBytes(32).toString('base64url');
+    const tokenHash = hashApiToken(token);
+    const tokenPrefix = token.slice(0, 12);
+    const normalizedExpiresAt = expiresAt ? new Date(expiresAt).toISOString() : null;
+
+    const result = db.get().prepare(`
+      INSERT INTO api_tokens (name, token_hash, token_prefix, created_by, expires_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(name, tokenHash, tokenPrefix, req.authUserId, normalizedExpiresAt);
+
+    const row = db.get().prepare(`
+      SELECT t.*, u.display_name AS creator_name
+      FROM api_tokens t
+      LEFT JOIN users u ON u.id = t.created_by
+      WHERE t.id = ?
+    `).get(result.lastInsertRowid);
+
+    res.status(201).json({ data: publicApiToken(row), token });
+  } catch (err) {
+    log.error('API token creation error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
+  }
+});
+
+router.delete('/api-tokens/:id', requireAuth, requireAdmin, csrfMiddleware, (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid token ID.', code: 400 });
+
+    const result = db.get().prepare(`
+      UPDATE api_tokens
+      SET revoked_at = COALESCE(revoked_at, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+      WHERE id = ?
+    `).run(id);
+
+    if (result.changes === 0) return res.status(404).json({ error: 'API token not found.', code: 404 });
+    res.json({ ok: true });
+  } catch (err) {
+    log.error('API token revocation error:', err);
     res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });
@@ -405,14 +553,14 @@ router.patch('/me/password', requireAuth, csrfMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'New password must be at least 8 characters long.', code: 400 });
     }
 
-    const user = db.get().prepare('SELECT password_hash FROM users WHERE id = ?').get(req.session.userId);
+    const user = db.get().prepare('SELECT password_hash FROM users WHERE id = ?').get(req.authUserId);
     if (!user) return res.status(404).json({ error: 'User not found.', code: 404 });
 
     const valid = await bcrypt.compare(current_password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Current password is incorrect.', code: 401 });
 
     const hash = await bcrypt.hash(new_password, 12);
-    db.get().prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.session.userId);
+    db.get().prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.authUserId);
 
     // Alle anderen Sessions dieses Users invalidieren (aktuelle behalten)
     const currentSid = req.sessionID;
@@ -421,7 +569,7 @@ router.patch('/me/password', requireAuth, csrfMiddleware, async (req, res) => {
       if (row.sid === currentSid) continue;
       try {
         const sess = JSON.parse(row.sess);
-        if (sess.userId === req.session.userId) {
+        if (sess.userId === req.authUserId) {
           db.get().prepare('DELETE FROM sessions WHERE sid = ?').run(row.sid);
         }
       } catch { /* ignore malformed session */ }
@@ -443,7 +591,7 @@ router.delete('/users/:id', requireAuth, requireAdmin, csrfMiddleware, (req, res
   try {
     const userId = parseInt(req.params.id, 10);
 
-    if (userId === req.session.userId) {
+    if (userId === req.authUserId) {
       return res.status(400).json({ error: 'You cannot delete your own account.', code: 400 });
     }
 

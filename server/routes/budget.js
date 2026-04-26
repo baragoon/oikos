@@ -6,12 +6,101 @@
 
 import { createLogger } from '../logger.js';
 import express from 'express';
+import { readFileSync } from 'node:fs';
+import path from 'path';
 import * as db from '../db.js';
 import { str, oneOf, date as validateDate, num, rrule, collectErrors, MAX_TITLE, MAX_SHORT, MONTH_RE } from '../middleware/validate.js';
 
 const log = createLogger('Budget');
 
 const router  = express.Router();
+const LOCALE_CACHE = new Map();
+const SUPPORTED_LANGS = new Set(['ar', 'de', 'el', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'pt', 'ru', 'sv', 'tr', 'uk', 'zh']);
+const CATEGORY_LABEL_KEYS = {
+  housing: 'catHousing',
+  food: 'catFood',
+  transport: 'catTransport',
+  personal_health: 'catPersonalHealth',
+  leisure: 'catLeisure',
+  shopping_clothing: 'catShoppingClothing',
+  education: 'catEducation',
+  financial_other: 'catFinancialOther',
+  'Erwerbseinkommen': 'catEarnedIncome',
+  'Kapitalerträge': 'catInvestmentIncome',
+  'Geschenke & Transfers': 'catTransferGiftIncome',
+  'Sozialleistungen': 'catGovernmentBenefits',
+  'Sonstiges Einkommen': 'catOtherIncome',
+};
+const SUBCATEGORY_LABEL_KEYS = {
+  rent_mortgage: 'subcatRentMortgage',
+  condominium: 'subcatCondominium',
+  utilities: 'subcatUtilities',
+  internet_tv_phone: 'subcatInternetTvPhone',
+  renovation_maintenance: 'subcatRenovationMaintenance',
+  cleaning: 'subcatCleaning',
+  groceries: 'subcatGroceries',
+  restaurants_bars: 'subcatRestaurantsBars',
+  snacks_fast_food: 'subcatSnacksFastFood',
+  bakery: 'subcatBakery',
+  fuel: 'subcatFuel',
+  parking_tolls: 'subcatParkingTolls',
+  public_transport: 'subcatPublicTransport',
+  apps_taxi: 'subcatAppsTaxi',
+  maintenance_insurance: 'subcatMaintenanceInsurance',
+  pharmacy: 'subcatPharmacy',
+  health_insurance: 'subcatHealthInsurance',
+  gym_sports: 'subcatGymSports',
+  beauty_cosmetics: 'subcatBeautyCosmetics',
+  travel: 'subcatTravel',
+  streaming: 'subcatStreaming',
+  events: 'subcatEvents',
+  hobbies: 'subcatHobbies',
+  clothes_shoes: 'subcatClothesShoes',
+  electronics: 'subcatElectronics',
+  gifts: 'subcatGifts',
+  courses_college: 'subcatCoursesCollege',
+  school_supplies: 'subcatSchoolSupplies',
+  languages: 'subcatLanguages',
+  loans_interest: 'subcatLoansInterest',
+  bank_fees: 'subcatBankFees',
+  insurance_other: 'subcatInsuranceOther',
+  investments: 'subcatInvestments',
+  taxes: 'subcatTaxes',
+};
+
+function normalizeLang(raw) {
+  const lang = String(raw || 'en').trim().toLowerCase();
+  const base = lang.split(/[-_]/)[0];
+  return SUPPORTED_LANGS.has(base) ? base : 'en';
+}
+
+function budgetMessages(lang) {
+  const normalized = normalizeLang(lang);
+  if (!LOCALE_CACHE.has(normalized)) {
+    const localePath = path.join(import.meta.dirname, '..', '..', 'public', 'locales', `${normalized}.json`);
+    const parsed = JSON.parse(readFileSync(localePath, 'utf-8'));
+    LOCALE_CACHE.set(normalized, parsed.budget || {});
+  }
+  return LOCALE_CACHE.get(normalized);
+}
+
+function localizedCategory(category, lang) {
+  const budget = budgetMessages(lang);
+  const labelKey = CATEGORY_LABEL_KEYS[category.key];
+  return {
+    ...category,
+    label: labelKey ? (budget[labelKey] || category.name) : category.name,
+  };
+}
+
+function localizedSubcategory(subcategory, lang) {
+  const budget = budgetMessages(lang);
+  const labelKey = SUBCATEGORY_LABEL_KEYS[subcategory.key];
+  return {
+    ...subcategory,
+    label: labelKey ? (budget[labelKey] || subcategory.name) : subcategory.name,
+  };
+}
 
 // --------------------------------------------------------
 // Wiederkehrende Einträge: fehlende Instanzen für einen Monat erzeugen
@@ -253,6 +342,53 @@ router.get('/export', (req, res) => {
  */
 router.get('/meta', (req, res) => {
   res.json({ data: loadBudgetMeta() });
+});
+
+router.get('/categories', (req, res) => {
+  try {
+    const lang = normalizeLang(req.query.lang);
+    const categories = db.get().prepare(`
+      SELECT key, name, type, sort_order
+      FROM budget_categories
+      ORDER BY type DESC, sort_order ASC, name COLLATE NOCASE ASC
+    `).all();
+
+    res.json({
+      data: categories.map((category) => localizedCategory(category, lang)),
+      lang,
+    });
+  } catch (err) {
+    log.error('GET /categories error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
+  }
+});
+
+router.get('/categories/:categoryKey/subcategories', (req, res) => {
+  try {
+    const lang = normalizeLang(req.query.lang);
+    const category = db.get().prepare(`
+      SELECT key, name, type, sort_order
+      FROM budget_categories
+      WHERE key = ?
+    `).get(req.params.categoryKey);
+    if (!category) return res.status(404).json({ error: 'Category not found.', code: 404 });
+
+    const subcategories = db.get().prepare(`
+      SELECT key, category_key, name, sort_order
+      FROM budget_subcategories
+      WHERE category_key = ?
+      ORDER BY sort_order ASC, name COLLATE NOCASE ASC
+    `).all(category.key);
+
+    res.json({
+      data: subcategories.map((subcategory) => localizedSubcategory(subcategory, lang)),
+      category: localizedCategory(category, lang),
+      lang,
+    });
+  } catch (err) {
+    log.error('GET /categories/:categoryKey/subcategories error:', err);
+    res.status(500).json({ error: 'Internal error', code: 500 });
+  }
 });
 
 router.post('/categories', (req, res) => {

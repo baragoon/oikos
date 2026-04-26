@@ -13,6 +13,7 @@ import { createLogger } from './logger.js';
 import * as db from './db.js';
 import { router as authRouter, sessionMiddleware, requireAuth } from './auth.js';
 import { csrfMiddleware } from './middleware/csrf.js';
+import { buildOpenApiSpec } from './openapi.js';
 import * as googleCalendar from './services/google-calendar.js';
 import * as appleCalendar from './services/apple-calendar.js';
 import * as icsSubscription from './services/ics-subscription.js';
@@ -165,6 +166,16 @@ app.use('/api/v1/auth', authRouter);
 app.get('/api/v1/version', (req, res) => {
   res.json({ version: APP_VERSION });
 });
+
+function sendOpenApi(req, res) {
+  if (req.query.download === '1') {
+    res.setHeader('Content-Disposition', 'attachment; filename="openapi.json"');
+  }
+  res.json(buildOpenApiSpec(req, APP_VERSION));
+}
+
+app.get('/api/v1/openapi.json', sendOpenApi);
+app.get('/openapi.json', sendOpenApi);
 
 // Alle weiteren API-Routen erfordern Authentifizierung + CSRF-Schutz
 app.use('/api/v1', requireAuth);
