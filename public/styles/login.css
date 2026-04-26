@@ -68,6 +68,16 @@
   opacity: 0.6;
 }
 
+/* Feld-Fehler-Zustand */
+.form-group--error .input {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
+.form-group--error .label {
+  color: var(--color-danger);
+}
+
 .login-spinner {
   width: 16px;
   height: 16px;

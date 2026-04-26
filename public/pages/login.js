@@ -79,8 +79,17 @@ export async function render(container) {
     const username = form.username.value.trim();
     const password = form.password.value;
 
+    const usernameInput = form.querySelector('#username');
+    const passwordInput = form.querySelector('#password');
+    const usernameGroup = usernameInput.closest('.form-group');
+    const passwordGroup = passwordInput.closest('.form-group');
+
+    usernameGroup.classList.toggle('form-group--error', !username);
+    passwordGroup.classList.toggle('form-group--error', !password);
+
     if (!username || !password) {
-      showError(errorEl, t('common.allFieldsRequired'));
+      if (!username) usernameInput.focus();
+      else passwordInput.focus();
       return;
     }
 
@@ -106,6 +115,13 @@ export async function render(container) {
       labelEl.textContent = t('login.loginButton');
       spinner.remove();
     }
+  });
+
+  form.querySelector('#username').addEventListener('input', () => {
+    form.querySelector('#username').closest('.form-group').classList.remove('form-group--error');
+  });
+  form.querySelector('#password').addEventListener('input', () => {
+    form.querySelector('#password').closest('.form-group').classList.remove('form-group--error');
   });
 }
 
