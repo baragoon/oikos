@@ -150,12 +150,36 @@ Display metadata (name, color) for synced Google/Apple calendars. Populated auto
 |--------|------|-----------|
 | title | TEXT | NOT NULL |
 | amount | REAL | NOT NULL (positive = income, negative = expense) |
-| category | TEXT | Groceries, Rent, Insurance, Transport, Leisure, Clothing, Health, Education, Other |
+| category | TEXT | FK → Budget Categories (by key), NOT NULL |
+| subcategory | TEXT | FK → Budget Subcategories (by key), default '' |
 | date | TEXT | DATE, NOT NULL |
 | is_recurring | INTEGER | 0/1 |
 | recurrence_rule | TEXT | iCal RRULE |
 | recurrence_parent_id | INTEGER | FK → Budget Entries (generated instance points to original) |
 | created_by | INTEGER | FK → Users, NOT NULL |
+
+### Budget Categories
+Expense and income category list, DB-backed with stable English slug keys. Predefined set (8 expense, 5 income); users can add custom categories inline from the entry modal.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| key | TEXT | PRIMARY KEY (stable English slug, e.g. `housing`) |
+| name | TEXT | NOT NULL |
+| type | TEXT | `'expense'` or `'income'` |
+| sort_order | INTEGER | NOT NULL DEFAULT 0 |
+| created_at | TEXT | ISO 8601 |
+
+### Budget Subcategories
+Optional subcategories scoped to an expense category. Predefined set (35 entries); users can add custom subcategories inline. Income categories have no subcategories.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| key | TEXT | PRIMARY KEY |
+| category_key | TEXT | FK → Budget Categories (CASCADE delete), NOT NULL |
+| name | TEXT | NOT NULL |
+| sort_order | INTEGER | NOT NULL DEFAULT 0 |
+| created_at | TEXT | ISO 8601 |
+| UNIQUE | | (category_key, name) |
 
 ### Budget Recurrence Skipped
 Stores instances of a recurring entry deleted by the user so they are not re-generated.
@@ -165,6 +189,21 @@ Stores instances of a recurring entry deleted by the user so they are not re-gen
 | parent_id | INTEGER | FK → Budget Entries, NOT NULL |
 | month | TEXT | YYYY-MM, NOT NULL |
 | PRIMARY KEY | | (parent_id, month) |
+
+### API Tokens
+Named Bearer / X-API-Key tokens for non-interactive external integrations. Admin-only creation and revocation. Token values are SHA-256-hashed at rest; the plaintext is shown only once after creation.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| name | TEXT | NOT NULL |
+| token_hash | TEXT | NOT NULL UNIQUE (SHA-256) |
+| token_prefix | TEXT | NOT NULL (first 8 chars, for display) |
+| created_by | INTEGER | FK → Users (CASCADE delete), NOT NULL |
+| expires_at | TEXT | ISO 8601, nullable |
+| revoked_at | TEXT | ISO 8601, nullable |
+| last_used_at | TEXT | ISO 8601, nullable |
+| created_at | TEXT | ISO 8601 NOT NULL |
 
 ### ICS Subscriptions
 External calendar feeds subscribed by users (read-only, auto-synced).
@@ -307,8 +346,9 @@ User management and app configuration. Logged-in users only.
 - **User management (admin):** create new users, edit/delete existing users, assign roles (admin/member)
 - **Calendar integration:** connect/disconnect Google Calendar OAuth, store Apple Calendar (CalDAV) credentials, configure sync interval; manage ICS URL subscriptions (add, delete, sync now, set color and visibility)
 - **Weather:** configure OpenWeatherMap location
-- **Language:** System (follows `navigator.language`), German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, Chinese - via `oikos-locale-picker` web component; switch without page reload
-- **Tab navigation:** Settings is organized in six tabs (General, Meals, Budget, Shopping, Calendar, Account). Sticky tab bar, active tab persists in sessionStorage, Calendar tab auto-activates after OAuth callbacks.
+- **Language:** System (follows `navigator.language`), German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, Chinese, Japanese, Arabic, Hindi, Portuguese - via `oikos-locale-picker` web component; switch without page reload
+- **API Tokens (admin):** create named Bearer / X-API-Key tokens for external integrations; the full token value is shown only once immediately after creation; tokens can be revoked at any time; support optional expiry and track last-used timestamp
+- **Tab navigation:** Settings is organized in seven tabs (General, Meals, Budget, Shopping, Calendar, API Tokens, Account). Sticky tab bar, active tab persists in sessionStorage, Calendar tab auto-activates after OAuth callbacks.
 - **App info:** version, license
 
 ### Budget (`/budget`)
@@ -317,10 +357,24 @@ User management and app configuration. Logged-in users only.
 - Monthly overview: income vs. expenses, balance, bar chart by category (Canvas, no library)
 - Transaction list: chronological, filterable
 
-- CRUD: title, amount, category, date
+- CRUD: title, amount, category, subcategory, date
+- Categories: DB-backed with stable English slug keys; 8 predefined expense categories, 5 income categories; users can add custom categories inline from the entry modal
+- Subcategories: 35 predefined subcategories across expense categories; users can add custom subcategories inline; displayed alongside category in each entry's metadata line
 - Recurring entries
 - Monthly comparison (current vs. previous month)
-- CSV export
+- CSV export includes a subcategory column and English column headers
+- API: `GET /api/v1/budget/categories`, `GET /api/v1/budget/categories/:key/subcategories` (optional `?lang=` localisation), `POST /api/v1/budget/categories`, `POST /api/v1/budget/categories/:key/subcategories`
+
+---
+
+## API Documentation
+
+An OpenAPI 3.0 specification is served at `/api/v1/openapi.json` and `/openapi.json`. Append `?download=1` to download as a file. The spec covers all authenticated endpoints and can be imported into any OpenAPI-compatible client (Insomnia, Postman, etc.).
+
+Authentication options for external integrations:
+- **Session cookie:** standard browser session after login
+- **Bearer token:** `Authorization: Bearer <token>` — tokens created via Settings → API Tokens (admin only)
+- **X-API-Key header:** `X-API-Key: <token>` — alternative header accepted alongside Bearer
 
 ---
 
@@ -368,6 +422,7 @@ Source of truth: `public/styles/tokens.css`. Key values (as of v0.20.39):
   --module-notes:      #CA8A04;   /* Gold, 4.08:1 — icons/large-text only */
   --module-contacts:   #0969DA;   /* Blue — distinct from Indigo primary */
   --module-budget:     #0F766E;   /* Teal-700, 5.11:1 */
+  --module-reminders:  #0E7490;   /* Cyan-700, WCAG AA */
   --module-settings:   #6E7781;   /* Neutral grey */
 
   /* Priority */
@@ -378,6 +433,7 @@ Source of truth: `public/styles/tokens.css`. Key values (as of v0.20.39):
   /* Glass layer tokens */
   --glass-bg: rgba(255,255,255,0.72);
   --glass-border: rgba(255,255,255,0.55);
+  --blur-2xs: blur(2px);
   --blur-md: 16px;
   --radius-glass-button: 9999px;       /* capsule */
   --ease-glass: cubic-bezier(0.34, 1.56, 0.64, 1); /* spring */
@@ -417,6 +473,7 @@ Source of truth: `public/styles/tokens.css`. Key values (as of v0.20.39):
     --module-meals:     #FB923C;  /* Orange-400 */
     --module-shopping:  #F472B6;  /* Pink-400 — mirrors light entanglement */
     --module-budget:    #2DD4BF;  /* Teal-400 */
+    --module-reminders: #22D3EE;  /* Cyan-400 */
     --meal-dinner:      #818CF8;
     --glass-bg: rgba(28,28,26,0.75);
     --glass-border: rgba(255,255,255,0.12);
@@ -437,7 +494,7 @@ Additive CSS file loaded globally after `layout.css`. Implements a Liquid Glass 
 
 **Phase 1-3 (Shell + Components + Polish):**
 - **Translucent surfaces:** `backdrop-filter: blur()` on bottom nav, sidebar, modal overlay, cards on hover. All blur effects are inside `@supports (backdrop-filter: blur(1px))` for progressive enhancement.
-- **Glass tokens:** Section 16 of `tokens.css` defines `--glass-bg*`, `--glass-border*`, `--blur-xs` through `--blur-xl`, `--opacity-glass-*`, `--glass-highlight*`, `--glass-shadow-sm/md/lg`, `--radius-glass-card/inner/chip/button`, `--ease-glass`, `--transition-glass`. Full dark mode overrides.
+- **Glass tokens:** Section 16 of `tokens.css` defines `--glass-bg*`, `--glass-border*`, `--blur-2xs` through `--blur-xl`, `--opacity-glass-*`, `--glass-highlight*`, `--glass-shadow-sm/md/lg`, `--radius-glass-card/inner/chip/button`, `--ease-glass`, `--transition-glass`. Full dark mode overrides.
 - **Capsule shapes:** Buttons, FAB, and search inputs use `--radius-glass-button` (pill shape).
 - **Spring animations:** Modal entrance (`glass-modal-scale-in` / `glass-sheet-in`), page transitions, and list stagger all use `cubic-bezier(0.34, 1.56, 0.64, 1)` spring easing.
 - **FAB attention pulse:** `fab-ring-pulse` keyframe expands a ring around the FAB to signal readiness.

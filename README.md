@@ -53,9 +53,11 @@
 
 **Calendar Sync:** Two-way sync with Google Calendar (OAuth) and Apple iCloud (CalDAV); subscribe to any public ICS/webcal URL with per-subscription color, private/shared visibility, and automatic sync
 
-**Budget Tracking:** Income and expenses, recurring entries, configurable currency (15 currencies), monthly trends, CSV export
+**Budget Tracking:** Income and expenses, recurring entries, DB-backed expense categories with subcategories (35 predefined + custom), configurable currency (15 currencies), monthly trends, CSV export
 
 **Notes & Contacts:** Colored sticky notes with Markdown, contact directory with vCard import/export
+
+**API Tokens:** Admins can create named Bearer / X-API-Key tokens for external integrations; tokens are SHA-256-hashed at rest, support optional expiry and revocation. OpenAPI 3.0 specification available at `/api/v1/openapi.json`.
 
 **Zero Build Step:** Pure ES modules, no bundler, no transpiler, no framework. Ships what you write.
 

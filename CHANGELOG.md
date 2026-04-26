@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.2] - 2026-04-26
+
+### Changed
+- Docs: `SPEC.md` updated to reflect all changes since v0.24.0 — Budget Entries table now documents `subcategory` column and DB-backed `category` FK; new `Budget Categories`, `Budget Subcategories`, and `API Tokens` data-model tables added; Settings section updated with API Tokens tab, corrected language list (added Japanese, Arabic, Hindi, Portuguese), and tab count (six → seven); Budget module section now covers subcategories, custom categories, and all new endpoints; new API Documentation section documents OpenAPI 3.0 spec and authentication options; design tokens `--blur-2xs` and `--module-reminders` added to Colors section
+- Docs: `README.md` Highlights updated — Budget Tracking now mentions DB-backed subcategories; new API Tokens entry added
+
 ## [0.25.1] - 2026-04-26
 
 ### Changed
