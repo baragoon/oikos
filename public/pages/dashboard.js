@@ -12,6 +12,100 @@ import { openModal, closeModal } from '/components/modal.js';
 // Hält den AbortController des aktuellen FAB-Listeners - wird bei jedem render() erneuert.
 let _fabController = null;
 
+// ── Onboarding ──────────────────────────────────────────────────────────────
+
+const ONBOARDING_KEY = 'oikos-onboarded';
+
+function getOnboardingSteps() {
+  return [
+    { icon: 'home',         title: t('onboarding.step1Title'), body: t('onboarding.step1Body') },
+    { icon: 'grid-2x2',    title: t('onboarding.step2Title'), body: t('onboarding.step2Body') },
+    { icon: 'circle-check', title: t('onboarding.step3Title'), body: t('onboarding.step3Body') },
+  ];
+}
+
+function showOnboarding(appContainer) {
+  const steps = getOnboardingSteps();
+  let current = 0;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'onboarding-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+
+  function renderStep() {
+    const step = steps[current];
+    const isLast = current === steps.length - 1;
+    overlay.replaceChildren();
+
+    const card = document.createElement('div');
+    card.className = 'onboarding-card';
+
+    const icon = document.createElement('i');
+    icon.dataset.lucide = step.icon;
+    icon.className = 'onboarding-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    const title = document.createElement('h2');
+    title.className = 'onboarding-title';
+    title.textContent = step.title;
+
+    const body = document.createElement('p');
+    body.className = 'onboarding-body';
+    body.textContent = step.body;
+
+    const dots = document.createElement('div');
+    dots.className = 'onboarding-dots';
+    steps.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.className = `onboarding-dot${i === current ? ' onboarding-dot--active' : ''}`;
+      dots.appendChild(dot);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'onboarding-actions';
+
+    const skipBtn = document.createElement('button');
+    skipBtn.className = 'btn btn--ghost';
+    skipBtn.textContent = t('onboarding.skip');
+    skipBtn.addEventListener('click', finish);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn btn--primary';
+    nextBtn.textContent = isLast ? t('onboarding.done') : t('onboarding.next');
+    nextBtn.addEventListener('click', () => {
+      if (isLast) { finish(); return; }
+      current++;
+      renderStep();
+      if (window.lucide) window.lucide.createIcons({ el: overlay });
+      nextBtn.focus();
+    });
+
+    actions.appendChild(skipBtn);
+    actions.appendChild(nextBtn);
+    card.appendChild(icon);
+    card.appendChild(title);
+    card.appendChild(body);
+    card.appendChild(dots);
+    card.appendChild(actions);
+    overlay.appendChild(card);
+
+    if (window.lucide) window.lucide.createIcons({ el: overlay });
+    setTimeout(() => nextBtn.focus(), 50);
+  }
+
+  function finish() {
+    localStorage.setItem(ONBOARDING_KEY, '1');
+    overlay.classList.add('onboarding-overlay--out');
+    overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+    // Fallback falls animationend nicht feuert (prefers-reduced-motion):
+    setTimeout(() => overlay.remove(), 300);
+  }
+
+  renderStep();
+  appContainer.appendChild(overlay);
+}
+
 // --------------------------------------------------------
 // Widget-Definitionen (Reihenfolge = Standard-Layout)
 // --------------------------------------------------------
@@ -822,6 +916,10 @@ export async function render(container, { user }) {
     };
     const timerId = setInterval(doAutoRefresh, 30 * 60 * 1000);
     _fabController.signal.addEventListener('abort', () => clearInterval(timerId));
+  }
+
+  if (!localStorage.getItem(ONBOARDING_KEY)) {
+    setTimeout(() => showOnboarding(container), 400);
   }
 }
 

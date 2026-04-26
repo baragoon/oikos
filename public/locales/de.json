@@ -780,5 +780,16 @@
     "duplicate": "Duplizieren",
     "duplicated": "Rezept dupliziert.",
     "copySuffix": "Kopie"
+  },
+  "onboarding": {
+    "step1Title": "Willkommen bei Oikos",
+    "step1Body": "Dein persönlicher Familienplaner. Aufgaben, Kalender, Einkauf und mehr – alles an einem Ort.",
+    "step2Title": "Alles im Blick",
+    "step2Body": "Über die Navigation unten erreichst du alle Module. Mit dem +-Button erstellst du schnell neue Einträge.",
+    "step3Title": "Bereit loszulegen",
+    "step3Body": "Das Dashboard zeigt dir die wichtigsten Infos auf einen Blick. Du kannst es unter \"Anpassen\" nach deinen Wünschen einrichten.",
+    "next": "Weiter",
+    "done": "Loslegen",
+    "skip": "Überspringen"
   }
 }
