@@ -546,7 +546,7 @@ function openCustomizeModal(currentConfig, onSave) {
       const isFirst = i === 0;
       const isLast  = i === draft.length - 1;
       return `
-        <div class="customize-row" data-id="${w.id}">
+        <div class="customize-row" data-id="${esc(w.id)}" style="view-transition-name: widget-row-${esc(w.id)}">
           <label class="customize-row__toggle">
             <input type="checkbox" class="customize-row__check" data-id="${w.id}"
                    ${w.visible ? 'checked' : ''} aria-label="${widgetLabel(w.id)}">
@@ -584,10 +584,18 @@ function openCustomizeModal(currentConfig, onSave) {
       function rebuildList() {
         const list = panel.querySelector('#customize-list');
         if (!list) return;
-        list.replaceChildren();
-        list.insertAdjacentHTML('beforeend', buildRows());
-        if (window.lucide) window.lucide.createIcons({ el: list });
-        wireRows();
+        const doRebuild = () => {
+          list.replaceChildren();
+          list.insertAdjacentHTML('beforeend', buildRows());
+          if (window.lucide) window.lucide.createIcons({ el: list });
+          wireRows();
+        };
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (document.startViewTransition && !reducedMotion) {
+          document.startViewTransition(doRebuild);
+        } else {
+          doRebuild();
+        }
       }
 
       function wireRows() {

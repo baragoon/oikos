@@ -172,8 +172,10 @@
   --module-birthdays:  var(--_module-birthdays);   /* Rose - Geburtstage */
   --_module-budget:    #0F766E;
   --module-budget:     var(--_module-budget);      /* Teal-700 - Finanzen, Stabilität */
-  --_module-settings:  #6E7781;
-  --module-settings:   var(--_module-settings);   /* Grau - Konfiguration */
+  --_module-settings:   #6E7781;
+  --module-settings:    var(--_module-settings);   /* Grau - Konfiguration */
+  --_module-reminders:  #0E7490;
+  --module-reminders:   var(--_module-reminders);  /* Cyan-700 - Erinnerungen, 6.3:1 auf weiß — WCAG AA */
 
   /* --------------------------------------------------------
    * 5. Farben - Mahlzeit-Typen
@@ -246,6 +248,10 @@
   --shadow-md:  var(--_shadow-md);
   --_shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
   --shadow-lg:  var(--_shadow-lg);
+  --_shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-xl:  var(--_shadow-xl);
+  --_shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-xs:  var(--_shadow-xs);
 
   /* --------------------------------------------------------
    * 9. Border-Radien
@@ -320,7 +326,7 @@
   --nav-height-mobile: 56px;
   --nav-bottom-height: calc(var(--nav-height-mobile) + 12px); /* scroll (56px) + dots-indicator (12px) */
   --sidebar-width: 56px;             /* collapsed icon-only (1024–1279px) */
-  --sidebar-width-expanded: 220px;   /* full sidebar (1280px+), max 240px laut Spec */
+  --sidebar-width-expanded: 220px;   /* full sidebar (1440px+), max 240px laut Spec */
   --content-max-width: 1280px;
   --content-max-width-narrow: 720px;
   --cal-hour-height: 56px;
@@ -403,6 +409,7 @@
   --glass-tint-strength:  var(--_glass-tint-strength);
 
   /* b) Blur-Stufen */
+  --blur-2xs: blur(2px);
   --blur-xs:  blur(4px);
   --blur-sm:  blur(8px);
   --blur-md:  blur(16px);
@@ -523,8 +530,9 @@
     --_module-notes:     #FCD34D;
     --_module-contacts:  #60A5FA;
     --_module-birthdays: #FB7185;
-    --_module-budget:    #2DD4BF;
-    --_module-settings:  #94A3B8;
+    --_module-budget:      #2DD4BF;
+    --_module-settings:    #94A3B8;
+    --_module-reminders:   #22D3EE;   /* Cyan-400 */
 
     --_meal-breakfast:       #F59E0B;
     --_meal-breakfast-light: #332400;
@@ -545,6 +553,8 @@
     --_shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
     --_shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
     --_shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --_shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.60), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --_shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
 
     --_glass-bg:               rgba(28, 28, 26, 0.75);
     --_glass-bg-hover:         rgba(38, 38, 36, 0.82);
@@ -625,8 +635,9 @@
     --_module-notes:     #FCD34D;
     --_module-contacts:  #60A5FA;
     --_module-birthdays: #FB7185;
-    --_module-budget:    #2DD4BF;   /* Teal-400 */
-    --_module-settings:  #94A3B8;
+    --_module-budget:      #2DD4BF;   /* Teal-400 */
+    --_module-settings:    #94A3B8;
+    --_module-reminders:   #22D3EE;   /* Cyan-400 */
 
     /* Mahlzeit-Typ */
     --_meal-breakfast:       #F59E0B;
@@ -651,6 +662,8 @@
     --_shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
     --_shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
     --_shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --_shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.60), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --_shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
 
     /* Glass */
     --_glass-bg:              rgba(28, 28, 26, 0.75);
@@ -688,6 +701,7 @@
     --glass-highlight:        transparent;
     --glass-highlight-subtle: transparent;
     --glass-tint-strength: 0%;
+    --blur-2xs: blur(0px);
     --blur-xs:  blur(0px);
     --blur-sm:  blur(0px);
     --blur-md:  blur(0px);
@@ -712,6 +726,7 @@
     --glass-border-subtle: var(--color-text-secondary);
     --glass-highlight:        transparent;
     --glass-highlight-subtle: transparent;
+    --blur-2xs: blur(0px);
     --blur-xs:  blur(0px);
     --blur-sm:  blur(0px);
     --blur-md:  blur(0px);

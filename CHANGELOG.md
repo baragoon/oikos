@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.2] - 2026-04-26
+
+### Changed
+- Docs: `SPEC.md` updated to reflect all changes since v0.24.0 — Budget Entries table now documents `subcategory` column and DB-backed `category` FK; new `Budget Categories`, `Budget Subcategories`, and `API Tokens` data-model tables added; Settings section updated with API Tokens tab, corrected language list (added Japanese, Arabic, Hindi, Portuguese), and tab count (six → seven); Budget module section now covers subcategories, custom categories, and all new endpoints; new API Documentation section documents OpenAPI 3.0 spec and authentication options; design tokens `--blur-2xs` and `--module-reminders` added to Colors section
+- Docs: `README.md` Highlights updated — Budget Tracking now mentions DB-backed subcategories; new API Tokens entry added
+
+## [0.25.1] - 2026-04-26
+
+### Changed
+- Dashboard: empty widget states now render as a compact inline row (icon + text) instead of a centred column, saving ~40px of vertical space per empty widget on mobile
+
+### Fixed
+- Dashboard: widget body bottom padding increased from 12px to 16px for slightly more breathing room
+- Dashboard: widget reordering in "Anpassen" modal now uses the View Transition API for smooth animations; respects `prefers-reduced-motion`
+
+## [0.25.0] - 2026-04-25
+
+### Added
+- API token authentication: admins can create named Bearer / X-API-Key tokens for external integrations; tokens are SHA-256-hashed at rest, support optional expiry and revocation, and track last-used timestamp
+- Settings: new "API Tokens" section for admins to create and revoke tokens; the full token value is shown only once immediately after creation
+- OpenAPI 3.0 specification served at `/api/v1/openapi.json` and `/openapi.json` (download via `?download=1`)
+- Budget: new endpoints `GET /api/v1/budget/categories` and `GET /api/v1/budget/categories/:key/subcategories` with optional `?lang=` localisation
+
+### Changed
+- `server/logger.js` now serialises `Error` objects into structured JSON fields (name, message, stack) instead of logging `{}`
+
+## [0.24.4] - 2026-04-26
+
+### Added
+- Accessibility: `layout.css` now has a `@media (prefers-contrast: more)` block — ghost and secondary buttons get explicit borders, cards lose decorative shadows, form inputs get a 2px border, focus rings become thicker (3px, 4px offset), and active nav items get an underline as a colour-independent indicator
+
+### Fixed
+- Design tokens: corrected `--sidebar-width-expanded` comment from `1280px+` to `1440px+` to match the actual breakpoint in `layout.css`
+
+## [0.24.3] - 2026-04-26
+
+### Added
+- Design tokens: `--blur-2xs: blur(2px)` added to the blur scale — fills the gap below `--blur-xs` (4px), used for subtle overlay blurs
+- Design tokens: `--module-reminders: #0E7490` (Cyan-700, WCAG AA) added for the reminders feature; dark mode variant `#22D3EE` (Cyan-400)
+
+### Fixed
+- Design tokens: hardcoded `blur(16px)`, `blur(2px)`, and `blur(12px)` in `layout.css` replaced with `var(--blur-md)`, `var(--blur-2xs)`, and `var(--blur-sm)` — `prefers-reduced-transparency` now correctly disables all backdrop-filter effects including bottom nav, more-sheet backdrop, and sticky headers
+- Accessibility: `layout.css` now has a `prefers-reduced-transparency` block for `.nav-bottom`, `.more-backdrop`, and `.sticky-header` — these three elements previously kept their backdrop-filter active even when the user requested reduced transparency
+- Reminders: reminder bell icon in toasts now uses `var(--module-reminders)` instead of the generic `var(--color-accent)`
+
+## [0.24.2] - 2026-04-26
+
+### Fixed
+- Design tokens: added missing `--shadow-xl` and `--shadow-xs` tokens (with dark mode variants) — resolves undefined CSS custom property references in kanban drag ghost and dashboard widget toggle
+- Design tokens: `--color-surface-raised` replaced with `--color-surface-hover` in `dashboard.css` — was undefined, causing unstyled hover states in the widget customizer
+- Design tokens: `--color-text` replaced with `--color-text-primary` in `dashboard.css` — was undefined, causing invisible text on hover in the widget customizer
+- Design tokens: hardcoded `font-weight` values (`700`, `500`, `600`) in `reminders.css` replaced with `--font-weight-bold`, `--font-weight-medium`, `--font-weight-semibold`
+
 ## [0.24.1] - 2026-04-25
 
 ### Fixed

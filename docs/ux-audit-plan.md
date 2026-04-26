@@ -47,5 +47,5 @@
 2. **Lack of Visual Feedback in Customization**: Reordering widgets in the customize modal (`rebuildList()`) happens instantly without transition, feeling jarring.
 
 ### Implementation Steps
-- [ ] **Compact Empty States (`dashboard.js`)**: Offen — `.widget__empty` hat bereits reduziertes Padding (`space-5`), aber kein echtes Row-Layout. Niedrige Priorität.
-- [ ] **Animate Widget Reordering (`dashboard.js`)**: Offen — View Transition API wäre sinnvoll, aber kein Bug. Niedrige Priorität.
+- [x] **Compact Empty States (`dashboard.css`)**: `.widget__empty` auf horizontales Row-Layout umgestellt, Icon 28→20px, Padding reduziert — spart ~40px vertikalen Platz pro leerem Widget.
+- [x] **Animate Widget Reordering (`dashboard.js`)**: `rebuildList()` nutzt nun `document.startViewTransition()` mit `prefers-reduced-motion`-Guard und `view-transition-name` je Row.
