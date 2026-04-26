@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.1] - 2026-04-26
+
+### Changed
+- Dashboard: empty widget states now render as a compact inline row (icon + text) instead of a centred column, saving ~40px of vertical space per empty widget on mobile
+
+### Fixed
+- Dashboard: widget body bottom padding increased from 12px to 16px for slightly more breathing room
+- Dashboard: widget reordering in "Anpassen" modal now uses the View Transition API for smooth animations; respects `prefers-reduced-motion`
+
 ## [0.25.0] - 2026-04-25
 
 ### Added
