@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.7] - 2026-04-27
+
+### Added
+- Navigation: a dedicated screen-reader announcer (`aria-live="polite"`) announces the page name on every route change instead of reading the entire page content
+
+### Changed
+- Color pickers (notes, calendar): swatches now use `role="radiogroup"` with localized color names instead of hex codes, `aria-checked` reflects the selected state, and Arrow keys navigate between options
+- Navigation badges: badge counts are now hidden from screen readers (`aria-hidden`); the parent nav link's `aria-label` is updated to include the count in plain text (e.g. "Aufgaben, 3 überfällig")
+- Main content area: removed `aria-live="polite"` from `<main>` — it was causing screen readers to read the full page on every navigation
+
+### Fixed
+- Form validation: `aria-invalid="true"` is now set on invalid inputs in all modals and on the login form so screen readers can announce field errors
+
 ## [0.25.6] - 2026-04-27
 
 ### Changed
