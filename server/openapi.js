@@ -370,6 +370,20 @@ function buildPaths() {
       delete: op({ summary: 'Delete contact', tag: 'Contacts', params: [idParam()], stateChanging: true }),
     },
     '/api/v1/contacts/{id}/vcard': { get: op({ summary: 'Download contact as vCard', tag: 'Contacts', params: [idParam()] }) },
+    '/api/v1/birthdays': {
+      get: op({ summary: 'List birthdays', tag: 'Birthdays' }),
+      post: op({ summary: 'Create birthday', tag: 'Birthdays', stateChanging: true, requestBody: jsonBody(null) }),
+    },
+    '/api/v1/birthdays/upcoming': {
+      get: op({ summary: 'List upcoming birthdays', tag: 'Birthdays' }),
+    },
+    '/api/v1/birthdays/meta/options': {
+      get: op({ summary: 'Get birthday upload options', tag: 'Birthdays' }),
+    },
+    '/api/v1/birthdays/{id}': {
+      put: op({ summary: 'Update birthday', tag: 'Birthdays', params: [idParam()], stateChanging: true, requestBody: jsonBody(null) }),
+      delete: op({ summary: 'Delete birthday', tag: 'Birthdays', params: [idParam()], stateChanging: true }),
+    },
     '/api/v1/budget/summary': { get: op({ summary: 'Get budget summary', tag: 'Budget' }) },
     '/api/v1/budget/export': { get: op({ summary: 'Export budget entries as CSV', tag: 'Budget' }) },
     '/api/v1/budget/meta': { get: op({ summary: 'Get budget categories and subcategories', tag: 'Budget' }) },
@@ -437,6 +451,7 @@ function buildOpenApiSpec(req, appVersion) {
       { name: 'Calendar' },
       { name: 'Notes' },
       { name: 'Contacts' },
+      { name: 'Birthdays' },
       { name: 'Budget' },
       { name: 'Weather' },
       { name: 'Preferences' },

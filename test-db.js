@@ -73,7 +73,7 @@ test('Migration v1 ausführen (alle Tabellen und Triggers)', () => {
 const EXPECTED_TABLES = [
   'users', 'tasks', 'shopping_lists', 'shopping_items',
   'meals', 'meal_ingredients', 'calendar_events',
-  'notes', 'contacts', 'budget_entries',
+  'notes', 'contacts', 'birthdays', 'budget_entries',
   'budget_categories', 'budget_subcategories', 'api_tokens',
 ];
 
@@ -99,6 +99,7 @@ const EXPECTED_TRIGGERS = [
   'calendar_events',
   'notes',
   'contacts',
+  'birthdays',
   'budget_entries',
 ].map((t) => `trg_${t}_updated_at`);
 
@@ -198,6 +199,19 @@ test('API-Token anlegen und lesen', () => {
   assert(token.name === 'MCP integration', 'Token name stimmt nicht');
   assert(token.created_by === 1, 'Token creator stimmt nicht');
   assert(token.revoked_at === null, 'Token sollte nicht widerrufen sein');
+});
+
+test('Geburtstag mit Kalender-Referenz anlegen', () => {
+  const event = db.prepare(`
+    INSERT INTO calendar_events (title, start_datetime, all_day, created_by, recurrence_rule)
+    VALUES ('Birthday: Alex', '2014-05-10', 1, 1, 'FREQ=YEARLY;INTERVAL=1')
+  `).run();
+  const birthday = db.prepare(`
+    INSERT INTO birthdays (name, birth_date, calendar_event_id, created_by)
+    VALUES ('Alex', '2014-05-10', ?, 1)
+  `).run(event.lastInsertRowid);
+  const row = db.prepare('SELECT * FROM birthdays WHERE id = ?').get(birthday.lastInsertRowid);
+  assert(row.calendar_event_id === event.lastInsertRowid, 'Kalender-Referenz stimmt nicht');
 });
 
 // --------------------------------------------------------

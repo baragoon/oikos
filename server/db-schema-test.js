@@ -116,6 +116,17 @@ const MIGRATIONS_SQL = {
       created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
       updated_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
+    CREATE TABLE IF NOT EXISTS birthdays (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      name              TEXT    NOT NULL,
+      birth_date        TEXT    NOT NULL,
+      notes             TEXT,
+      photo_data        TEXT,
+      calendar_event_id INTEGER REFERENCES calendar_events(id) ON DELETE SET NULL,
+      created_by        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at        TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+      updated_at        TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
     CREATE TABLE IF NOT EXISTS budget_entries (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       title           TEXT    NOT NULL,
@@ -182,6 +193,9 @@ const MIGRATIONS_SQL = {
     CREATE TRIGGER IF NOT EXISTS trg_contacts_updated_at
       AFTER UPDATE ON contacts FOR EACH ROW
       BEGIN UPDATE contacts SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = OLD.id; END;
+    CREATE TRIGGER IF NOT EXISTS trg_birthdays_updated_at
+      AFTER UPDATE ON birthdays FOR EACH ROW
+      BEGIN UPDATE birthdays SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = OLD.id; END;
     CREATE TRIGGER IF NOT EXISTS trg_budget_entries_updated_at
       AFTER UPDATE ON budget_entries FOR EACH ROW
       BEGIN UPDATE budget_entries SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = OLD.id; END;
@@ -196,6 +210,10 @@ const MIGRATIONS_SQL = {
     CREATE INDEX IF NOT EXISTS idx_notes_pinned         ON notes(pinned);
     CREATE INDEX IF NOT EXISTS idx_budget_date          ON budget_entries(date);
     CREATE INDEX IF NOT EXISTS idx_budget_created_by    ON budget_entries(created_by);
+    CREATE INDEX IF NOT EXISTS idx_birthdays_name       ON birthdays(name);
+    CREATE INDEX IF NOT EXISTS idx_birthdays_birth_date ON birthdays(birth_date);
+    CREATE INDEX IF NOT EXISTS idx_birthdays_created_by ON birthdays(created_by);
+    CREATE INDEX IF NOT EXISTS idx_birthdays_calendar_ref ON birthdays(calendar_event_id);
     CREATE INDEX IF NOT EXISTS idx_api_tokens_hash      ON api_tokens(token_hash);
     CREATE INDEX IF NOT EXISTS idx_api_tokens_created_by ON api_tokens(created_by);
   `,

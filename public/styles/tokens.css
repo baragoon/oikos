@@ -168,6 +168,8 @@
   --module-notes:      var(--_module-notes);       /* Amber-700 - Notizen (6.3:1 auf weiß — WCAG AA) */
   --_module-contacts:  #0969DA;
   --module-contacts:   var(--_module-contacts);    /* Kräftiges Blau - Kontakte */
+  --_module-birthdays: #E11D48;
+  --module-birthdays:  var(--_module-birthdays);   /* Rose - Geburtstage */
   --_module-budget:    #0F766E;
   --module-budget:     var(--_module-budget);      /* Teal-700 - Finanzen, Stabilität */
   --_module-settings:  #6E7781;
@@ -520,6 +522,7 @@
     --_module-shopping:  #F472B6;
     --_module-notes:     #FCD34D;
     --_module-contacts:  #60A5FA;
+    --_module-birthdays: #FB7185;
     --_module-budget:    #2DD4BF;
     --_module-settings:  #94A3B8;
 
@@ -621,6 +624,7 @@
     --_module-shopping:  #F472B6;   /* Pink-400 */
     --_module-notes:     #FCD34D;
     --_module-contacts:  #60A5FA;
+    --_module-birthdays: #FB7185;
     --_module-budget:    #2DD4BF;   /* Teal-400 */
     --_module-settings:  #94A3B8;
 

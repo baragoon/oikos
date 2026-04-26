@@ -8,6 +8,7 @@ import { createLogger } from '../logger.js';
 import express from 'express';
 import * as db from '../db.js';
 import * as v from '../middleware/validate.js';
+import { syncAllBirthdayReminders } from '../services/birthdays.js';
 
 const log    = createLogger('Reminders');
 const router = express.Router();
@@ -22,8 +23,9 @@ const VALID_ENTITY_TYPES = ['task', 'event'];
 // --------------------------------------------------------
 router.get('/pending', (req, res) => {
   try {
-    const userId = req.session.userId;
+    const userId = req.authUserId || req.session.userId;
     const now    = new Date().toISOString();
+    syncAllBirthdayReminders(db.get(), userId, new Date());
 
     const rows = db.get().prepare(`
       SELECT
@@ -53,7 +55,7 @@ router.get('/pending', (req, res) => {
 // --------------------------------------------------------
 router.get('/', (req, res) => {
   try {
-    const userId      = req.session.userId;
+    const userId      = req.authUserId || req.session.userId;
     const entityType  = req.query.entity_type;
     const entityId    = parseInt(req.query.entity_id, 10);
 
@@ -82,7 +84,7 @@ router.get('/', (req, res) => {
 // --------------------------------------------------------
 router.post('/', (req, res) => {
   try {
-    const userId = req.session.userId;
+    const userId = req.authUserId || req.session.userId;
     const { entity_type, entity_id, remind_at } = req.body;
 
     const errors = v.collectErrors([
@@ -127,7 +129,7 @@ router.post('/', (req, res) => {
 // --------------------------------------------------------
 router.patch('/:id/dismiss', (req, res) => {
   try {
-    const userId     = req.session.userId;
+    const userId     = req.authUserId || req.session.userId;
     const reminderId = parseInt(req.params.id, 10);
 
     if (!reminderId) {
@@ -157,7 +159,7 @@ router.patch('/:id/dismiss', (req, res) => {
 // --------------------------------------------------------
 router.delete('/:id', (req, res) => {
   try {
-    const userId     = req.session.userId;
+    const userId     = req.authUserId || req.session.userId;
     const reminderId = parseInt(req.params.id, 10);
 
     if (!reminderId) {
@@ -187,7 +189,7 @@ router.delete('/:id', (req, res) => {
 // --------------------------------------------------------
 router.delete('/', (req, res) => {
   try {
-    const userId     = req.session.userId;
+    const userId     = req.authUserId || req.session.userId;
     const entityType = req.query.entity_type;
     const entityId   = parseInt(req.query.entity_id, 10);
 

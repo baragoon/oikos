@@ -30,6 +30,8 @@ data/
 .idea/
 *.swp
 *.swo
+.codex 
+
 
 # Claude Code — share skills/agents/rules/hooks/settings; keep local permissions and worktrees out
 .claude/settings.local.json
