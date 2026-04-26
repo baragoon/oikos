@@ -706,9 +706,22 @@ function updateNav(path) {
 
   const moreBtn = document.querySelector('#more-btn');
   if (moreBtn) {
-    const inMoreSheet = navItems().slice(PRIMARY_NAV).some((n) => n.path === path);
+    const secondaryItems = navItems().slice(PRIMARY_NAV);
+    const activeSecondary = secondaryItems.find((n) => n.path === path);
+    const inMoreSheet = !!activeSecondary;
+
     moreBtn.classList.toggle('nav-item--active', inMoreSheet);
     moreBtn.toggleAttribute('aria-current', inMoreSheet);
+
+    const moreBtnLabel = moreBtn.querySelector('.nav-item__label');
+    const moreBtnIcon  = moreBtn.querySelector('.nav-item__icon');
+
+    if (moreBtnLabel) {
+      moreBtnLabel.textContent = activeSecondary ? activeSecondary.label : t('nav.more');
+    }
+    if (moreBtnIcon) {
+      moreBtnIcon.dataset.lucide = activeSecondary ? activeSecondary.icon : 'grid-2x2';
+    }
   }
 
   if (window.lucide) {
