@@ -170,6 +170,7 @@ function renderItems() {
         </svg>
         <div class="empty-state__title">${t('shopping.emptyList')}</div>
         <div class="empty-state__description">${t('shopping.emptyListDescription')}</div>
+        <p class="empty-state__hint">${t('emptyHint.shopping')}</p>
       </div>`;
   }
 

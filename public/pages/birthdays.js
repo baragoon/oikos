@@ -121,6 +121,7 @@ function renderList() {
     host.insertAdjacentHTML('beforeend', `<div class="empty-state">
       <div class="empty-state__title">${t('birthdays.emptyTitle')}</div>
       <div class="empty-state__description">${t('birthdays.emptyDescription')}</div>
+      <p class="empty-state__hint">${t('emptyHint.birthdays')}</p>
     </div>`);
     return;
   }

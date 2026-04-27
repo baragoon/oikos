@@ -882,5 +882,16 @@
     "goCal": "Calendar",
     "goShop": "Shopping list",
     "goNotes": "Notes"
+  },
+  "emptyHint": {
+    "tasks": "Tap + to create your first task. Swipe a card left to delete.",
+    "calendar": "Connect Google Calendar under Settings → Integrations for automatic sync.",
+    "shopping": "Add items and swipe to check off or delete.",
+    "notes": "Tap + for a new note. Notes are full-text searchable.",
+    "contacts": "Add important contacts — doctor, school, emergency — for quick access.",
+    "budget": "Create categories and track income and expenses.",
+    "meals": "Plan meals for the week and link recipes.",
+    "birthdays": "Add birthdays — you will receive a reminder in time.",
+    "recipes": "Create recipes and link them to your meal planner."
   }
 }

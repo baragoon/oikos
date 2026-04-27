@@ -892,6 +892,17 @@
   "offline": {
     "banner": "Offline – Verbindung wird wiederhergestellt…"
   },
+  "emptyHint": {
+    "tasks":    "Tippe auf + um deine erste Aufgabe zu erstellen. Wische eine Karte nach links zum Löschen.",
+    "calendar": "Verbinde Google Kalender unter Einstellungen → Integrationen für automatische Synchronisation.",
+    "shopping": "Füge Artikel hinzu und wische zum Abhaken oder Löschen.",
+    "notes":    "Tippe auf + für eine neue Notiz. Notizen werden im Volltext durchsucht.",
+    "contacts": "Lege wichtige Kontakte an — Arzt, Schule, Notfall — für Schnellzugriff.",
+    "budget":   "Erstelle Kategorien und trage Einnahmen und Ausgaben ein.",
+    "meals":    "Plane Mahlzeiten für die Woche und verknüpfe Rezepte.",
+    "birthdays": "Trage Geburtstage ein — du erhältst eine Erinnerung rechtzeitig.",
+    "recipes":  "Lege Rezepte an und verknüpfe sie mit deiner Mahlzeitenplanung."
+  },
   "shortcuts": {
     "search":  "Suche öffnen",
     "new":     "Neuen Eintrag erstellen",

@@ -377,6 +377,7 @@ function renderEntries() {
       </svg>
       <div class="empty-state__title">${t('budget.emptyTitle')}</div>
       <div class="empty-state__description">${t('budget.emptyDescription')}</div>
+      <p class="empty-state__hint">${t('emptyHint.budget')}</p>
     </div>`;
   }
 

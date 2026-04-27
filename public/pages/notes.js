@@ -146,6 +146,7 @@ function renderGrid() {
         </svg>
         <div class="empty-state__title">${isFiltered ? t('notes.noResultsTitle') : t('notes.emptyTitle')}</div>
         <div class="empty-state__description">${isFiltered ? t('notes.noResultsDescription', { query: state.filterQuery }) : t('notes.emptyDescription')}</div>
+        ${!isFiltered ? `<p class="empty-state__hint">${t('emptyHint.notes')}</p>` : ''}
       </div>
     `;
     if (window.lucide) lucide.createIcons();

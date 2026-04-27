@@ -180,6 +180,7 @@ function renderList() {
         </svg>
         <div class="empty-state__title">${t('contacts.emptyTitle')}</div>
         <div class="empty-state__description">${t('contacts.emptyDescription')}</div>
+        <p class="empty-state__hint">${t('emptyHint.contacts')}</p>
       </div>
     `;
     if (window.lucide) lucide.createIcons();

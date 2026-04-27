@@ -126,7 +126,10 @@ function renderRecipeList() {
     emptyDesc.className = 'empty-state__description';
     emptyDesc.textContent = t('recipes.emptyDescription');
 
-    empty.append(emptyTitle, emptyDesc);
+    const emptyHint = document.createElement('p');
+    emptyHint.className = 'empty-state__hint';
+    emptyHint.textContent = t('emptyHint.recipes');
+    empty.append(emptyTitle, emptyDesc, emptyHint);
     list.appendChild(empty);
     return;
   }

@@ -261,6 +261,7 @@ function renderTaskGroups(tasks, groupMode) {
       </svg>
       <div class="empty-state__title">${t('tasks.emptyTitle')}</div>
       <div class="empty-state__description">${t('tasks.emptyDescription')}</div>
+      <p class="empty-state__hint">${t('emptyHint.tasks')}</p>
     </div>`;
   }
 
