@@ -456,7 +456,7 @@ function renderFamilyWidget(users) {
   const visible = users.slice(0, 6);
   const avatars = visible.map((u) => `
     <span class="family-widget-avatar" style="background:${esc(u.avatar_color || '#64748b')}" title="${esc(u.display_name)}">
-      ${esc(initials(u.display_name))}
+      ${u.avatar_data ? `<img src="${esc(u.avatar_data)}" alt="${esc(u.display_name)}" loading="lazy">` : esc(initials(u.display_name))}
     </span>
   `).join('');
 

@@ -167,7 +167,7 @@ router.get('/', (req, res) => {
   // Alle User (für Avatar-Farben in Widgets)
   try {
     result.users = d.prepare(
-      'SELECT id, display_name, avatar_color FROM users ORDER BY display_name'
+      'SELECT id, display_name, avatar_color, avatar_data FROM users ORDER BY display_name'
     ).all();
   } catch (err) {
     result.users = [];

@@ -5,7 +5,7 @@
  */
 
 import { api, auth } from '/api.js';
-import { confirmModal } from '/components/modal.js';
+import { openModal, closeModal, confirmModal } from '/components/modal.js';
 import { t, formatDate, formatTime } from '/i18n.js';
 import { esc } from '/utils/html.js';
 import '/components/oikos-locale-picker.js';
@@ -14,6 +14,8 @@ const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', '
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
 const APP_NAME_STORAGE_KEY = 'oikos-app-name';
 const DEFAULT_APP_NAME = 'Oikos';
+const FAMILY_ROLES = ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'];
+const MAX_AVATAR_DATA_LENGTH = 768 * 1024;
 
 const CATEGORY_I18N = {
   'Obst & Gemüse': 'shopping.catFruitVeg',
@@ -42,6 +44,92 @@ function buildCurrencyOptions(selected) {
       return `<option value="${code}"${sel}>${label}</option>`;
     })
     .join('');
+}
+
+function familyRoleLabel(role) {
+  return t(`settings.familyRole${String(role || 'other').replace(/(^|_)([a-z])/g, (_, __, c) => c.toUpperCase())}`);
+}
+
+function buildFamilyRoleOptions(selected = 'other') {
+  return FAMILY_ROLES.map((role) => `
+    <option value="${role}"${role === selected ? ' selected' : ''}>${familyRoleLabel(role)}</option>
+  `).join('');
+}
+
+function avatarHtml(user, className = 'settings-avatar') {
+  const safeName = esc(user?.display_name || '');
+  const fallback = esc(initials(user?.display_name || ''));
+  const bg = esc(user?.avatar_color || '#007AFF');
+  return `
+    <div class="${className}" style="background:${bg}" title="${safeName}">
+      ${user?.avatar_data ? `<img src="${esc(user.avatar_data)}" alt="${safeName}" loading="lazy">` : fallback}
+    </div>
+  `;
+}
+
+function avatarEditorHtml(user, prefix) {
+  return `
+    <div class="settings-avatar-editor">
+      <div class="settings-avatar-preview" id="${prefix}-avatar-preview">
+        ${avatarHtml(user, 'settings-avatar settings-avatar--lg')}
+      </div>
+      <div class="settings-avatar-editor__controls">
+        <label class="form-label" for="${prefix}-avatar-file">${t('settings.profilePictureLabel')}</label>
+        <input class="form-input" type="file" id="${prefix}-avatar-file" accept="image/png,image/jpeg,image/webp" />
+        <p class="form-hint">${t('settings.profilePictureHint')}</p>
+        <button type="button" class="btn btn--secondary" id="${prefix}-avatar-remove">${t('settings.profilePictureRemove')}</button>
+      </div>
+    </div>
+  `;
+}
+
+function setAvatarPreview(container, selector, user) {
+  const preview = container.querySelector(selector);
+  if (!preview) return;
+  preview.replaceChildren();
+  preview.insertAdjacentHTML('beforeend', avatarHtml(user, 'settings-avatar settings-avatar--lg'));
+}
+
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(undefined);
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      return reject(new Error(t('settings.profilePictureTypeError')));
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return reject(new Error(t('settings.profilePictureFileTooLarge')));
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+      try {
+        const maxSize = 512;
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const width = Math.max(1, Math.round(img.width * scale));
+        const height = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+        if (dataUrl.length > MAX_AVATAR_DATA_LENGTH) {
+          reject(new Error(t('settings.profilePictureTooLarge')));
+        } else {
+          resolve(dataUrl);
+        }
+      } catch (err) {
+        reject(err);
+      }
+      };
+      img.onerror = () => reject(new Error(t('settings.profilePictureReadError')));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error(t('settings.profilePictureReadError')));
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
@@ -386,14 +474,31 @@ export async function render(container, { user }) {
 
           <div class="settings-card">
             <div class="settings-user-info">
-              <div class="settings-avatar" style="background:${esc(user?.avatar_color) || '#007AFF'}">
-                ${esc(initials(user?.display_name))}
-              </div>
+              ${avatarHtml(user)}
               <div>
                 <div class="settings-user-info__name">${esc(user?.display_name)}</div>
                 <div class="settings-user-info__username">@${esc(user?.username)}</div>
               </div>
             </div>
+          </div>
+
+          <div class="settings-card">
+            <h3 class="settings-card__title">${t('settings.profilePictureTitle')}</h3>
+            <form id="profile-form" class="settings-form">
+              ${avatarEditorHtml(user, 'profile')}
+              <div class="form-group">
+                <label class="form-label" for="profile-display-name">${t('settings.displayNameLabel')}</label>
+                <input class="form-input" type="text" id="profile-display-name" maxlength="128" value="${esc(user?.display_name || '')}" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="profile-avatar-color">${t('settings.colorLabel')}</label>
+                <input class="form-input form-input--color" type="color" id="profile-avatar-color" value="${esc(user?.avatar_color || '#007AFF')}" />
+              </div>
+              <div id="profile-error" class="form-error" hidden></div>
+              <div class="settings-form-actions">
+                <button type="submit" class="btn btn--primary">${t('common.save')}</button>
+              </div>
+            </form>
           </div>
 
           <div class="settings-card">
@@ -476,12 +581,16 @@ export async function render(container, { user }) {
                 <input class="form-input form-input--color" type="color" id="new-avatar-color" value="#007AFF" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="new-role">${t('settings.roleLabel')}</label>
-                <select class="form-input" id="new-role">
-                  <option value="member">${t('settings.roleMember')}</option>
-                  <option value="admin">${t('settings.roleAdmin')}</option>
+                <label class="form-label" for="new-family-role">${t('settings.familyRoleLabel')}</label>
+                <select class="form-input" id="new-family-role">
+                  ${buildFamilyRoleOptions()}
                 </select>
               </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="new-system-admin" />
+                <span>${t('settings.systemAdminLabel')}</span>
+              </label>
+              <p class="form-hint">${t('settings.systemAdminHint')}</p>
               <div id="member-error" class="form-error" hidden></div>
               <div class="settings-form-actions">
                 <button type="submit" class="btn btn--primary">${t('settings.createMember')}</button>
@@ -507,14 +616,14 @@ export async function render(container, { user }) {
     });
   }
 
-  bindEvents(container, user, categories, icsSubscriptions, apiTokens);
+  bindEvents(container, user, users, categories, icsSubscriptions, apiTokens);
 }
 
 // --------------------------------------------------------
 // Event-Binding
 // --------------------------------------------------------
 
-function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
+function bindEvents(container, user, users, categories, icsSubscriptions, apiTokens) {
   bindTabEvents(container);
   bindCategoryEvents(container);
   bindIcsEvents(container, user, icsSubscriptions);
@@ -613,6 +722,64 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
         window.oikos?.showToast(t('settings.appNameSavedToast'), 'success');
       } catch (err) {
         showError(errorEl, err.message ?? t('common.errorGeneric'));
+      }
+    });
+  }
+
+  const profileState = { avatarData: user?.avatar_data ?? null };
+  const profileAvatarFile = container.querySelector('#profile-avatar-file');
+  if (profileAvatarFile) {
+    profileAvatarFile.addEventListener('change', async () => {
+      const errorEl = container.querySelector('#profile-error');
+      errorEl.hidden = true;
+      try {
+        const avatarData = await readImageAsDataUrl(profileAvatarFile.files?.[0]);
+        if (avatarData !== undefined) {
+          profileState.avatarData = avatarData;
+          setAvatarPreview(container, '#profile-avatar-preview', {
+            display_name: container.querySelector('#profile-display-name')?.value || user?.display_name,
+            avatar_color: container.querySelector('#profile-avatar-color')?.value || user?.avatar_color,
+            avatar_data: avatarData,
+          });
+        }
+      } catch (err) {
+        profileAvatarFile.value = '';
+        showError(errorEl, err.message ?? t('common.errorGeneric'));
+      }
+    });
+  }
+
+  container.querySelector('#profile-avatar-remove')?.addEventListener('click', () => {
+    profileState.avatarData = null;
+    if (profileAvatarFile) profileAvatarFile.value = '';
+    setAvatarPreview(container, '#profile-avatar-preview', {
+      display_name: container.querySelector('#profile-display-name')?.value || user?.display_name,
+      avatar_color: container.querySelector('#profile-avatar-color')?.value || user?.avatar_color,
+      avatar_data: null,
+    });
+  });
+
+  const profileForm = container.querySelector('#profile-form');
+  if (profileForm) {
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = container.querySelector('#profile-error');
+      const btn = profileForm.querySelector('[type=submit]');
+      errorEl.hidden = true;
+      btn.disabled = true;
+      try {
+        const res = await auth.updateProfile({
+          display_name: container.querySelector('#profile-display-name').value.trim(),
+          avatar_color: container.querySelector('#profile-avatar-color').value,
+          avatar_data: profileState.avatarData,
+        });
+        Object.assign(user, res.user);
+        window.oikos?.showToast(t('settings.profileSavedToast'), 'success');
+        render(container, { user });
+      } catch (err) {
+        showError(errorEl, err.message ?? t('common.errorGeneric'));
+      } finally {
+        btn.disabled = false;
       }
     });
   }
@@ -773,7 +940,8 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
         display_name: container.querySelector('#new-display-name').value.trim(),
         password:     container.querySelector('#new-member-password').value,
         avatar_color: container.querySelector('#new-avatar-color').value,
-        role:         container.querySelector('#new-role').value,
+        family_role:  container.querySelector('#new-family-role').value,
+        system_admin: container.querySelector('#new-system-admin')?.checked === true,
       };
 
       const btn = addMemberForm.querySelector('[type=submit]');
@@ -781,12 +949,14 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
       try {
         const res  = await auth.createUser(data);
         const list = container.querySelector('#members-list');
+        users.push(res.user);
         list.insertAdjacentHTML('beforeend', memberHtml(res.user));
         addMemberForm.reset();
         container.querySelector('#add-member-form-card').classList.add('settings-card--hidden');
         container.querySelector('#add-member-btn').hidden = false;
         window.oikos?.showToast(t('settings.memberAddedToast', { name: res.user.display_name }), 'success');
         bindDeleteButtons(container, user);
+        bindEditButtons(container, user, users);
       } catch (err) {
         showError(errorEl, err.message);
       } finally {
@@ -796,6 +966,7 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
   }
 
   bindDeleteButtons(container, user);
+  bindEditButtons(container, user, users);
 
   // Abmelden
   const logoutBtn = container.querySelector('#logout-btn');
@@ -855,6 +1026,119 @@ function bindDeleteButtons(container, user) {
         window.oikos?.showToast(err.message, 'danger');
       }
     });
+  });
+}
+
+function bindEditButtons(container, currentUser, users) {
+  container.querySelectorAll('[data-edit-user]').forEach((btn) => {
+    btn.replaceWith(btn.cloneNode(true));
+  });
+  container.querySelectorAll('[data-edit-user]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.editUser, 10);
+      const member = users.find((u) => u.id === id);
+      if (member) openEditMemberModal(member, currentUser, users, container);
+    });
+  });
+}
+
+function openEditMemberModal(member, currentUser, users, container) {
+  const state = { avatarData: member.avatar_data ?? null };
+  openModal({
+    title: t('settings.editMemberTitle'),
+    size: 'md',
+    content: `
+      <form id="edit-member-form" class="settings-form">
+        ${avatarEditorHtml(member, 'edit-member')}
+        <div class="form-group">
+          <label class="form-label" for="edit-member-username">${t('settings.usernameLabel')}</label>
+          <input class="form-input" type="text" id="edit-member-username" value="${esc(member.username)}" required autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-member-display-name">${t('settings.displayNameLabel')}</label>
+          <input class="form-input" type="text" id="edit-member-display-name" value="${esc(member.display_name)}" required maxlength="128" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-member-avatar-color">${t('settings.colorLabel')}</label>
+          <input class="form-input form-input--color" type="color" id="edit-member-avatar-color" value="${esc(member.avatar_color || '#007AFF')}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-member-family-role">${t('settings.familyRoleLabel')}</label>
+          <select class="form-input" id="edit-member-family-role">
+            ${buildFamilyRoleOptions(member.family_role)}
+          </select>
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="edit-member-system-admin" ${member.role === 'admin' ? 'checked' : ''} />
+          <span>${t('settings.systemAdminLabel')}</span>
+        </label>
+        <p class="form-hint">${t('settings.systemAdminHint')}</p>
+        <div id="edit-member-error" class="form-error" hidden></div>
+        <div class="settings-form-actions">
+          <button type="button" class="btn btn--secondary" id="edit-member-cancel">${t('common.cancel')}</button>
+          <button type="submit" class="btn btn--primary">${t('settings.saveMember')}</button>
+        </div>
+      </form>
+    `,
+    onSave(panel) {
+      const fileInput = panel.querySelector('#edit-member-avatar-file');
+      const errorEl = panel.querySelector('#edit-member-error');
+      fileInput?.addEventListener('change', async () => {
+        errorEl.hidden = true;
+        try {
+          const avatarData = await readImageAsDataUrl(fileInput.files?.[0]);
+          if (avatarData !== undefined) {
+            state.avatarData = avatarData;
+            setAvatarPreview(panel, '#edit-member-avatar-preview', {
+              display_name: panel.querySelector('#edit-member-display-name')?.value || member.display_name,
+              avatar_color: panel.querySelector('#edit-member-avatar-color')?.value || member.avatar_color,
+              avatar_data: avatarData,
+            });
+          }
+        } catch (err) {
+          fileInput.value = '';
+          showError(errorEl, err.message ?? t('common.errorGeneric'));
+        }
+      });
+
+      panel.querySelector('#edit-member-avatar-remove')?.addEventListener('click', () => {
+        state.avatarData = null;
+        if (fileInput) fileInput.value = '';
+        setAvatarPreview(panel, '#edit-member-avatar-preview', {
+          display_name: panel.querySelector('#edit-member-display-name')?.value || member.display_name,
+          avatar_color: panel.querySelector('#edit-member-avatar-color')?.value || member.avatar_color,
+          avatar_data: null,
+        });
+      });
+
+      panel.querySelector('#edit-member-cancel')?.addEventListener('click', closeModal);
+      panel.querySelector('#edit-member-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = panel.querySelector('[type=submit]');
+        errorEl.hidden = true;
+        submitBtn.disabled = true;
+        try {
+          const res = await auth.updateUser(member.id, {
+            username: panel.querySelector('#edit-member-username').value.trim(),
+            display_name: panel.querySelector('#edit-member-display-name').value.trim(),
+            avatar_color: panel.querySelector('#edit-member-avatar-color').value,
+            avatar_data: state.avatarData,
+            family_role: panel.querySelector('#edit-member-family-role').value,
+            system_admin: panel.querySelector('#edit-member-system-admin').checked,
+          });
+          const idx = users.findIndex((u) => u.id === member.id);
+          if (idx !== -1) users[idx] = res.user;
+          if (currentUser.id === member.id) Object.assign(currentUser, res.user);
+          closeModal({ force: true });
+          window.oikos?.showToast(t('settings.memberUpdatedToast', { name: res.user.display_name }), 'success');
+          render(container, { user: currentUser });
+        } catch (err) {
+          showError(errorEl, err.message ?? t('common.errorGeneric'));
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    },
   });
 }
 
@@ -1103,13 +1387,18 @@ function bindCategoryEvents(container) {
 }
 
 function memberHtml(u) {
+  const familyRole = familyRoleLabel(u.family_role);
+  const systemRole = u.role === 'admin' ? ` · ${esc(t('settings.systemAdminBadge'))}` : '';
   return `
     <li class="settings-member" data-id="${u.id}">
-      <div class="settings-avatar settings-avatar--sm" style="background:${esc(u.avatar_color)}">${initials(u.display_name)}</div>
+      ${avatarHtml(u, 'settings-avatar settings-avatar--sm')}
       <div class="settings-member__info">
         <span class="settings-member__name">${esc(u.display_name)}</span>
-        <span class="settings-member__meta">@${esc(u.username)} · ${u.role === 'admin' ? t('settings.roleAdmin') : t('settings.roleMember')}</span>
+        <span class="settings-member__meta">@${esc(u.username)} · ${esc(familyRole)}${systemRole}</span>
       </div>
+      <button class="btn btn--icon btn--secondary" data-edit-user="${u.id}" aria-label="${esc(u.display_name)} ${t('settings.editMemberLabel')}" title="${t('settings.editMemberLabel')}">
+        <i data-lucide="edit-2" aria-hidden="true"></i>
+      </button>
       <button class="btn btn--icon btn--danger-outline" data-delete-user="${u.id}" data-name="${esc(u.display_name)}" aria-label="${esc(u.display_name)} ${t('settings.deleteMemberLabel')}" title="${t('settings.deleteMemberLabel')}">
         <i data-lucide="trash-2" aria-hidden="true"></i>
       </button>

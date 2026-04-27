@@ -16,6 +16,9 @@ import { createLogger } from './logger.js';
 const log = createLogger('Auth');
 const router = express.Router();
 const API_TOKEN_PREFIX = 'oikos_';
+const FAMILY_ROLES = ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'];
+const MAX_AVATAR_DATA_LENGTH = 768 * 1024;
+const USER_PUBLIC_COLUMNS = 'id, username, display_name, avatar_color, avatar_data, role, family_role, created_at';
 
 // --------------------------------------------------------
 // Session-Store (better-sqlite3, gleiche DB-Instanz wie App)
@@ -150,13 +153,61 @@ function publicApiToken(row) {
   };
 }
 
+function publicUser(row) {
+  return {
+    id: row.id,
+    username: row.username,
+    display_name: row.display_name,
+    avatar_color: row.avatar_color,
+    avatar_data: row.avatar_data ?? null,
+    role: row.role,
+    family_role: row.family_role,
+    created_at: row.created_at,
+  };
+}
+
+function normalizeAvatarData(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  if (typeof value !== 'string') return { error: 'Avatar image must be a data URL string.' };
+  if (value.length > MAX_AVATAR_DATA_LENGTH) {
+    return { error: 'Avatar image is too large.' };
+  }
+  if (!/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(value)) {
+    return { error: 'Avatar image must be PNG, JPEG, or WebP.' };
+  }
+  return value;
+}
+
+function assertAdminWouldRemain(targetUserId, nextRole) {
+  if (nextRole === 'admin') return null;
+  const current = db.get().prepare('SELECT role FROM users WHERE id = ?').get(targetUserId);
+  if (!current || current.role !== 'admin') return null;
+  const row = db.get().prepare('SELECT COUNT(*) AS count FROM users WHERE role = ? AND id != ?').get('admin', targetUserId);
+  return row.count > 0 ? null : 'At least one system admin must remain.';
+}
+
+function updateUserRoleSessions(userId, role) {
+  const allSessions = db.get().prepare('SELECT sid, sess FROM sessions').all();
+  const updateSession = db.get().prepare('UPDATE sessions SET sess = ? WHERE sid = ?');
+  for (const row of allSessions) {
+    try {
+      const sess = JSON.parse(row.sess);
+      if (sess.userId === userId) {
+        sess.role = role;
+        updateSession.run(JSON.stringify(sess), row.sid);
+      }
+    } catch { /* ignore malformed session */ }
+  }
+}
+
 function authenticateApiToken(req) {
   const token = extractApiToken(req);
   if (!token) return null;
 
   const tokenHash = hashApiToken(token);
   const row = db.get().prepare(`
-    SELECT t.*, u.role, u.username, u.display_name, u.avatar_color
+    SELECT t.*, u.role, u.username, u.display_name, u.avatar_color, u.avatar_data, u.family_role
     FROM api_tokens t
     JOIN users u ON u.id = t.created_by
     WHERE t.token_hash = ?
@@ -175,7 +226,9 @@ function authenticateApiToken(req) {
     username: row.username,
     display_name: row.display_name,
     avatar_color: row.avatar_color,
+    avatar_data: row.avatar_data,
     role: row.role,
+    family_role: row.family_role,
   };
   return row;
 }
@@ -225,7 +278,7 @@ const avatarColors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#F
 /**
  * POST /api/v1/auth/login
  * Body: { username: string, password: string }
- * Response: { user: { id, username, display_name, avatar_color, role } }
+ * Response: { user: { id, username, display_name, avatar_color, role, family_role } }
  */
 router.post('/login', loginLimiter, async (req, res) => {
   try {
@@ -276,7 +329,9 @@ router.post('/login', loginLimiter, async (req, res) => {
           username: user.username,
           display_name: user.display_name,
           avatar_color: user.avatar_color,
+          avatar_data: user.avatar_data,
           role: user.role,
+          family_role: user.family_role,
         },
         csrfToken: req.session.csrfToken,
       });
@@ -344,7 +399,7 @@ router.post('/setup', loginLimiter, async (req, res) => {
       .run(username, display_name, hash, avatarColor, 'admin');
 
     res.status(201).json({
-      user: { id: result.lastInsertRowid, username, display_name, avatar_color: avatarColor, role: 'admin' },
+      user: { id: result.lastInsertRowid, username, display_name, avatar_color: avatarColor, avatar_data: null, role: 'admin', family_role: 'other' },
     });
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
@@ -362,7 +417,7 @@ router.post('/setup', loginLimiter, async (req, res) => {
 router.get('/me', requireAuth, (req, res) => {
   try {
     const user = db.get()
-      .prepare('SELECT id, username, display_name, avatar_color, role FROM users WHERE id = ?')
+      .prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`)
       .get(req.authUserId);
 
     if (!user) {
@@ -373,7 +428,7 @@ router.get('/me', requireAuth, (req, res) => {
     }
 
     if (req.authMethod === 'api_token') {
-      return res.json({ user });
+      return res.json({ user: publicUser(user) });
     }
 
     // CSRF-Token erneuern falls vorhanden (wichtig fuer iOS-PWA-Resume:
@@ -389,7 +444,7 @@ router.get('/me', requireAuth, (req, res) => {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
-    res.json({ user, csrfToken: req.session.csrfToken });
+    res.json({ user: publicUser(user), csrfToken: req.session.csrfToken });
   } catch (err) {
     log.error('/me error:', err);
     res.status(500).json({ error: 'Internal server error.', code: 500 });
@@ -404,9 +459,9 @@ router.get('/me', requireAuth, (req, res) => {
 router.get('/users', requireAuth, requireAdmin, (req, res) => {
   try {
     const users = db.get()
-      .prepare('SELECT id, username, display_name, avatar_color, role, created_at FROM users ORDER BY display_name')
+      .prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users ORDER BY display_name`)
       .all();
-    res.json({ data: users });
+    res.json({ data: users.map(publicUser) });
   } catch (err) {
     log.error('Users error:', err);
     res.status(500).json({ error: 'Internal server error.', code: 500 });
@@ -488,12 +543,21 @@ router.delete('/api-tokens/:id', requireAuth, requireAdmin, csrfMiddleware, (req
 /**
  * POST /api/v1/auth/users
  * Admin only. Erstellt neues Familienmitglied.
- * Body: { username, display_name, password, avatar_color?, role? }
+ * Body: { username, display_name, password, avatar_color?, family_role?, system_admin? }
  * Response: { user: { id, username, display_name, avatar_color, role } }
  */
 router.post('/users', requireAuth, requireAdmin, csrfMiddleware, async (req, res) => {
   try {
-    const { username, display_name, password, avatar_color = '#007AFF', role = 'member' } = req.body;
+    const {
+      username,
+      display_name,
+      password,
+      avatar_color = '#007AFF',
+      avatar_data,
+      family_role = 'other',
+      system_admin = req.body.role === 'admin',
+    } = req.body;
+    const role = system_admin === true || system_admin === 'true' ? 'admin' : 'member';
 
     if (!username || !display_name || !password) {
       return res.status(400).json({ error: 'Username, display name, and password are required.', code: 400 });
@@ -511,27 +575,135 @@ router.post('/users', requireAuth, requireAdmin, csrfMiddleware, async (req, res
       return res.status(400).json({ error: 'Display name may be at most 128 characters long.', code: 400 });
     }
 
-    if (!['admin', 'member'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role.', code: 400 });
+    if (!FAMILY_ROLES.includes(family_role)) {
+      return res.status(400).json({ error: 'Invalid family role.', code: 400 });
+    }
+
+    const normalizedAvatarData = normalizeAvatarData(avatar_data);
+    if (normalizedAvatarData?.error) {
+      return res.status(400).json({ error: normalizedAvatarData.error, code: 400 });
     }
 
     const hash = await bcrypt.hash(password, 12);
 
     const result = db.get()
       .prepare(`
-        INSERT INTO users (username, display_name, password_hash, avatar_color, role)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (username, display_name, password_hash, avatar_color, avatar_data, role, family_role)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `)
-      .run(username, display_name, hash, avatar_color, role);
+      .run(username, display_name, hash, avatar_color, normalizedAvatarData ?? null, role, family_role);
+
+    const createdUser = db.get().prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`).get(result.lastInsertRowid);
 
     res.status(201).json({
-      user: { id: result.lastInsertRowid, username, display_name, avatar_color, role },
+      user: publicUser(createdUser),
     });
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE constraint')) {
       return res.status(409).json({ error: 'Username is already taken.', code: 409 });
     }
     log.error('User creation error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
+  }
+});
+
+/**
+ * PATCH /api/v1/auth/users/:id
+ * Admin only. Updates a family member profile and system-admin flag.
+ */
+router.patch('/users/:id', requireAuth, requireAdmin, csrfMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (!Number.isFinite(userId)) return res.status(400).json({ error: 'Invalid user ID.', code: 400 });
+
+    const existing = db.get().prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`).get(userId);
+    if (!existing) return res.status(404).json({ error: 'User not found.', code: 404 });
+
+    const username = req.body.username !== undefined ? String(req.body.username || '').trim() : existing.username;
+    const displayName = req.body.display_name !== undefined ? String(req.body.display_name || '').trim() : existing.display_name;
+    const avatarColor = req.body.avatar_color !== undefined ? String(req.body.avatar_color || '').trim() : existing.avatar_color;
+    const familyRole = req.body.family_role !== undefined ? String(req.body.family_role || '').trim() : existing.family_role;
+    const nextRole = req.body.system_admin !== undefined
+      ? (req.body.system_admin === true || req.body.system_admin === 'true' ? 'admin' : 'member')
+      : existing.role;
+    const avatarData = req.body.avatar_data !== undefined
+      ? normalizeAvatarData(req.body.avatar_data)
+      : existing.avatar_data;
+
+    if (!username || !displayName) {
+      return res.status(400).json({ error: 'Username and display name are required.', code: 400 });
+    }
+    if (!/^[a-zA-Z0-9._-]{3,64}$/.test(username)) {
+      return res.status(400).json({ error: 'Username must be 3-64 characters long and may only contain letters, numbers, dots, hyphens, and underscores.', code: 400 });
+    }
+    if (displayName.length > 128) {
+      return res.status(400).json({ error: 'Display name may be at most 128 characters long.', code: 400 });
+    }
+    if (!FAMILY_ROLES.includes(familyRole)) {
+      return res.status(400).json({ error: 'Invalid family role.', code: 400 });
+    }
+    if (avatarData?.error) {
+      return res.status(400).json({ error: avatarData.error, code: 400 });
+    }
+
+    const adminError = assertAdminWouldRemain(userId, nextRole);
+    if (adminError) return res.status(400).json({ error: adminError, code: 400 });
+
+    db.get().prepare(`
+      UPDATE users
+      SET username = ?, display_name = ?, avatar_color = ?, avatar_data = ?, role = ?, family_role = ?
+      WHERE id = ?
+    `).run(username, displayName, avatarColor || '#007AFF', avatarData ?? null, nextRole, familyRole, userId);
+
+    if (nextRole !== existing.role) {
+      updateUserRoleSessions(userId, nextRole);
+      if (userId === req.authUserId && req.session) req.session.role = nextRole;
+    }
+
+    const updated = db.get().prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`).get(userId);
+    res.json({ user: publicUser(updated) });
+  } catch (err) {
+    if (err.message && err.message.includes('UNIQUE constraint')) {
+      return res.status(409).json({ error: 'Username is already taken.', code: 409 });
+    }
+    log.error('User update error:', err);
+    res.status(500).json({ error: 'Internal server error.', code: 500 });
+  }
+});
+
+/**
+ * PATCH /api/v1/auth/me/profile
+ * Updates the current user's profile picture and basic profile fields.
+ */
+router.patch('/me/profile', requireAuth, csrfMiddleware, (req, res) => {
+  try {
+    const existing = db.get().prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`).get(req.authUserId);
+    if (!existing) return res.status(404).json({ error: 'User not found.', code: 404 });
+
+    const displayName = req.body.display_name !== undefined ? String(req.body.display_name || '').trim() : existing.display_name;
+    const avatarColor = req.body.avatar_color !== undefined ? String(req.body.avatar_color || '').trim() : existing.avatar_color;
+    const avatarData = req.body.avatar_data !== undefined
+      ? normalizeAvatarData(req.body.avatar_data)
+      : existing.avatar_data;
+
+    if (!displayName) return res.status(400).json({ error: 'Display name is required.', code: 400 });
+    if (displayName.length > 128) {
+      return res.status(400).json({ error: 'Display name may be at most 128 characters long.', code: 400 });
+    }
+    if (avatarData?.error) {
+      return res.status(400).json({ error: avatarData.error, code: 400 });
+    }
+
+    db.get().prepare(`
+      UPDATE users
+      SET display_name = ?, avatar_color = ?, avatar_data = ?
+      WHERE id = ?
+    `).run(displayName, avatarColor || '#007AFF', avatarData ?? null, req.authUserId);
+
+    const updated = db.get().prepare(`SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = ?`).get(req.authUserId);
+    res.json({ user: publicUser(updated) });
+  } catch (err) {
+    log.error('Profile update error:', err);
     res.status(500).json({ error: 'Internal server error.', code: 500 });
   }
 });

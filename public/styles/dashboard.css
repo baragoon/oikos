@@ -2374,10 +2374,17 @@
   font-size: var(--text-xs);
   border: 2px solid var(--color-surface);
   box-shadow: var(--shadow-xs);
+  overflow: hidden;
 }
 
 .family-widget-avatar + .family-widget-avatar {
   margin-left: -8px;
+}
+
+.family-widget-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .budget-widget {
