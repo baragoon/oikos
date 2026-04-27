@@ -1266,6 +1266,20 @@
   background-color: var(--color-surface-hover);
 }
 
+.customize-row[draggable="true"] {
+  cursor: grab;
+}
+
+.customize-row--dragging {
+  opacity: 0.4;
+}
+
+.customize-row--over {
+  background-color: var(--color-surface-3);
+  outline: 1px dashed var(--color-border);
+  outline-offset: -1px;
+}
+
 .customize-row__toggle {
   position: relative;
   display: inline-flex;

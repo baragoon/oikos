@@ -112,7 +112,7 @@ function showOnboarding(appContainer) {
 
 const WIDGET_IDS = ['weather', 'tasks', 'calendar', 'birthdays', 'budget', 'family', 'shopping', 'meals', 'notes'];
 
-const DEFAULT_WIDGET_CONFIG = WIDGET_IDS.map((id) => ({ id, visible: true }));
+const DEFAULT_WIDGET_CONFIG = WIDGET_IDS.map((id, i) => ({ id, visible: true, order: i }));
 
 function widgetLabel(id) {
   const map = {
@@ -869,6 +869,33 @@ function openCustomizeModal(currentConfig, onSave) {
             } else if (dir === 'down' && idx < draft.length - 1) {
               [draft[idx], draft[idx + 1]] = [draft[idx + 1], draft[idx]];
             }
+            draft.forEach((w, i) => { w.order = i; });
+            rebuildList();
+          });
+        });
+
+        list.querySelectorAll('.customize-row').forEach((row, idx) => {
+          row.setAttribute('draggable', 'true');
+          row.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(idx));
+            row.classList.add('customize-row--dragging');
+          });
+          row.addEventListener('dragend', () => row.classList.remove('customize-row--dragging'));
+          row.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            row.classList.add('customize-row--over');
+          });
+          row.addEventListener('dragleave', () => row.classList.remove('customize-row--over'));
+          row.addEventListener('drop', (e) => {
+            e.preventDefault();
+            row.classList.remove('customize-row--over');
+            const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+            if (fromIdx === idx) return;
+            const [moved] = draft.splice(fromIdx, 1);
+            draft.splice(idx, 0, moved);
+            draft.forEach((w, i) => { w.order = i; });
             rebuildList();
           });
         });
@@ -996,7 +1023,8 @@ export async function render(container, { user }) {
     ]);
     data         = dashRes;
     weather      = weatherRes.data ?? null;
-    widgetConfig = prefsRes.data?.dashboard_widgets ?? DEFAULT_WIDGET_CONFIG;
+    const raw = prefsRes.data?.dashboard_widgets ?? DEFAULT_WIDGET_CONFIG;
+    widgetConfig = raw.map((w, i) => ({ order: i, ...w })).sort((a, b) => a.order - b.order);
     currency     = prefsRes.data?.currency ?? 'EUR';
   } catch (err) {
     console.error('[Dashboard] Ladefehler:', err.message, 'Status:', err.status ?? 'network');
