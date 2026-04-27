@@ -868,5 +868,8 @@
     "next": "Next",
     "done": "Get started",
     "skip": "Skip"
+  },
+  "offline": {
+    "banner": "Offline – reconnecting…"
   }
 }

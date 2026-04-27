@@ -888,5 +888,8 @@
     "next": "Weiter",
     "done": "Loslegen",
     "skip": "Überspringen"
+  },
+  "offline": {
+    "banner": "Offline – Verbindung wird wiederhergestellt…"
   }
 }

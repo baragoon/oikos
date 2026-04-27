@@ -541,6 +541,20 @@ function renderAppShell(container) {
   initMoreSheet(container);
   initNavHideOnScroll(container);
   initSearch(container);
+  initOfflineBanner();
+}
+
+function initOfflineBanner() {
+  const banner = document.getElementById('offline-banner');
+  if (!banner) return;
+  const i18nSpan = banner.querySelector('[data-i18n]');
+  function update() {
+    banner.hidden = navigator.onLine;
+    if (i18nSpan) i18nSpan.textContent = t('offline.banner');
+  }
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
 }
 
 /**
