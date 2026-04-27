@@ -6,12 +6,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 // Minimales Window/Navigator-Mock für Node
-const { stagger, vibrate } = await (async () => {
-  // stagger braucht window.matchMedia - wir mocken es
+const { stagger, vibrate, deleteWithUndo } = await (async () => {
   global.window = {
     matchMedia: () => ({ matches: false }),
+    oikos: { showToast: () => {} },
   };
-  // navigator ist in Node ein getter-only property - über defineProperty überschreiben
+  global.t = (k) => k;
   Object.defineProperty(global, 'navigator', {
     value: { vibrate: null },
     writable: true,
@@ -46,4 +46,30 @@ test('vibrate: ruft navigator.vibrate auf wenn vorhanden', () => {
   Object.defineProperty(global, 'navigator', { value: { vibrate: (p) => { called = p; } }, writable: true, configurable: true });
   vibrate(15);
   assert.equal(called, 15);
+});
+
+test('deleteWithUndo: ruft onDelete auf', async () => {
+  let deleteCalled = false;
+  global.window.oikos = { showToast: () => {} };
+  await deleteWithUndo({
+    onDelete: async () => { deleteCalled = true; },
+    toastMessage: 'Gelöscht',
+  });
+  assert.equal(deleteCalled, true);
+});
+
+test('deleteWithUndo: übergibt onUndo an showToast', async () => {
+  let undoCalled = false;
+  let capturedUndo = null;
+  global.window.oikos = {
+    showToast: (_msg, _type, _duration, undoFn) => { capturedUndo = undoFn; },
+  };
+  await deleteWithUndo({
+    onDelete: async () => {},
+    onUndo: async () => { undoCalled = true; },
+    toastMessage: 'Gelöscht',
+  });
+  assert.ok(capturedUndo, 'showToast muss eine Undo-Funktion erhalten haben');
+  await capturedUndo();
+  assert.equal(undoCalled, true);
 });

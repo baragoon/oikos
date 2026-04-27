@@ -1,6 +1,6 @@
 import { api } from '/api.js';
 import { openModal as openSharedModal, closeModal, confirmModal } from '/components/modal.js';
-import { stagger } from '/utils/ux.js';
+import { stagger, deleteWithUndo } from '/utils/ux.js';
 import { t, formatDate } from '/i18n.js';
 import { esc } from '/utils/html.js';
 
@@ -378,15 +378,26 @@ function openBirthdayModal({ mode, birthday = null }) {
 
 async function deleteBirthday(id, name) {
   if (!await confirmModal(t('birthdays.deleteConfirm', { name }), { danger: true, confirmLabel: t('common.delete') })) return;
-  await api.delete(`/birthdays/${id}`);
-  state.birthdays = state.birthdays
-    .filter((birthday) => birthday.id !== id)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  state.upcoming = state.upcoming.filter((birthday) => birthday.id !== id);
+  const birthday = state.birthdays.find((b) => b.id === id);
+  state.birthdays = state.birthdays.filter((b) => b.id !== id).sort((a, b) => a.name.localeCompare(b.name));
+  state.upcoming = state.upcoming.filter((b) => b.id !== id);
   renderUpcoming();
   renderSuggestions();
   renderList();
-  window.oikos?.showToast(t('birthdays.deletedToast'), 'success');
+  await deleteWithUndo({
+    onDelete: async () => { await api.delete(`/birthdays/${id}`); },
+    onUndo: async () => {
+      if (birthday) {
+        state.birthdays = [...state.birthdays, birthday].sort((a, b) => a.name.localeCompare(b.name));
+        state.upcoming = [...state.upcoming, birthday];
+        renderUpcoming();
+        renderSuggestions();
+        renderList();
+      }
+    },
+    toastMessage: t('birthdays.deletedToast'),
+    toastType: 'success',
+  });
 }
 
 export async function render(container) {

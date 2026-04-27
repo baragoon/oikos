@@ -40,3 +40,24 @@ export function vibrate(pattern) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   navigator.vibrate(pattern);
 }
+
+/**
+ * Führt eine DELETE-Aktion aus und zeigt einen Undo-Toast.
+ *
+ * @param {Object} opts
+ * @param {() => Promise<void>} opts.onDelete      - Async-Funktion die DELETE ausführt
+ * @param {() => Promise<void>} [opts.onUndo]      - Async-Funktion die die Aktion rückgängig macht
+ * @param {string} opts.toastMessage               - Text für den Toast
+ * @param {'success'|'danger'} [opts.toastType]    - Toast-Typ, default 'success'
+ */
+export async function deleteWithUndo({ onDelete, onUndo, toastMessage, toastType = 'success' }) {
+  await onDelete();
+  if (window.oikos?.showToast) {
+    window.oikos.showToast(
+      toastMessage,
+      toastType,
+      onUndo ? 4000 : 2000,
+      onUndo ?? null,
+    );
+  }
+}
