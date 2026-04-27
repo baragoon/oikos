@@ -205,6 +205,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
     if (typeof userOrPushState === 'object' && userOrPushState !== null) {
       currentUser = userOrPushState;
       await syncPreferencesOnce();
+      loadReminderStyles();
       initReminders();
     } else {
       pushState = userOrPushState;
@@ -223,6 +224,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
         const result = await auth.me();
         currentUser = result.user;
         await syncPreferencesOnce();
+        loadReminderStyles();
         initReminders();
       } catch {
         currentPath = null; // Reset damit navigate('/login') nicht geblockt wird
@@ -629,6 +631,14 @@ function showShortcutsModal() {
   if (window.lucide) window.lucide.createIcons({ el: panel });
 }
 
+function loadReminderStyles() {
+  if (document.querySelector('link[href="/styles/reminders.css"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/styles/reminders.css';
+  document.head.appendChild(link);
+}
+
 function initOfflineBanner() {
   const banner = document.getElementById('offline-banner');
   if (!banner) return;
@@ -980,6 +990,27 @@ function showToast(message, type = 'default', duration = 3000, onUndo = null) {
     toast.classList.add('toast--out');
     toast.addEventListener('animationend', () => toast.remove(), { once: true });
   }, duration);
+
+  let startX = 0;
+  toast.addEventListener('pointerdown', (e) => { startX = e.clientX; toast.setPointerCapture(e.pointerId); });
+  toast.addEventListener('pointermove', (e) => {
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 10) {
+      toast.style.transform = `translateX(${dx}px)`;
+      toast.style.opacity = String(Math.max(0, 1 - Math.abs(dx) / 120));
+    }
+  });
+  toast.addEventListener('pointerup', (e) => {
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 40) {
+      clearTimeout(dismissTimer);
+      toast.classList.add('toast--out');
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    } else {
+      toast.style.transform = '';
+      toast.style.opacity = '';
+    }
+  });
 }
 
 // --------------------------------------------------------

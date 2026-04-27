@@ -361,7 +361,7 @@
 .widget__title-icon {
   width: 16px;
   height: 16px;
-  color: var(--widget-accent, var(--color-accent));
+  color: var(--color-text-secondary);
 }
 
 .widget__link {
