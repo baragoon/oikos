@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.1] - 2026-04-27
+
+### Fixed
+- Dashboard: `path is not defined` crash on every navigation — `renderPage()` referenced a bare `path` variable instead of `route.path`
+- Dashboard: shopping lists widget caused a server-side SQL error (`HAVING` clause on non-aggregate query) resulting in an empty widget for all users
+
 ## [0.26.0] - 2026-04-27
 
 ### Added
