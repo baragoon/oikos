@@ -110,7 +110,7 @@ function showOnboarding(appContainer) {
 // Widget-Definitionen (Reihenfolge = Standard-Layout)
 // --------------------------------------------------------
 
-const WIDGET_IDS = ['tasks', 'calendar', 'birthdays', 'budget', 'family', 'weather', 'shopping', 'meals', 'notes'];
+const WIDGET_IDS = ['weather', 'tasks', 'calendar', 'birthdays', 'budget', 'family', 'shopping', 'meals', 'notes'];
 
 const DEFAULT_WIDGET_CONFIG = WIDGET_IDS.map((id) => ({ id, visible: true }));
 

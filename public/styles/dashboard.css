@@ -163,6 +163,17 @@
   grid-template-columns: 1fr;
 }
 
+/* Widgets füllen die gesamte Gridzeilen-Höhe, so dass alle Widgets
+ * einer Zeile gleich hoch sind und keine Lücken entstehen. */
+.widget-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-wrapper > .widget {
+  flex: 1;
+}
+
 @media (min-width: 768px) {
   .dashboard__grid {
     grid-template-columns: repeat(2, 1fr);

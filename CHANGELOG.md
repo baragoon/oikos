@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.4] - 2026-04-27
+
+### Changed
+- Dashboard: weather widget is now the first entry in the default widget order
+- Dashboard: widgets in the same grid row now share the same height (via flex stretch), eliminating the patchwork gaps between shorter and taller widgets
+
 ## [0.26.3] - 2026-04-27
 
 ### Fixed
