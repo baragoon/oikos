@@ -16,6 +16,7 @@ import { createLogger } from './logger.js';
 const log = createLogger('Auth');
 const router = express.Router();
 const API_TOKEN_PREFIX = 'oikos_';
+const FAMILY_ROLES = ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'];
 
 // --------------------------------------------------------
 // Session-Store (better-sqlite3, gleiche DB-Instanz wie App)
@@ -156,7 +157,7 @@ function authenticateApiToken(req) {
 
   const tokenHash = hashApiToken(token);
   const row = db.get().prepare(`
-    SELECT t.*, u.role, u.username, u.display_name, u.avatar_color
+    SELECT t.*, u.role, u.username, u.display_name, u.avatar_color, u.family_role
     FROM api_tokens t
     JOIN users u ON u.id = t.created_by
     WHERE t.token_hash = ?
@@ -176,6 +177,7 @@ function authenticateApiToken(req) {
     display_name: row.display_name,
     avatar_color: row.avatar_color,
     role: row.role,
+    family_role: row.family_role,
   };
   return row;
 }
@@ -225,7 +227,7 @@ const avatarColors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#F
 /**
  * POST /api/v1/auth/login
  * Body: { username: string, password: string }
- * Response: { user: { id, username, display_name, avatar_color, role } }
+ * Response: { user: { id, username, display_name, avatar_color, role, family_role } }
  */
 router.post('/login', loginLimiter, async (req, res) => {
   try {
@@ -277,6 +279,7 @@ router.post('/login', loginLimiter, async (req, res) => {
           display_name: user.display_name,
           avatar_color: user.avatar_color,
           role: user.role,
+          family_role: user.family_role,
         },
         csrfToken: req.session.csrfToken,
       });
@@ -344,7 +347,7 @@ router.post('/setup', loginLimiter, async (req, res) => {
       .run(username, display_name, hash, avatarColor, 'admin');
 
     res.status(201).json({
-      user: { id: result.lastInsertRowid, username, display_name, avatar_color: avatarColor, role: 'admin' },
+      user: { id: result.lastInsertRowid, username, display_name, avatar_color: avatarColor, role: 'admin', family_role: 'other' },
     });
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
@@ -362,7 +365,7 @@ router.post('/setup', loginLimiter, async (req, res) => {
 router.get('/me', requireAuth, (req, res) => {
   try {
     const user = db.get()
-      .prepare('SELECT id, username, display_name, avatar_color, role FROM users WHERE id = ?')
+      .prepare('SELECT id, username, display_name, avatar_color, role, family_role FROM users WHERE id = ?')
       .get(req.authUserId);
 
     if (!user) {
@@ -404,7 +407,7 @@ router.get('/me', requireAuth, (req, res) => {
 router.get('/users', requireAuth, requireAdmin, (req, res) => {
   try {
     const users = db.get()
-      .prepare('SELECT id, username, display_name, avatar_color, role, created_at FROM users ORDER BY display_name')
+      .prepare('SELECT id, username, display_name, avatar_color, role, family_role, created_at FROM users ORDER BY display_name')
       .all();
     res.json({ data: users });
   } catch (err) {
@@ -488,12 +491,20 @@ router.delete('/api-tokens/:id', requireAuth, requireAdmin, csrfMiddleware, (req
 /**
  * POST /api/v1/auth/users
  * Admin only. Erstellt neues Familienmitglied.
- * Body: { username, display_name, password, avatar_color?, role? }
+ * Body: { username, display_name, password, avatar_color?, family_role?, system_admin? }
  * Response: { user: { id, username, display_name, avatar_color, role } }
  */
 router.post('/users', requireAuth, requireAdmin, csrfMiddleware, async (req, res) => {
   try {
-    const { username, display_name, password, avatar_color = '#007AFF', role = 'member' } = req.body;
+    const {
+      username,
+      display_name,
+      password,
+      avatar_color = '#007AFF',
+      family_role = 'other',
+      system_admin = req.body.role === 'admin',
+    } = req.body;
+    const role = system_admin === true || system_admin === 'true' ? 'admin' : 'member';
 
     if (!username || !display_name || !password) {
       return res.status(400).json({ error: 'Username, display name, and password are required.', code: 400 });
@@ -511,21 +522,21 @@ router.post('/users', requireAuth, requireAdmin, csrfMiddleware, async (req, res
       return res.status(400).json({ error: 'Display name may be at most 128 characters long.', code: 400 });
     }
 
-    if (!['admin', 'member'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role.', code: 400 });
+    if (!FAMILY_ROLES.includes(family_role)) {
+      return res.status(400).json({ error: 'Invalid family role.', code: 400 });
     }
 
     const hash = await bcrypt.hash(password, 12);
 
     const result = db.get()
       .prepare(`
-        INSERT INTO users (username, display_name, password_hash, avatar_color, role)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (username, display_name, password_hash, avatar_color, role, family_role)
+        VALUES (?, ?, ?, ?, ?, ?)
       `)
-      .run(username, display_name, hash, avatar_color, role);
+      .run(username, display_name, hash, avatar_color, role, family_role);
 
     res.status(201).json({
-      user: { id: result.lastInsertRowid, username, display_name, avatar_color, role },
+      user: { id: result.lastInsertRowid, username, display_name, avatar_color, role, family_role },
     });
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE constraint')) {

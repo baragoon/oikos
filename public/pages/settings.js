@@ -14,6 +14,7 @@ const SUPPORTED_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', '
 const SETTINGS_TAB_KEY = 'oikos:settings:tab';
 const APP_NAME_STORAGE_KEY = 'oikos-app-name';
 const DEFAULT_APP_NAME = 'Oikos';
+const FAMILY_ROLES = ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'];
 
 const CATEGORY_I18N = {
   'Obst & Gemüse': 'shopping.catFruitVeg',
@@ -42,6 +43,16 @@ function buildCurrencyOptions(selected) {
       return `<option value="${code}"${sel}>${label}</option>`;
     })
     .join('');
+}
+
+function familyRoleLabel(role) {
+  return t(`settings.familyRole${String(role || 'other').replace(/(^|_)([a-z])/g, (_, __, c) => c.toUpperCase())}`);
+}
+
+function buildFamilyRoleOptions(selected = 'other') {
+  return FAMILY_ROLES.map((role) => `
+    <option value="${role}"${role === selected ? ' selected' : ''}>${familyRoleLabel(role)}</option>
+  `).join('');
 }
 
 /**
@@ -476,12 +487,16 @@ export async function render(container, { user }) {
                 <input class="form-input form-input--color" type="color" id="new-avatar-color" value="#007AFF" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="new-role">${t('settings.roleLabel')}</label>
-                <select class="form-input" id="new-role">
-                  <option value="member">${t('settings.roleMember')}</option>
-                  <option value="admin">${t('settings.roleAdmin')}</option>
+                <label class="form-label" for="new-family-role">${t('settings.familyRoleLabel')}</label>
+                <select class="form-input" id="new-family-role">
+                  ${buildFamilyRoleOptions()}
                 </select>
               </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="new-system-admin" />
+                <span>${t('settings.systemAdminLabel')}</span>
+              </label>
+              <p class="form-hint">${t('settings.systemAdminHint')}</p>
               <div id="member-error" class="form-error" hidden></div>
               <div class="settings-form-actions">
                 <button type="submit" class="btn btn--primary">${t('settings.createMember')}</button>
@@ -773,7 +788,8 @@ function bindEvents(container, user, categories, icsSubscriptions, apiTokens) {
         display_name: container.querySelector('#new-display-name').value.trim(),
         password:     container.querySelector('#new-member-password').value,
         avatar_color: container.querySelector('#new-avatar-color').value,
-        role:         container.querySelector('#new-role').value,
+        family_role:  container.querySelector('#new-family-role').value,
+        system_admin: container.querySelector('#new-system-admin')?.checked === true,
       };
 
       const btn = addMemberForm.querySelector('[type=submit]');
@@ -1103,12 +1119,14 @@ function bindCategoryEvents(container) {
 }
 
 function memberHtml(u) {
+  const familyRole = familyRoleLabel(u.family_role);
+  const systemRole = u.role === 'admin' ? ` · ${esc(t('settings.systemAdminBadge'))}` : '';
   return `
     <li class="settings-member" data-id="${u.id}">
       <div class="settings-avatar settings-avatar--sm" style="background:${esc(u.avatar_color)}">${initials(u.display_name)}</div>
       <div class="settings-member__info">
         <span class="settings-member__name">${esc(u.display_name)}</span>
-        <span class="settings-member__meta">@${esc(u.username)} · ${u.role === 'admin' ? t('settings.roleAdmin') : t('settings.roleMember')}</span>
+        <span class="settings-member__meta">@${esc(u.username)} · ${esc(familyRole)}${systemRole}</span>
       </div>
       <button class="btn btn--icon btn--danger-outline" data-delete-user="${u.id}" data-name="${esc(u.display_name)}" aria-label="${esc(u.display_name)} ${t('settings.deleteMemberLabel')}" title="${t('settings.deleteMemberLabel')}">
         <i data-lucide="trash-2" aria-hidden="true"></i>

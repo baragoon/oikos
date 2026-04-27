@@ -241,6 +241,21 @@ function buildPaths() {
         params: [idParam('id', 'API token ID')],
       }),
     },
+    '/api/v1/family/members': {
+      get: op({
+        summary: 'List family members',
+        tag: 'Family',
+        description: 'Read-only endpoint for family-member profiles. It does not expose usernames or system access roles and does not support create/update/delete operations.',
+        responses: {
+          200: {
+            description: 'Family members',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/FamilyMembersResponse' } } },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          500: { $ref: '#/components/responses/InternalServerError' },
+        },
+      }),
+    },
     '/api/v1/dashboard': { get: op({ summary: 'Get dashboard data', tag: 'Dashboard' }) },
     '/api/v1/tasks': {
       get: op({ summary: 'List tasks', tag: 'Tasks' }),
@@ -443,6 +458,7 @@ function buildOpenApiSpec(req, appVersion) {
     tags: [
       { name: 'System' },
       { name: 'Auth' },
+      { name: 'Family' },
       { name: 'Dashboard' },
       { name: 'Tasks' },
       { name: 'Shopping' },
@@ -528,8 +544,30 @@ function buildOpenApiSpec(req, appVersion) {
             display_name: { type: 'string' },
             avatar_color: { type: 'string' },
             role: { type: 'string', enum: ['admin', 'member'] },
+            family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
           },
-          required: ['id', 'username', 'display_name', 'avatar_color', 'role'],
+          required: ['id', 'username', 'display_name', 'avatar_color', 'role', 'family_role'],
+        },
+        FamilyMember: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            display_name: { type: 'string' },
+            avatar_color: { type: 'string' },
+            family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
+            created_at: { type: 'string', format: 'date-time' },
+          },
+          required: ['id', 'display_name', 'avatar_color', 'family_role'],
+        },
+        FamilyMembersResponse: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/FamilyMember' },
+            },
+          },
+          required: ['data'],
         },
         LoginRequest: {
           type: 'object',
@@ -579,7 +617,8 @@ function buildOpenApiSpec(req, appVersion) {
             display_name: { type: 'string' },
             password: { type: 'string' },
             avatar_color: { type: 'string' },
-            role: { type: 'string', enum: ['admin', 'member'] },
+            family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
+            system_admin: { type: 'boolean' },
           },
           required: ['username', 'display_name', 'password'],
         },
