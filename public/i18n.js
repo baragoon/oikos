@@ -8,6 +8,8 @@
 const SUPPORTED_LOCALES = ['de', 'en', 'es', 'fr', 'it', 'sv', 'el', 'ru', 'tr', 'zh', 'ja', 'ar', 'hi', 'pt', 'uk'];
 const DEFAULT_LOCALE = 'de';
 const STORAGE_KEY = 'oikos-locale';
+const DATE_FORMAT_KEY = 'oikos-date-format';
+const DEFAULT_DATE_FORMAT = 'mdy';
 
 let currentLocale = DEFAULT_LOCALE;
 let translations = {};
@@ -78,6 +80,28 @@ export function t(key, params = {}) {
   return str;
 }
 
+function isDateOnlyString(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function getDateFormatPreference() {
+  const stored = localStorage.getItem(DATE_FORMAT_KEY);
+  return ['mdy', 'dmy', 'ymd'].includes(stored) ? stored : DEFAULT_DATE_FORMAT;
+}
+
+function formatDateParts(date, useUtc = false) {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '';
+  const year = useUtc ? d.getUTCFullYear() : d.getFullYear();
+  const month = String((useUtc ? d.getUTCMonth() : d.getMonth()) + 1).padStart(2, '0');
+  const day = String(useUtc ? d.getUTCDate() : d.getDate()).padStart(2, '0');
+  switch (getDateFormatPreference()) {
+    case 'dmy': return `${day}/${month}/${year}`;
+    case 'ymd': return `${year}-${month}-${day}`;
+    default: return `${month}/${day}/${year}`;
+  }
+}
+
 /** Aktuelle Locale abfragen */
 export function getLocale() {
   return currentLocale;
@@ -91,13 +115,10 @@ export function getSupportedLocales() {
 /** Datum locale-aware formatieren */
 export function formatDate(date) {
   if (date == null) return '';
-  const d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat(currentLocale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(d);
+  if (isDateOnlyString(date)) {
+    return formatDateParts(new Date(`${date}T00:00:00Z`), true);
+  }
+  return formatDateParts(date);
 }
 
 /** Uhrzeit locale-aware formatieren */

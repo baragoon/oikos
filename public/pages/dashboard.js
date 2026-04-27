@@ -16,7 +16,7 @@ let _fabController = null;
 // Widget-Definitionen (Reihenfolge = Standard-Layout)
 // --------------------------------------------------------
 
-const WIDGET_IDS = ['weather', 'tasks', 'calendar', 'shopping', 'meals', 'notes'];
+const WIDGET_IDS = ['tasks', 'calendar', 'birthdays', 'budget', 'family', 'weather', 'shopping', 'meals', 'notes'];
 
 const DEFAULT_WIDGET_CONFIG = WIDGET_IDS.map((id) => ({ id, visible: true }));
 
@@ -28,14 +28,33 @@ function widgetLabel(id) {
     meals:    () => t('nav.meals'),
     notes:    () => t('nav.notes'),
     weather:  () => t('dashboard.weather'),
+    birthdays: () => t('nav.birthdays'),
+    budget:   () => t('nav.budget'),
+    family:   () => t('dashboard.familyMembers'),
   };
   return (map[id] ?? (() => id))();
 }
 
 function widgetIcon(id) {
-  const map = { tasks: 'check-square', calendar: 'calendar', shopping: 'shopping-cart', meals: 'utensils', notes: 'pin', weather: 'cloud-sun' };
+  const map = { tasks: 'check-square', calendar: 'calendar', birthdays: 'cake', budget: 'wallet', family: 'users', shopping: 'shopping-cart', meals: 'utensils', notes: 'pin', weather: 'cloud-sun' };
   return map[id] ?? 'layout-dashboard';
 }
+
+const BUDGET_CATEGORY_LABEL_KEYS = {
+  housing: 'catHousing',
+  food: 'catFood',
+  transport: 'catTransport',
+  personal_health: 'catPersonalHealth',
+  leisure: 'catLeisure',
+  shopping_clothing: 'catShoppingClothing',
+  education: 'catEducation',
+  financial_other: 'catFinancialOther',
+  'Erwerbseinkommen': 'catEarnedIncome',
+  'Kapitalerträge': 'catInvestmentIncome',
+  'Geschenke & Transfers': 'catTransferGiftIncome',
+  'Sozialleistungen': 'catGovernmentBenefits',
+  'Sonstiges Einkommen': 'catOtherIncome',
+};
 
 // --------------------------------------------------------
 // Hilfsfunktionen
@@ -131,6 +150,19 @@ function initials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function budgetCategoryLabel(category) {
+  const key = BUDGET_CATEGORY_LABEL_KEYS[category];
+  return key ? t(`budget.${key}`) : (category || '-');
+}
+
+function formatCurrency(amount, currency = 'EUR') {
+  return new Intl.NumberFormat(getLocale(), {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: Math.abs(amount) >= 1000 ? 0 : 2,
+  }).format(amount || 0);
+}
+
 function widgetHeader(icon, title, count, linkHref, linkLabel) {
   linkLabel = linkLabel ?? t('dashboard.allLink');
   const badge = count != null
@@ -169,51 +201,6 @@ function skeletonWidget(lines = 3) {
 // --------------------------------------------------------
 // Widget-Renderer
 // --------------------------------------------------------
-
-function renderGreeting(user, stats = {}) {
-  const { overdueCount = 0, dueSoonCount = 0, todayEventCount = 0, todayMealTitle = null } = stats;
-
-  const statChips = [];
-  if (overdueCount > 0)
-    statChips.push(`<span class="greeting-chip greeting-chip--warn">
-      <i data-lucide="alert-circle" class="icon-sm" style="flex-shrink:0" aria-hidden="true"></i>
-      ${overdueCount > 1 ? t('dashboard.overdueTasksChipPlural', { count: overdueCount }) : t('dashboard.overdueTasksChip', { count: overdueCount })}
-    </span>`);
-  if (dueSoonCount > 0)
-    statChips.push(`<span class="greeting-chip greeting-chip--due">
-      <i data-lucide="clock" class="icon-sm" style="flex-shrink:0" aria-hidden="true"></i>
-      ${dueSoonCount > 1 ? t('dashboard.urgentTasksChipPlural', { count: dueSoonCount }) : t('dashboard.urgentTasksChip', { count: dueSoonCount })}
-    </span>`);
-  if (todayEventCount > 0)
-    statChips.push(`<span class="greeting-chip">
-      <i data-lucide="calendar" class="icon-sm" style="flex-shrink:0" aria-hidden="true"></i>
-      ${todayEventCount > 1 ? t('dashboard.eventsChipPlural', { count: todayEventCount }) : t('dashboard.eventsChip', { count: todayEventCount })}
-    </span>`);
-  if (todayMealTitle)
-    statChips.push(`<span class="greeting-chip">
-      <i data-lucide="utensils" class="icon-sm" style="flex-shrink:0" aria-hidden="true"></i>
-      ${t('dashboard.todayMealChip', { title: esc(todayMealTitle) })}
-    </span>`);
-
-  const time = formatTime(new Date());
-  const hour = new Date().getHours();
-  const timeVariant = hour < 11 ? 'morning' : hour < 18 ? 'day' : 'evening';
-
-  return `
-    <div class="widget-greeting" data-time-variant="${timeVariant}">
-      <div class="widget-greeting__inner">
-        <div class="widget-greeting__content">
-          <div class="widget-greeting__title">${formatDate(new Date())} - ${time}</div>
-          ${statChips.length ? `<div class="widget-greeting__chips">${statChips.join('')}</div>` : ''}
-        </div>
-        <button class="widget-customize-btn" id="dashboard-customize-btn"
-                aria-label="${t('dashboard.customize')}" title="${t('dashboard.customize')}">
-          <i data-lucide="settings-2" class="icon-base" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-  `;
-}
 
 function renderUrgentTasks(tasks) {
   if (!tasks.length) {
@@ -288,6 +275,43 @@ function renderUpcomingEvents(events) {
   </div>`;
 }
 
+function renderUpcomingBirthdays(birthdays) {
+  if (!birthdays.length) {
+    return `<div class="widget widget--birthdays">
+      ${widgetHeader('cake', t('nav.birthdays'), 0, '/birthdays')}
+      <div class="widget__empty">
+        <i data-lucide="cake" class="empty-state__icon" aria-hidden="true"></i>
+        <div>${t('dashboard.noBirthdays')}</div>
+      </div>
+    </div>`;
+  }
+
+  const items = birthdays.map((b) => {
+    const daysLabel = b.days_until === 0
+      ? t('common.today')
+      : b.days_until === 1
+        ? t('common.tomorrow')
+        : t('dashboard.daysLeft', { count: b.days_until });
+    return `
+      <div class="birthday-widget-item" data-route="/birthdays" role="button" tabindex="0">
+        <div class="birthday-widget-item__avatar">
+          ${b.photo_data ? `<img src="${esc(b.photo_data)}" alt="" loading="lazy">` : `<span>${esc(initials(b.name))}</span>`}
+        </div>
+        <div class="birthday-widget-item__body">
+          <div class="birthday-widget-item__name">${esc(b.name)}</div>
+          <div class="birthday-widget-item__meta">${formatDate(b.next_birthday)} · ${daysLabel}</div>
+        </div>
+        <div class="birthday-widget-item__age">${esc(String(b.next_age ?? ''))}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `<div class="widget widget--birthdays">
+    ${widgetHeader('cake', t('nav.birthdays'), birthdays.length, '/birthdays')}
+    <div class="widget__body">${items}</div>
+  </div>`;
+}
+
 function renderTodayMeals(meals) {
   const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
 
@@ -332,6 +356,283 @@ function renderPinnedNotes(notes) {
     ${widgetHeader('pin', t('nav.notes'), notes.length, '/notes')}
     <div class="notes-grid-widget">${items}</div>
   </div>`;
+}
+
+function renderFamilyWidget(users) {
+  const visible = users.slice(0, 6);
+  const avatars = visible.map((u) => `
+    <span class="family-widget-avatar" style="background:${esc(u.avatar_color || '#64748b')}" title="${esc(u.display_name)}">
+      ${esc(initials(u.display_name))}
+    </span>
+  `).join('');
+
+  return `<div class="widget widget--family">
+    ${widgetHeader('users', t('dashboard.familyMembers'), users.length, '/settings')}
+    <div class="family-widget">
+      <div class="family-widget__count">${users.length}</div>
+      <div class="family-widget__meta">${t('dashboard.participantsAdded')}</div>
+      <div class="family-widget__avatars">${avatars}</div>
+    </div>
+  </div>`;
+}
+
+function renderBudgetWidget(budget, currency) {
+  const income = budget?.income || 0;
+  const expenses = budget?.expenses || 0;
+  const balance = budget?.balance || 0;
+  const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
+  const balanceTone = balance >= 0 ? 'positive' : 'negative';
+  const hasData = (budget?.entryCount || 0) > 0;
+
+  return `<div class="widget widget--budget">
+    ${widgetHeader('wallet', t('dashboard.budgetOverview'), null, '/budget')}
+    <div class="budget-widget">
+      <div class="budget-widget__headline">
+        <span>${t('dashboard.monthlyBalance')}</span>
+        <strong class="budget-widget__balance budget-widget__balance--${balanceTone}">${formatCurrency(balance, currency)}</strong>
+      </div>
+      <div class="budget-widget__grid">
+        <div class="budget-widget-metric budget-widget-metric--income">
+          <span>${t('dashboard.monthlyIncome')}</span>
+          <strong>${formatCurrency(income, currency)}</strong>
+        </div>
+        <div class="budget-widget-metric budget-widget-metric--expense">
+          <span>${t('dashboard.monthlyExpenses')}</span>
+          <strong>${formatCurrency(expenses, currency)}</strong>
+        </div>
+        <div class="budget-widget-metric">
+          <span>${t('dashboard.savingsRate')}</span>
+          <strong>${income > 0 ? `${savingsRate}%` : '-'}</strong>
+        </div>
+        <div class="budget-widget-metric">
+          <span>${t('dashboard.budgetEntries')}</span>
+          <strong>${budget?.entryCount || 0}</strong>
+        </div>
+      </div>
+      <div class="budget-widget__footer">
+        ${hasData && budget?.topExpenseCategory
+          ? `${t('dashboard.topExpense')}: <strong>${esc(budgetCategoryLabel(budget.topExpenseCategory))}</strong> · ${formatCurrency(budget.topExpenseAmount, currency)}`
+          : t('dashboard.noBudgetData')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderQuickAction({ route, label, icon, tone = '' }) {
+  return `
+    <button type="button" class="dashboard-action ${tone ? `dashboard-action--${tone}` : ''}" data-route="${route}">
+      <span class="dashboard-action__icon"><i data-lucide="${icon}" aria-hidden="true"></i></span>
+      <span class="dashboard-action__label">${label}</span>
+    </button>
+  `;
+}
+
+function renderKpiTile({ title, value, meta, icon, route, tone = '' }) {
+  return `
+    <button type="button" class="dashboard-kpi ${tone ? `dashboard-kpi--${tone}` : ''}" data-route="${route}">
+      <span class="dashboard-kpi__icon"><i data-lucide="${icon}" aria-hidden="true"></i></span>
+      <span class="dashboard-kpi__body">
+        <span class="dashboard-kpi__label">${title}</span>
+        <span class="dashboard-kpi__value">${value}</span>
+        <span class="dashboard-kpi__meta">${meta}</span>
+      </span>
+    </button>
+  `;
+}
+
+function renderDashboardOverview(user, stats = null, weather = null) {
+  const dateLabel = formatDate(new Date());
+  const weatherLabel = weather
+    ? `${esc(weather.city)} · ${esc(weather.current?.temp)}${weather.units === 'imperial' ? '°F' : weather.units === 'standard' ? 'K' : '°C'}`
+    : t('dashboard.weather');
+
+  const actions = [
+    { route: '/tasks', label: t('nav.tasks'), icon: 'check-square', tone: 'blue' },
+    { route: '/calendar', label: t('nav.calendar'), icon: 'calendar', tone: 'violet' },
+    { route: '/shopping', label: t('nav.shopping'), icon: 'shopping-cart', tone: 'green' },
+    { route: '/notes', label: t('nav.notes'), icon: 'sticky-note', tone: 'amber' },
+  ].map(renderQuickAction).join('');
+
+  const kpis = stats ? [
+    renderKpiTile({
+      title: t('tasks.title'),
+      value: String(stats.overdueCount ?? 0),
+      meta: t('dashboard.overdue'),
+      icon: 'alert-circle',
+      route: '/tasks',
+      tone: 'danger',
+    }),
+    renderKpiTile({
+      title: t('nav.calendar'),
+      value: String(stats.todayEventCount ?? 0),
+      meta: t('common.today'),
+      icon: 'calendar-days',
+      route: '/calendar',
+      tone: 'calendar',
+    }),
+    renderKpiTile({
+      title: t('nav.meals'),
+      value: stats.todayMealTitle ? esc(stats.todayMealTitle) : '-',
+      meta: t('dashboard.todayMeals'),
+      icon: 'utensils',
+      route: '/meals',
+      tone: 'meals',
+    }),
+    renderKpiTile({
+      title: t('dashboard.weather'),
+      value: weatherLabel,
+      meta: t('dashboard.weatherRefreshTitle'),
+      icon: 'cloud-sun',
+      route: '/',
+      tone: 'weather',
+    }),
+    renderKpiTile({
+      title: t('nav.birthdays'),
+      value: String(stats.birthdayCount ?? 0),
+      meta: t('dashboard.upcomingBirthdays'),
+      icon: 'cake',
+      route: '/birthdays',
+      tone: 'birthdays',
+    }),
+    renderKpiTile({
+      title: t('dashboard.familyMembers'),
+      value: String(stats.familyCount ?? 0),
+      meta: t('dashboard.participantsAdded'),
+      icon: 'users',
+      route: '/settings',
+      tone: 'family',
+    }),
+  ].join('') : `
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+    <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+  `;
+
+  return `
+    <section class="dashboard-overview">
+      <div class="dashboard-overview__header">
+        <div class="dashboard-overview__heading">
+          <span class="dashboard-overview__date">${dateLabel}</span>
+          <h1 class="dashboard-overview__title">${greeting(user.display_name)}</h1>
+        </div>
+        <div class="dashboard-overview__tools">
+          <div class="dashboard-overview__actions">${actions}</div>
+          <button class="dashboard-icon-btn" id="dashboard-customize-btn"
+                  aria-label="${t('dashboard.customize')}" title="${t('dashboard.customize')}">
+            <i data-lucide="settings-2" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <div class="dashboard-kpi-grid">
+        ${kpis}
+      </div>
+    </section>
+  `;
+}
+
+function widgetRegion(id) {
+  return ['budget', 'family', 'weather', 'shopping', 'meals'].includes(id) ? 'side' : 'main';
+}
+
+function widgetTileClass(id) {
+  const map = {
+    tasks: 'dashboard-tile--wide',
+    calendar: 'dashboard-tile--compact',
+    birthdays: 'dashboard-tile--compact',
+    budget: 'dashboard-tile--wide',
+    family: 'dashboard-tile--compact',
+    meals: 'dashboard-tile--compact',
+    notes: 'dashboard-tile--wide',
+    shopping: 'dashboard-tile--compact',
+    weather: 'dashboard-tile--wide',
+  };
+  return map[id] || 'dashboard-tile--compact';
+}
+
+function renderDashboardTile(id, html) {
+  if (!html) return '';
+  return `<section class="dashboard-tile dashboard-tile--${id} ${widgetTileClass(id)}">${html}</section>`;
+}
+
+function renderDashboardLayout(cfg, data, weather, currency) {
+  const widgetById = {
+    tasks: () => renderUrgentTasks(data.urgentTasks ?? []),
+    calendar: () => renderUpcomingEvents(data.upcomingEvents ?? []),
+    birthdays: () => renderUpcomingBirthdays(data.birthdays ?? []),
+    budget: () => renderBudgetWidget(data.budget ?? {}, currency),
+    family: () => renderFamilyWidget(data.users ?? []),
+    meals: () => renderTodayMeals(data.todayMeals ?? []),
+    notes: () => renderPinnedNotes(data.pinnedNotes ?? []),
+    shopping: () => renderShoppingLists(data.shoppingLists ?? []),
+    weather: () => (weather ? renderWeatherWidget(weather) : ''),
+  };
+
+  const visible = cfg.filter((w) => w.visible && widgetById[w.id]);
+  const mainTiles = visible
+    .filter((w) => widgetRegion(w.id) === 'main')
+    .map((w) => renderDashboardTile(w.id, widgetById[w.id]()))
+    .join('');
+
+  const sideTiles = visible
+    .filter((w) => widgetRegion(w.id) === 'side')
+    .map((w) => renderDashboardTile(w.id, widgetById[w.id]()))
+    .join('');
+
+  return `
+    <section class="dashboard-workspace">
+      <div class="dashboard-workspace__main">
+        <div class="dashboard-widget-grid">
+          ${mainTiles}
+        </div>
+      </div>
+      <aside class="dashboard-workspace__side">
+        <div class="dashboard-side-stack">
+          ${sideTiles}
+        </div>
+      </aside>
+    </section>
+  `;
+}
+
+function renderDashboardSkeleton() {
+  return `
+    <section class="dashboard-overview">
+      <div class="dashboard-overview__header">
+        <div class="dashboard-overview__heading">
+          <div class="skeleton skeleton-line skeleton-line--short"></div>
+          <div class="skeleton skeleton-line skeleton-line--medium"></div>
+        </div>
+      </div>
+      <div class="dashboard-kpi-grid">
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+        <div class="dashboard-kpi dashboard-kpi--skeleton"></div>
+      </div>
+    </section>
+    <section class="dashboard-workspace">
+      <div class="dashboard-workspace__main">
+        <div class="dashboard-widget-grid">
+          ${skeletonWidget(3)}
+          ${skeletonWidget(3)}
+          ${skeletonWidget(2)}
+          ${skeletonWidget(3)}
+        </div>
+      </div>
+      <aside class="dashboard-workspace__side">
+        <div class="dashboard-side-stack">
+          ${skeletonWidget(3)}
+          ${skeletonWidget(3)}
+          ${skeletonWidget(2)}
+        </div>
+      </aside>
+    </section>
+  `;
 }
 
 // --------------------------------------------------------
@@ -513,25 +814,6 @@ function initFab(container, signal) {
   });
 
   document.addEventListener('click', () => { if (open) toggleFab(false); }, { signal });
-}
-
-// --------------------------------------------------------
-// Widget-Rendering nach Konfiguration
-// --------------------------------------------------------
-
-function renderWidgets(cfg, data, weather) {
-  const renderers = {
-    tasks:    () => renderUrgentTasks(data.urgentTasks ?? []),
-    calendar: () => renderUpcomingEvents(data.upcomingEvents ?? []),
-    shopping: () => renderShoppingLists(data.shoppingLists ?? []),
-    meals:    () => renderTodayMeals(data.todayMeals ?? []),
-    notes:    () => renderPinnedNotes(data.pinnedNotes ?? []),
-    weather:  () => (weather ? renderWeatherWidget(weather) : ''),
-  };
-  return cfg
-    .filter((w) => w.visible)
-    .map((w) => (renderers[w.id] ? renderers[w.id]() : ''))
-    .join('');
 }
 
 // --------------------------------------------------------
@@ -728,20 +1010,17 @@ export async function render(container, { user }) {
   container.innerHTML = `
     <div class="dashboard">
       <h1 class="sr-only">${t('dashboard.title')}</h1>
-      <div class="dashboard__grid">
-        ${renderGreeting(user, {})}
-        ${skeletonWidget(3)}
-        ${skeletonWidget(3)}
-        ${skeletonWidget(2)}
-        ${skeletonWidget(3)}
+      <div class="dashboard-shell" id="dashboard-shell">
+        ${renderDashboardSkeleton()}
       </div>
     </div>
     ${renderFab()}
   `;
 
-  let data         = { upcomingEvents: [], urgentTasks: [], todayMeals: [], pinnedNotes: [], shoppingLists: [] };
+  let data         = { upcomingEvents: [], urgentTasks: [], todayMeals: [], pinnedNotes: [], shoppingLists: [], birthdays: [], users: [], budget: {} };
   let weather      = null;
   let widgetConfig = DEFAULT_WIDGET_CONFIG;
+  let currency     = 'EUR';
   try {
     const [dashRes, weatherRes, prefsRes] = await Promise.all([
       api.get('/dashboard'),
@@ -751,6 +1030,7 @@ export async function render(container, { user }) {
     data         = dashRes;
     weather      = weatherRes.data ?? null;
     widgetConfig = prefsRes.data?.dashboard_widgets ?? DEFAULT_WIDGET_CONFIG;
+    currency     = prefsRes.data?.currency ?? 'EUR';
   } catch (err) {
     console.error('[Dashboard] Ladefehler:', err.message, 'Status:', err.status ?? 'network');
     window.oikos?.showToast(t('dashboard.loadError'), 'warning');
@@ -772,38 +1052,36 @@ export async function render(container, { user }) {
     todayMealTitle: (data.todayMeals ?? []).find((m) => m.meal_type === 'lunch')?.title
       ?? (data.todayMeals ?? [])[0]?.title
       ?? null,
+    birthdayCount: data.birthdayCount ?? (data.birthdays ?? []).length,
+    familyCount: (data.users ?? []).length,
   };
 
   const rerender = () => render(container, { user });
 
-  function rebuildGrid(cfg) {
-    const grid = container.querySelector('.dashboard__grid');
-    if (!grid) return;
-    const greeting = grid.querySelector('.widget-greeting');
-    grid.replaceChildren(...(greeting ? [greeting] : []));
-    grid.insertAdjacentHTML('beforeend', renderWidgets(cfg, data, weather));
+  function rebuildDashboard(cfg) {
+    const shell = container.querySelector('#dashboard-shell');
+    if (!shell) return;
+    shell.innerHTML = `
+      ${renderDashboardOverview(user, stats, weather)}
+      ${renderDashboardLayout(cfg, data, weather, currency)}
+    `;
     wireLinks(container, rerender);
     if (window.lucide) window.lucide.createIcons();
-    wireWeatherRefresh(container);
+    wireWeatherRefresh(container, (updatedWeather) => {
+      weather = updatedWeather;
+      rebuildDashboard(cfg);
+    });
+    container.querySelector('#dashboard-customize-btn')?.addEventListener('click', () => {
+      openCustomizeModal(widgetConfig, (newConfig) => {
+        widgetConfig = newConfig;
+        rebuildDashboard(widgetConfig);
+      });
+    }, { signal: _fabController.signal });
   }
 
-  // Greeting in-place aktualisieren (Stats-Chips hinzufügen), kein Gesamt-Reset
-  const greetingEl = container.querySelector('.widget-greeting');
-  if (greetingEl) greetingEl.outerHTML = renderGreeting(user, stats);
-
-  // Skeletons durch echte Widgets ersetzen
-  rebuildGrid(widgetConfig);
+  rebuildDashboard(widgetConfig);
 
   initFab(container, _fabController.signal);
-
-  container.querySelector('#dashboard-customize-btn')?.addEventListener(
-    'click',
-    () => openCustomizeModal(widgetConfig, (newConfig) => {
-      widgetConfig = newConfig;
-      rebuildGrid(widgetConfig);
-    }),
-    { signal: _fabController.signal },
-  );
 
   // 30-Minuten Auto-Refresh für Wetter
   const refreshBtn = container.querySelector('#weather-refresh-btn');
@@ -811,13 +1089,8 @@ export async function render(container, { user }) {
     const doAutoRefresh = async () => {
       try {
         const res = await api.get('/weather').catch(() => ({ data: null }));
-        const wWidget = container.querySelector('#weather-widget');
-        if (wWidget) {
-          wWidget.outerHTML = renderWeatherWidget(res.data ?? null);
-          const newWidget = container.querySelector('#weather-widget');
-          if (newWidget && window.lucide) window.lucide.createIcons({ el: newWidget });
-          wireWeatherRefresh(container);
-        }
+        weather = res.data ?? null;
+        rebuildDashboard(widgetConfig);
       } catch { /* silently ignore */ }
     };
     const timerId = setInterval(doAutoRefresh, 30 * 60 * 1000);
@@ -825,7 +1098,7 @@ export async function render(container, { user }) {
   }
 }
 
-function wireWeatherRefresh(container) {
+function wireWeatherRefresh(container, onUpdated = null) {
   const refreshBtn = container.querySelector('#weather-refresh-btn');
   if (!refreshBtn) return;
   const doWeatherRefresh = async () => {
@@ -838,7 +1111,7 @@ function wireWeatherRefresh(container) {
         wWidget.outerHTML = renderWeatherWidget(res.data ?? null);
         const newWidget = container.querySelector('#weather-widget');
         if (newWidget && window.lucide) window.lucide.createIcons({ el: newWidget });
-        wireWeatherRefresh(container);
+        onUpdated?.(res.data ?? null);
         window.oikos?.showToast(t('dashboard.weatherUpdated'), 'success', 1500);
       }
     } catch { /* silently ignore */ }

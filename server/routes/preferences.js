@@ -7,6 +7,7 @@
 import { createLogger } from '../logger.js';
 import express from 'express';
 import * as db from '../db.js';
+import { str, MAX_SHORT } from '../middleware/validate.js';
 
 const log = createLogger('Preferences');
 
@@ -17,8 +18,12 @@ const DEFAULT_MEAL_TYPES = VALID_MEAL_TYPES.join(',');
 
 const VALID_CURRENCIES = ['AED', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HUF', 'INR', 'JPY', 'NOK', 'PLN', 'RUB', 'SAR', 'SEK', 'TRY', 'UAH', 'USD'];
 const DEFAULT_CURRENCY = 'EUR';
+const DEFAULT_APP_NAME = 'Oikos';
 
-const VALID_WIDGET_IDS = ['weather', 'tasks', 'calendar', 'shopping', 'meals', 'notes'];
+const VALID_DATE_FORMATS = ['mdy', 'dmy', 'ymd'];
+const DEFAULT_DATE_FORMAT = 'mdy';
+
+const VALID_WIDGET_IDS = ['tasks', 'calendar', 'birthdays', 'budget', 'family', 'weather', 'shopping', 'meals', 'notes'];
 const DEFAULT_WIDGET_CONFIG = JSON.stringify(VALID_WIDGET_IDS.map((id) => ({ id, visible: true })));
 
 // --------------------------------------------------------
@@ -37,6 +42,10 @@ function cfgSet(key, value) {
     ON CONFLICT(key) DO UPDATE SET value = excluded.value,
                                    updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
   `).run(key, value);
+}
+
+function cfgDelete(key) {
+  db.get().prepare('DELETE FROM sync_config WHERE key = ?').run(key);
 }
 
 // --------------------------------------------------------
@@ -78,12 +87,16 @@ router.get('/', (req, res) => {
     const raw = cfgGet('visible_meal_types') ?? DEFAULT_MEAL_TYPES;
     const visibleMealTypes = raw.split(',').filter((t) => VALID_MEAL_TYPES.includes(t));
     const currency = cfgGet('currency') ?? DEFAULT_CURRENCY;
+    const dateFormat = VALID_DATE_FORMATS.includes(cfgGet('date_format')) ? cfgGet('date_format') : DEFAULT_DATE_FORMAT;
+    const appName = cfgGet('app_name') ?? DEFAULT_APP_NAME;
     const dashboardWidgets = parseWidgetConfig(cfgGet('dashboard_widgets'));
 
     res.json({
       data: {
         visible_meal_types: visibleMealTypes,
         currency,
+        date_format: dateFormat,
+        app_name: appName,
         dashboard_widgets: dashboardWidgets,
       },
     });
@@ -102,7 +115,7 @@ router.get('/', (req, res) => {
 
 router.put('/', (req, res) => {
   try {
-    const { visible_meal_types, currency, dashboard_widgets } = req.body;
+    const { visible_meal_types, currency, date_format, app_name, dashboard_widgets } = req.body;
 
     if (visible_meal_types !== undefined) {
       if (!Array.isArray(visible_meal_types)) {
@@ -122,6 +135,20 @@ router.put('/', (req, res) => {
       cfgSet('currency', currency);
     }
 
+    if (date_format !== undefined) {
+      if (!VALID_DATE_FORMATS.includes(date_format)) {
+        return res.status(400).json({ error: `Ungültiges Datumsformat. Erlaubt: ${VALID_DATE_FORMATS.join(', ')}`, code: 400 });
+      }
+      cfgSet('date_format', date_format);
+    }
+
+    if (app_name !== undefined) {
+      const vAppName = str(app_name, 'Application name', { max: MAX_SHORT, required: false });
+      if (vAppName.error) return res.status(400).json({ error: vAppName.error, code: 400 });
+      if (vAppName.value) cfgSet('app_name', vAppName.value);
+      else cfgDelete('app_name');
+    }
+
     if (dashboard_widgets !== undefined) {
       if (!Array.isArray(dashboard_widgets)) {
         return res.status(400).json({ error: 'dashboard_widgets muss ein Array sein', code: 400 });
@@ -133,12 +160,16 @@ router.put('/', (req, res) => {
     const rawMealTypes = cfgGet('visible_meal_types') ?? DEFAULT_MEAL_TYPES;
     const savedMealTypes = rawMealTypes.split(',').filter((t) => VALID_MEAL_TYPES.includes(t));
     const savedCurrency = cfgGet('currency') ?? DEFAULT_CURRENCY;
+    const savedDateFormat = VALID_DATE_FORMATS.includes(cfgGet('date_format')) ? cfgGet('date_format') : DEFAULT_DATE_FORMAT;
+    const savedAppName = cfgGet('app_name') ?? DEFAULT_APP_NAME;
     const savedWidgets = parseWidgetConfig(cfgGet('dashboard_widgets'));
 
     res.json({
       data: {
         visible_meal_types: savedMealTypes,
         currency: savedCurrency,
+        date_format: savedDateFormat,
+        app_name: savedAppName,
         dashboard_widgets: savedWidgets,
       },
     });

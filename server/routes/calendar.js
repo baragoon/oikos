@@ -22,6 +22,19 @@ const router         = express.Router();
 const VALID_SOURCES  = ['local', 'google', 'apple', 'ics'];
 const ICS_COLOR_RE   = /^#[0-9a-fA-F]{6}$/;
 
+function getUserId(req) {
+  const candidates = [req.authUserId, req.user?.id, req.session?.userId];
+  for (const value of candidates) {
+    const parsed = Number(value);
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+}
+
+function isAdminUser(req) {
+  return req.authRole === 'admin' || req.session?.isAdmin === true || req.session?.role === 'admin';
+}
+
 // --------------------------------------------------------
 // RRULE-Expansion: alle Vorkommen eines wiederkehrenden Events
 // innerhalb [from, to] generieren (inklusive beider Grenzen).
@@ -146,7 +159,7 @@ router.get('/', (req, res) => {
         )
       )
     `;
-    const params = [to, from, to, req.session.userId];
+    const params = [to, from, to, getUserId(req)];
 
     if (req.query.assigned_to) {
       sql += ' AND e.assigned_to = ?';
@@ -203,7 +216,7 @@ router.get('/upcoming', (req, res) => {
         )
       )
       ORDER BY e.start_datetime ASC
-    `).all(nowDate, future, future, req.session.userId);
+    `).all(nowDate, future, future, getUserId(req));
 
     const expanded = expandRecurringEvents(rawEvents, nowDate, future)
       .filter((e) => e.start_datetime >= new Date().toISOString())
@@ -396,7 +409,7 @@ router.delete('/apple/disconnect', requireAdmin, (req, res) => {
 
 router.get('/subscriptions', (req, res) => {
   try {
-    const subs = icsSubscription.getAll(req.session.userId);
+    const subs = icsSubscription.getAll(getUserId(req));
     res.json({ data: subs });
   } catch (err) {
     log.error('', err);
@@ -416,7 +429,7 @@ router.post('/subscriptions', async (req, res) => {
     if (!colorVal || !ICS_COLOR_RE.test(colorVal))
       return res.status(400).json({ error: 'color: Pflichtfeld, muss #RRGGBB sein.', code: 400 });
 
-    const { sub, syncError } = await icsSubscription.create(req.session.userId, {
+    const { sub, syncError } = await icsSubscription.create(getUserId(req), {
       name: name.trim(), url, color: colorVal, shared: shared ? 1 : 0,
     });
     res.status(201).json({ data: sub, syncError: syncError || null });
@@ -432,7 +445,7 @@ router.patch('/subscriptions/:id', (req, res) => {
   try {
     const subId   = parseInt(req.params.id, 10);
     if (!Number.isFinite(subId)) return res.status(400).json({ error: 'Ungültige ID.', code: 400 });
-    const isAdmin = req.session.isAdmin;
+    const isAdmin = isAdminUser(req);
     const fields  = {};
     if (req.body.name  !== undefined) {
       if (typeof req.body.name !== 'string' || req.body.name.trim().length === 0 || req.body.name.length > 100)
@@ -446,7 +459,7 @@ router.patch('/subscriptions/:id', (req, res) => {
     }
     if (req.body.shared !== undefined) fields.shared = req.body.shared;
 
-    const updated = icsSubscription.update(req.session.userId, subId, fields, isAdmin);
+    const updated = icsSubscription.update(getUserId(req), subId, fields, isAdmin);
     if (!updated) return res.status(404).json({ error: 'Abonnement nicht gefunden.', code: 404 });
     res.json({ data: updated });
   } catch (err) {
@@ -460,8 +473,8 @@ router.delete('/subscriptions/:id', (req, res) => {
   try {
     const subId   = parseInt(req.params.id, 10);
     if (!Number.isFinite(subId)) return res.status(400).json({ error: 'Ungültige ID.', code: 400 });
-    const isAdmin = req.session.isAdmin;
-    const ok      = icsSubscription.remove(req.session.userId, subId, isAdmin);
+    const isAdmin = isAdminUser(req);
+    const ok      = icsSubscription.remove(getUserId(req), subId, isAdmin);
     if (!ok) return res.status(404).json({ error: 'Abonnement nicht gefunden.', code: 404 });
     res.status(204).end();
   } catch (err) {
@@ -475,10 +488,10 @@ router.post('/subscriptions/:id/sync', async (req, res) => {
   try {
     const subId   = parseInt(req.params.id, 10);
     if (!Number.isFinite(subId)) return res.status(400).json({ error: 'Ungültige ID.', code: 400 });
-    const isAdmin = req.session.isAdmin;
+    const isAdmin = isAdminUser(req);
     const sub     = db.get().prepare('SELECT * FROM ics_subscriptions WHERE id = ?').get(subId);
     if (!sub) return res.status(404).json({ error: 'Abonnement nicht gefunden.', code: 404 });
-    if (!isAdmin && sub.created_by !== req.session.userId)
+    if (!isAdmin && sub.created_by !== getUserId(req))
       return res.status(403).json({ error: 'Nicht autorisiert.', code: 403 });
     await icsSubscription.sync(subId);
     const updated = db.get().prepare('SELECT * FROM ics_subscriptions WHERE id = ?').get(subId);
@@ -526,6 +539,17 @@ router.get('/:id', (req, res) => {
 // --------------------------------------------------------
 router.post('/', (req, res) => {
   try {
+    const userId = getUserId(req);
+    if (!userId) {
+      log.warn('Rejecting calendar create without resolved authenticated user id', {
+        authMethod: req.authMethod || null,
+        authUserId: req.authUserId || null,
+        reqUserId: req.user?.id || null,
+        sessionUserId: req.session?.userId || null,
+      });
+      return res.status(401).json({ error: 'Not authenticated.', code: 401 });
+    }
+
     const vTitle = str(req.body.title, 'Titel', { max: MAX_TITLE });
     const vDesc  = str(req.body.description, 'Beschreibung', { max: MAX_TEXT, required: false });
     const vStart = datetime(req.body.start_datetime, 'Startdatum', true);
@@ -553,7 +577,7 @@ router.post('/', (req, res) => {
       vStart.value, vEnd.value,
       all_day ? 1 : 0, vLoc.value,
       vColor.value, assigned_to || null,
-      req.session.userId, vRrule.value
+      userId, vRrule.value
     );
 
     const event = db.get().prepare(`
@@ -669,8 +693,8 @@ router.post('/:id/reset', (req, res) => {
     if (event.external_source !== 'ics')
       return res.status(400).json({ error: 'Nur ICS-Events können zurückgesetzt werden.', code: 400 });
 
-    const userId  = req.session.userId;
-    const isAdmin = req.session.isAdmin;
+    const userId  = getUserId(req);
+    const isAdmin = isAdminUser(req);
     if (!isAdmin && event.created_by !== userId && event.sub_created_by !== userId)
       return res.status(403).json({ error: 'Nicht autorisiert.', code: 403 });
 

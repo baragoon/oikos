@@ -19,10 +19,10 @@ const ROUTES = [
   { path: '/shopping', page: '/pages/shopping.js',  requiresAuth: true, module: 'shopping'  },
   { path: '/meals',    page: '/pages/meals.js',     requiresAuth: true, module: 'meals'     },
   { path: '/calendar', page: '/pages/calendar.js',  requiresAuth: true, module: 'calendar'  },
+  { path: '/birthdays', page: '/pages/birthdays.js', requiresAuth: true, module: 'birthdays' },
   { path: '/notes',    page: '/pages/notes.js',     requiresAuth: true, module: 'notes'     },
   { path: '/recipes',  page: '/pages/recipes.js',   requiresAuth: true, module: 'recipes'   },
   { path: '/contacts', page: '/pages/contacts.js',  requiresAuth: true, module: 'contacts'  },
-  { path: '/birthdays', page: '/pages/birthdays.js', requiresAuth: true, module: 'birthdays' },
   { path: '/budget',   page: '/pages/budget.js',    requiresAuth: true, module: 'budget'    },
   { path: '/settings', page: '/pages/settings.js',  requiresAuth: true, module: 'settings'  },
 ];
@@ -117,6 +117,7 @@ async function importPage(pagePath) {
 let currentUser = null;
 let currentPath = null;
 let isNavigating = false;
+let _preferencesLoaded = false;
 // Gesetzt wenn auth:expired waehrend einer laufenden Navigation feuert.
 // Die Weiterleitung zu /login wird nach Abschluss der Navigation nachgeholt.
 let _pendingLoginRedirect = false;
@@ -125,16 +126,66 @@ let _pendingLoginRedirect = false;
 // Router
 // --------------------------------------------------------
 
-const ROUTE_ORDER = ['/', '/tasks', '/calendar', '/meals', '/recipes', '/shopping',
-                     '/notes', '/contacts', '/birthdays', '/budget', '/settings'];
+const ROUTE_ORDER = ['/', '/tasks', '/calendar', '/birthdays', '/meals', '/recipes', '/shopping',
+                     '/notes', '/contacts', '/budget', '/settings'];
 
 const PRIMARY_NAV = 4;
+
+const DEFAULT_APP_NAME = 'Oikos';
+const APP_NAME_STORAGE_KEY = 'oikos-app-name';
 
 function getDirection(fromPath, toPath) {
   const fromIdx = ROUTE_ORDER.indexOf(fromPath ?? '/');
   const toIdx   = ROUTE_ORDER.indexOf(toPath);
   if (fromIdx === -1 || toIdx === -1 || fromPath === toPath) return 'right';
   return toIdx > fromIdx ? 'right' : 'left';
+}
+
+function getAppName() {
+  return localStorage.getItem(APP_NAME_STORAGE_KEY) || DEFAULT_APP_NAME;
+}
+
+function setAppName(name) {
+  const next = String(name || '').trim();
+  if (next) {
+    localStorage.setItem(APP_NAME_STORAGE_KEY, next);
+  } else {
+    localStorage.removeItem(APP_NAME_STORAGE_KEY);
+  }
+}
+
+function routeTitle(path) {
+  const map = {
+    '/': t('dashboard.title'),
+    '/tasks': t('nav.tasks'),
+    '/calendar': t('nav.calendar'),
+    '/birthdays': t('nav.birthdays'),
+    '/meals': t('nav.meals'),
+    '/recipes': t('nav.recipes'),
+    '/shopping': t('nav.shopping'),
+    '/notes': t('nav.notes'),
+    '/contacts': t('nav.contacts'),
+    '/budget': t('nav.budget'),
+    '/settings': t('nav.settings'),
+  };
+  return map[path] || getAppName();
+}
+
+function updateBranding(path = currentPath) {
+  const appName = getAppName();
+  const sidebarLogoSpan = document.querySelector('.nav-sidebar__logo span');
+  if (sidebarLogoSpan) sidebarLogoSpan.textContent = appName;
+
+  const loginTitle = document.querySelector('.login-hero__title');
+  if (path === '/login' && loginTitle) loginTitle.textContent = appName;
+
+  document.title = path === '/login'
+    ? appName
+    : `${routeTitle(path || '/')} · ${appName}`;
+
+  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach((meta) => {
+    meta.setAttribute('content', appName);
+  });
 }
 
 /**
@@ -152,6 +203,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
     // Überlastung: navigate(path, user) nach Login vs navigate(path, false) beim Init
     if (typeof userOrPushState === 'object' && userOrPushState !== null) {
       currentUser = userOrPushState;
+      await syncPreferencesOnce();
       initReminders();
     } else {
       pushState = userOrPushState;
@@ -169,6 +221,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
       try {
         const result = await auth.me();
         currentUser = result.user;
+        await syncPreferencesOnce();
         initReminders();
       } catch {
         currentPath = null; // Reset damit navigate('/login') nicht geblockt wird
@@ -199,6 +252,7 @@ async function navigate(path, userOrPushState = true, pushState = true) {
     await renderPage(route, previousPath);
     updateNav(basePath);
     updateThemeColorForRoute(route);
+    updateBranding(basePath);
   } finally {
     isNavigating = false;
     // auth:expired kann waehrend einer Navigation gefeuert haben (z.B. wenn ein
@@ -208,6 +262,24 @@ async function navigate(path, userOrPushState = true, pushState = true) {
       _pendingLoginRedirect = false;
       navigate('/login');
     }
+  }
+}
+
+async function syncPreferencesOnce() {
+  if (_preferencesLoaded) return;
+  _preferencesLoaded = true;
+  try {
+    const res = await api.get('/preferences');
+    const dateFormat = res?.data?.date_format;
+    if (dateFormat) {
+      localStorage.setItem('oikos-date-format', dateFormat);
+    }
+    if (res?.data?.app_name) {
+      setAppName(res.data.app_name);
+      updateBranding();
+    }
+  } catch {
+    // Non-critical. The settings page can refresh this later.
   }
 }
 
@@ -345,7 +417,7 @@ function renderAppShell(container) {
   sidebarLogo.appendChild(logomark);
 
   const sidebarLogoSpan = document.createElement('span');
-  sidebarLogoSpan.textContent = 'Oikos';
+  sidebarLogoSpan.textContent = getAppName();
   sidebarLogo.appendChild(sidebarLogoSpan);
   const sidebarItems = document.createElement('div');
   sidebarItems.className = 'nav-sidebar__items';
@@ -443,6 +515,7 @@ function renderAppShell(container) {
   toastContainer.setAttribute('aria-live', 'assertive');
 
   container.replaceChildren(skipLink, sidebar, main, bottomNav, backdrop, moreSheet, searchOverlay, toastContainer);
+  updateBranding(currentPath || '/');
 
   // Klick-Handler für alle Nav-Links
   container.querySelectorAll('[data-route]').forEach((el) => {
@@ -646,13 +719,13 @@ function navItems() {
   return [
     { path: '/',         label: t('nav.dashboard'), icon: 'layout-dashboard' },
     { path: '/tasks',    label: t('nav.tasks'),     icon: 'check-square'     },
+    { path: '/birthdays', label: t('nav.birthdays'), icon: 'cake'            },
     { path: '/calendar', label: t('nav.calendar'),  icon: 'calendar'         },
     { path: '/meals',    label: t('nav.meals'),     icon: 'utensils'         },
     { path: '/recipes',  label: t('nav.recipes'),   icon: 'book-text'        },
     { path: '/shopping', label: t('nav.shopping'),  icon: 'shopping-cart'    },
     { path: '/notes',    label: t('nav.notes'),     icon: 'sticky-note'      },
     { path: '/contacts', label: t('nav.contacts'),  icon: 'book-user'        },
-    { path: '/birthdays', label: t('nav.birthdays'), icon: 'cake'            },
     { path: '/budget',   label: t('nav.budget'),    icon: 'wallet'           },
     { path: '/settings', label: t('nav.settings'),  icon: 'settings'         },
   ];
@@ -876,6 +949,11 @@ window.addEventListener('locale-changed', () => {
   });
 
   updateNav(currentPath);
+  updateBranding(currentPath || '/');
+});
+
+window.addEventListener('app-name-changed', () => {
+  updateBranding(currentPath || '/');
 });
 
 // --------------------------------------------------------

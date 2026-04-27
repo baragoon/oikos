@@ -6,6 +6,7 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import { MIGRATIONS_SQL } from './server/db-schema-test.js';
+import { hydrateBirthday } from './server/services/birthdays.js';
 
 let passed = 0;
 let failed = 0;
@@ -49,6 +50,7 @@ const uid2 = u2.lastInsertRowid;
 
 const today = new Date().toISOString().slice(0, 10);
 const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+const currentMonth = today.slice(0, 7);
 const inOneHour = new Date(Date.now() + 3600000).toISOString();
 const in30h = new Date(Date.now() + 30 * 3600000).toISOString().slice(0, 10);
 const in72h = new Date(Date.now() + 72 * 3600000).toISOString().slice(0, 10);
@@ -82,6 +84,22 @@ db.prepare(`INSERT INTO notes (content, title, pinned, color, created_by)
   VALUES ('Wichtige Info', 'Pinnwand-Notiz', 1, '#FFEB3B', ?)`).run(uid1);
 db.prepare(`INSERT INTO notes (content, pinned, color, created_by)
   VALUES ('Nicht angepinnt', 0, '#E3F2FF', ?)`).run(uid1);
+
+// Geburtstage
+db.prepare(`INSERT INTO birthdays (name, birth_date, created_by)
+  VALUES ('Heute Geburtstag', ?, ?)`).run(`2012-${today.slice(5)}`, uid1);
+db.prepare(`INSERT INTO birthdays (name, birth_date, created_by)
+  VALUES ('Morgen Geburtstag', ?, ?)`).run(`2010-${tomorrow.slice(5)}`, uid1);
+db.prepare(`INSERT INTO birthdays (name, birth_date, created_by)
+  VALUES ('Anderer Nutzer', ?, ?)`).run(`2011-${today.slice(5)}`, uid2);
+
+// Budget
+db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, created_by)
+  VALUES ('Salary', 3000, 'Erwerbseinkommen', '', ?, ?)`).run(`${currentMonth}-05`, uid1);
+db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, created_by)
+  VALUES ('Rent', -1200, 'housing', 'rent_mortgage', ?, ?)`).run(`${currentMonth}-06`, uid1);
+db.prepare(`INSERT INTO budget_entries (title, amount, category, subcategory, date, created_by)
+  VALUES ('Groceries', -450, 'food', 'supermarket', ?, ?)`).run(`${currentMonth}-07`, uid1);
 
 console.log('\n[Dashboard-Test] API-Abfragen\n');
 
@@ -189,6 +207,53 @@ test('Angepinnte Notizen: nicht angepinnte werden ausgeschlossen', () => {
   const notes = db.prepare(`SELECT * FROM notes WHERE pinned = 1`).all();
   const unpinned = notes.find((n) => n.content === 'Nicht angepinnt');
   assert(!unpinned, 'Nicht angepinnte Notiz sollte gefiltert sein');
+});
+
+// --------------------------------------------------------
+// Tests: Geburtstage
+// --------------------------------------------------------
+test('Geburtstage: nur aktueller Nutzer, sortiert nach nächstem Geburtstag', () => {
+  const rows = db.prepare('SELECT * FROM birthdays WHERE created_by = ? ORDER BY name COLLATE NOCASE ASC').all(uid1);
+  const birthdays = rows
+    .map((row) => hydrateBirthday(row, new Date(`${today}T12:00:00Z`)))
+    .sort((a, b) => a.days_until - b.days_until || a.name.localeCompare(b.name))
+    .slice(0, 3);
+
+  assert(rows.length === 2, `Erwartet 2 Geburtstage, erhalten ${rows.length}`);
+  assert(birthdays[0].name === 'Heute Geburtstag', 'Heutiger Geburtstag zuerst');
+  assert(birthdays[0].days_until === 0, 'Heutiger Geburtstag hat 0 Tage Rest');
+});
+
+// --------------------------------------------------------
+// Tests: Budget
+// --------------------------------------------------------
+test('Budget: Monatswerte für Einnahmen, Ausgaben, Saldo und Top-Ausgabe', () => {
+  const from = `${currentMonth}-01`;
+  const to = `${currentMonth}-31`;
+  const totals = db.prepare(`
+    SELECT
+      SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) AS income,
+      SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) AS expenses,
+      SUM(amount) AS balance,
+      COUNT(*) AS entry_count
+    FROM budget_entries
+    WHERE date BETWEEN ? AND ?
+  `).get(from, to);
+
+  const topExpense = db.prepare(`
+    SELECT category, SUM(amount) AS amount
+    FROM budget_entries
+    WHERE amount < 0 AND date BETWEEN ? AND ?
+    GROUP BY category
+    ORDER BY ABS(SUM(amount)) DESC
+    LIMIT 1
+  `).get(from, to);
+
+  assert(totals.income === 3000, `Einnahmen sollten 3000 sein, erhalten ${totals.income}`);
+  assert(Math.abs(totals.expenses) === 1650, `Ausgaben sollten 1650 sein, erhalten ${totals.expenses}`);
+  assert(totals.balance === 1350, `Saldo sollte 1350 sein, erhalten ${totals.balance}`);
+  assert(totals.entry_count === 3, `Erwartet 3 Einträge, erhalten ${totals.entry_count}`);
+  assert(topExpense.category === 'housing', 'Wohnen sollte Top-Ausgabenkategorie sein');
 });
 
 // --------------------------------------------------------

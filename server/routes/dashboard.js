@@ -7,6 +7,7 @@
 import { createLogger } from '../logger.js';
 import express from 'express';
 import * as db from '../db.js';
+import { hydrateBirthday } from '../services/birthdays.js';
 
 const log = createLogger('Dashboard');
 
@@ -30,10 +31,12 @@ router.get('/', (req, res) => {
   try {
   const d = db.get();
   const result = {};
+  const userId = req.authUserId || req.session.userId;
 
   // Heute und +48h als ISO-Strings
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
+  const currentMonth = todayStr.slice(0, 7);
   const deadline48h = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
 
   // Anstehende Termine (nächste 5, ab jetzt)
@@ -168,6 +171,63 @@ router.get('/', (req, res) => {
     ).all();
   } catch (err) {
     result.users = [];
+  }
+
+  try {
+    const rows = d.prepare('SELECT * FROM birthdays WHERE created_by = ? ORDER BY name COLLATE NOCASE ASC').all(userId);
+    result.birthdays = rows
+      .map((row) => hydrateBirthday(row))
+      .sort((a, b) => a.days_until - b.days_until || a.name.localeCompare(b.name))
+      .slice(0, 3);
+    result.birthdayCount = rows.length;
+  } catch (err) {
+    log.error('birthdays error:', err.message);
+    result.birthdays = [];
+    result.birthdayCount = 0;
+  }
+
+  try {
+    const from = `${currentMonth}-01`;
+    const to = `${currentMonth}-31`;
+    const totals = d.prepare(`
+      SELECT
+        SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) AS expenses,
+        SUM(amount) AS balance,
+        COUNT(*) AS entry_count
+      FROM budget_entries
+      WHERE date BETWEEN ? AND ?
+    `).get(from, to);
+
+    const topExpense = d.prepare(`
+      SELECT category, SUM(amount) AS amount
+      FROM budget_entries
+      WHERE amount < 0 AND date BETWEEN ? AND ?
+      GROUP BY category
+      ORDER BY ABS(SUM(amount)) DESC
+      LIMIT 1
+    `).get(from, to);
+
+    result.budget = {
+      month: currentMonth,
+      income: totals?.income || 0,
+      expenses: Math.abs(totals?.expenses || 0),
+      balance: totals?.balance || 0,
+      entryCount: totals?.entry_count || 0,
+      topExpenseCategory: topExpense?.category || null,
+      topExpenseAmount: Math.abs(topExpense?.amount || 0),
+    };
+  } catch (err) {
+    log.error('budget error:', err.message);
+    result.budget = {
+      month: currentMonth,
+      income: 0,
+      expenses: 0,
+      balance: 0,
+      entryCount: 0,
+      topExpenseCategory: null,
+      topExpenseAmount: 0,
+    };
   }
 
   res.json(result);

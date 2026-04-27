@@ -7,9 +7,11 @@
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('[SW] Registrierung fehlgeschlagen:', err);
-    });
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((err) => {
+        console.warn('[SW] Registrierung fehlgeschlagen:', err);
+      });
   });
 
   // SW-Update: Auf iOS-PWA fuehrt ein sofortiger Reload bei controllerchange
@@ -23,5 +25,16 @@ if ('serviceWorker' in navigator) {
     // clients.claim() abgeschlossen hat, bevor die Seite neu laedt.
     // Auf iOS-Standalone verhindert das den "leere Seite"-Bug.
     setTimeout(() => window.location.reload(), 200);
+  });
+
+  const refreshSw = () => {
+    navigator.serviceWorker.getRegistration()
+      .then((registration) => registration?.update())
+      .catch(() => {});
+  };
+
+  window.addEventListener('focus', refreshSw);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshSw();
   });
 }

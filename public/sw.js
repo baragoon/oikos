@@ -13,11 +13,12 @@
  *   → bypassCacheUntil (in-memory + Cache API für SW-Restart-Robustheit)
  */
 
-const SHELL_CACHE   = 'oikos-shell-v53';
-const PAGES_CACHE   = 'oikos-pages-v48';
-const ASSETS_CACHE  = 'oikos-assets-v48';
+const SHELL_CACHE   = 'oikos-shell-v56';
+const PAGES_CACHE   = 'oikos-pages-v51';
+const LOCALES_CACHE = 'oikos-locales-v3';
+const ASSETS_CACHE  = 'oikos-assets-v51';
 const BYPASS_CACHE  = 'oikos-bypass-flag';
-const ALL_CACHES    = [SHELL_CACHE, PAGES_CACHE, ASSETS_CACHE];
+const ALL_CACHES    = [SHELL_CACHE, PAGES_CACHE, LOCALES_CACHE, ASSETS_CACHE];
 
 // App-Shell: sofort benötigt für ersten Render
 const APP_SHELL = [
@@ -27,12 +28,6 @@ const APP_SHELL = [
   '/router.js',
   '/i18n.js',
   '/rrule-ui.js',
-  '/locales/de.json',
-  '/locales/en.json',
-  '/locales/ja.json',
-  '/locales/ar.json',
-  '/locales/hi.json',
-  '/locales/pt.json',
   '/reminders.js',
   '/sw-register.js',
   '/lucide.min.js',
@@ -64,6 +59,24 @@ const APP_SHELL = [
   '/icons/icon-512.png',
   '/icons/icon-maskable-192.png',
   '/icons/icon-maskable-512.png',
+];
+
+const APP_LOCALES = [
+  '/locales/ar.json',
+  '/locales/de.json',
+  '/locales/el.json',
+  '/locales/en.json',
+  '/locales/es.json',
+  '/locales/fr.json',
+  '/locales/hi.json',
+  '/locales/it.json',
+  '/locales/ja.json',
+  '/locales/pt.json',
+  '/locales/ru.json',
+  '/locales/sv.json',
+  '/locales/tr.json',
+  '/locales/uk.json',
+  '/locales/zh.json',
 ];
 
 // Seiten-Module: lazy geladen, aber vorab gecacht für Offline
@@ -114,10 +127,12 @@ const _bypassInit = (async () => {
 self.addEventListener('install', (event) => {
   const freshShell   = APP_SHELL.map((url)    => new Request(url, { cache: 'reload' }));
   const freshModules = PAGE_MODULES.map((url) => new Request(url, { cache: 'reload' }));
+  const freshLocales = APP_LOCALES.map((url) => new Request(url, { cache: 'reload' }));
   event.waitUntil(
     Promise.all([
       caches.open(SHELL_CACHE).then((c) => c.addAll(freshShell)),
       caches.open(PAGES_CACHE).then((c) => c.addAll(freshModules)),
+      caches.open(LOCALES_CACHE).then((c) => c.addAll(freshLocales)),
     ]).then(() => self.skipWaiting())
   );
 });
@@ -207,12 +222,20 @@ function dispatchFetch(request, url) {
     return networkFirst(request, SHELL_CACHE);
   }
 
-  if (isAsset(url.pathname) && url.origin === self.location.origin) {
-    return cacheFirst(request, ASSETS_CACHE);
+  if (url.pathname.startsWith('/locales/')) {
+    return networkFirst(request, LOCALES_CACHE);
   }
 
   if (url.pathname.startsWith('/pages/')) {
-    return cacheFirst(request, PAGES_CACHE);
+    return networkFirst(request, PAGES_CACHE);
+  }
+
+  if (url.origin === self.location.origin && isMutableAppResource(url.pathname)) {
+    return networkFirst(request, SHELL_CACHE);
+  }
+
+  if (isAsset(url.pathname) && url.origin === self.location.origin) {
+    return cacheFirst(request, ASSETS_CACHE);
   }
 
   return cacheFirst(request, SHELL_CACHE);
@@ -269,4 +292,11 @@ async function cacheFirst(request, cacheName) {
 // --------------------------------------------------------
 function isAsset(pathname) {
   return /\.(png|jpg|jpeg|ico|svg|webp|woff2?|gif)$/i.test(pathname);
+}
+
+function isMutableAppResource(pathname) {
+  return pathname === '/'
+    || pathname === '/index.html'
+    || pathname === '/manifest.json'
+    || /\.(css|js|json|html)$/i.test(pathname);
 }

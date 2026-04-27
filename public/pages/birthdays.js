@@ -35,11 +35,11 @@ function photoAvatar(birthday, extraClass = '') {
 
 function filteredBirthdays() {
   const q = state.query.trim().toLowerCase();
-  if (!q) return state.birthdays;
-  return state.birthdays.filter((birthday) =>
+  const list = !q ? state.birthdays : state.birthdays.filter((birthday) =>
     birthday.name.toLowerCase().includes(q) ||
     (birthday.notes || '').toLowerCase().includes(q)
   );
+  return [...list].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function suggestions() {
@@ -94,8 +94,15 @@ function renderUpcoming() {
     <article class="birthday-card">
       <div class="birthday-card__media">${photoAvatar(birthday)}</div>
       <div class="birthday-card__body">
-        <div class="birthday-card__name">${esc(birthday.name)}</div>
-        <div class="birthday-card__date">${esc(formatDate(birthday.next_birthday))}</div>
+        <div class="birthday-card__top">
+          <div>
+            <div class="birthday-card__name">${esc(birthday.name)}</div>
+            <div class="birthday-card__date">${esc(formatDate(birthday.next_birthday))}</div>
+          </div>
+          <div class="birthday-card__pill">
+            ${birthday.days_until === 0 ? esc(t('common.today')) : birthday.days_until === 1 ? esc(t('common.tomorrow')) : esc(`${birthday.days_until}d`)}
+          </div>
+        </div>
         <div class="birthday-card__note">${esc(ageNote(birthday))}</div>
       </div>
     </article>
@@ -146,33 +153,42 @@ function renderPage() {
     <div class="birthdays-page">
       <h1 class="sr-only">${t('birthdays.title')}</h1>
       <div class="birthdays-toolbar">
-        <div class="birthdays-toolbar__search">
-          <i data-lucide="search" class="birthdays-toolbar__search-icon" aria-hidden="true"></i>
-          <input type="search" class="birthdays-toolbar__search-input" id="birthdays-search"
-                 placeholder="${t('birthdays.searchPlaceholder')}" autocomplete="off" value="${esc(state.query)}">
-          <div class="autocomplete-dropdown birthdays-autocomplete" id="birthdays-autocomplete" hidden></div>
+        <div class="birthdays-toolbar__title">
+          <i data-lucide="cake" class="birthdays-toolbar__title-icon" aria-hidden="true"></i>
+          <span>${t('birthdays.title')}</span>
         </div>
-        <button class="btn btn--primary" id="birthdays-add-btn">
+        <button class="btn btn--primary birthdays-header__action" id="birthdays-add-btn">
           <i data-lucide="plus" style="width:16px;height:16px;margin-right:4px;" aria-hidden="true"></i>
           ${t('birthdays.addButton')}
         </button>
       </div>
+      <p class="birthdays-toolbar__subtitle">${t('birthdays.calendarHint')}</p>
 
-      <section class="birthdays-section birthdays-section--hero">
-        <div class="birthdays-section__header">
-          <h2>${t('birthdays.upcomingTitle')}</h2>
-          <p>${t('birthdays.upcomingHint')}</p>
-        </div>
-        <div class="birthday-cards" id="birthdays-upcoming"></div>
-      </section>
+      <div class="birthdays-grid">
+        <aside class="birthdays-panel birthdays-panel--upcoming">
+          <div class="birthdays-section__header">
+            <h3>${t('birthdays.upcomingTitle')}</h3>
+            <p>${t('birthdays.upcomingHint')}</p>
+          </div>
+          <div class="birthday-cards" id="birthdays-upcoming"></div>
+        </aside>
 
-      <section class="birthdays-section birthdays-section--list">
-        <div class="birthdays-section__header">
-          <h2>${t('birthdays.peopleTitle')}</h2>
-          <p>${t('birthdays.peopleHint')}</p>
-        </div>
-        <div class="birthdays-list" id="birthdays-list"></div>
-      </section>
+        <section class="birthdays-panel birthdays-panel--list">
+          <div class="birthdays-toolbar birthdays-toolbar--embedded">
+            <div class="birthdays-toolbar__search">
+              <i data-lucide="search" class="birthdays-toolbar__search-icon" aria-hidden="true"></i>
+              <input type="search" class="birthdays-toolbar__search-input" id="birthdays-search"
+                     placeholder="${t('birthdays.searchPlaceholder')}" autocomplete="off" value="${esc(state.query)}">
+              <div class="autocomplete-dropdown birthdays-autocomplete" id="birthdays-autocomplete" hidden></div>
+            </div>
+          </div>
+          <div class="birthdays-section__header birthdays-section__header--spaced">
+            <h3>${t('birthdays.peopleTitle')}</h3>
+            <p>${t('birthdays.peopleHint')}</p>
+          </div>
+          <div class="birthdays-list" id="birthdays-list"></div>
+        </section>
+      </div>
 
       <button class="page-fab" id="fab-new-birthday" aria-label="${t('birthdays.addButton')}">
         <i data-lucide="plus" style="width:24px;height:24px" aria-hidden="true"></i>
@@ -337,7 +353,7 @@ function openBirthdayModal({ mode, birthday = null }) {
             state.birthdays.push(res.data);
             window.oikos?.showToast(t('birthdays.createdToast'), 'success');
           }
-          state.birthdays.sort((a, b) => a.days_until - b.days_until || a.name.localeCompare(b.name));
+          state.birthdays.sort((a, b) => a.name.localeCompare(b.name));
           const upcomingRes = await api.get('/birthdays/upcoming?limit=4');
           state.upcoming = upcomingRes.data ?? [];
           renderUpcoming();
@@ -356,7 +372,9 @@ function openBirthdayModal({ mode, birthday = null }) {
 async function deleteBirthday(id, name) {
   if (!await confirmModal(t('birthdays.deleteConfirm', { name }), { danger: true, confirmLabel: t('common.delete') })) return;
   await api.delete(`/birthdays/${id}`);
-  state.birthdays = state.birthdays.filter((birthday) => birthday.id !== id);
+  state.birthdays = state.birthdays
+    .filter((birthday) => birthday.id !== id)
+    .sort((a, b) => a.name.localeCompare(b.name));
   state.upcoming = state.upcoming.filter((birthday) => birthday.id !== id);
   renderUpcoming();
   renderSuggestions();

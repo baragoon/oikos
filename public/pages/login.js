@@ -8,16 +8,30 @@ import { auth } from '/api.js';
 import { t } from '/i18n.js';
 
 const VERSION_URL = '/api/v1/version';
+const DEFAULT_APP_NAME = 'Oikos';
+const APP_NAME_STORAGE_KEY = 'oikos-app-name';
+
+function getStoredAppName() {
+  return localStorage.getItem(APP_NAME_STORAGE_KEY) || DEFAULT_APP_NAME;
+}
+
+function setAppBranding(appName) {
+  const name = String(appName || '').trim() || DEFAULT_APP_NAME;
+  document.title = name;
+  const titleEl = document.querySelector('.login-hero__title');
+  if (titleEl) titleEl.textContent = name;
+}
 
 /**
  * Rendert die Login-Seite in den gegebenen Container.
  * @param {HTMLElement} container
  */
 export async function render(container) {
+  const storedAppName = getStoredAppName();
   container.innerHTML = `
     <main class="login-page" id="main-content">
       <div class="login-hero">
-        <h1 class="login-hero__title">Oikos</h1>
+        <h1 class="login-hero__title">${storedAppName}</h1>
         <p class="login-hero__tagline">${t('login.tagline')}</p>
       </div>
       <div class="login-card card card--padded">
@@ -67,9 +81,17 @@ export async function render(container) {
   const submitBtn = container.querySelector('#login-btn');
   const versionEl = container.querySelector('#login-version');
 
-  fetch(VERSION_URL)
+  setAppBranding(storedAppName);
+
+  fetch(VERSION_URL, { cache: 'no-store' })
     .then((r) => r.json())
-    .then((d) => { versionEl.textContent = t('login.version', { version: d.version }); })
+    .then((d) => {
+      if (d?.app_name) {
+        try { localStorage.setItem(APP_NAME_STORAGE_KEY, d.app_name); } catch (_) {}
+        setAppBranding(d.app_name);
+      }
+      versionEl.textContent = t('login.version', { version: d.version });
+    })
     .catch(() => {});
 
   form.addEventListener('submit', async (e) => {
