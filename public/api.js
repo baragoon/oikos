@@ -138,6 +138,8 @@ const auth = {
   me: () => api.get('/auth/me'),
   getUsers: () => api.get('/auth/users'),
   createUser: (data) => api.post('/auth/users', data),
+  updateUser: (id, data) => api.patch(`/auth/users/${id}`, data),
+  updateProfile: (data) => api.patch('/auth/me/profile', data),
   deleteUser: (id) => api.delete(`/auth/users/${id}`),
 };
 

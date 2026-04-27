@@ -15,6 +15,7 @@ const MIGRATIONS_SQL = {
       display_name  TEXT    NOT NULL,
       password_hash TEXT    NOT NULL,
       avatar_color  TEXT    NOT NULL DEFAULT '#007AFF',
+      avatar_data   TEXT,
       role          TEXT    NOT NULL DEFAULT 'member'
                             CHECK(role IN ('admin', 'member')),
       family_role   TEXT    NOT NULL DEFAULT 'other'

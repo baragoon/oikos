@@ -727,6 +727,13 @@ const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_users_family_role ON users(family_role);
     `,
   },
+  {
+    version: 20,
+    description: 'User profile pictures',
+    up: `
+      ALTER TABLE users ADD COLUMN avatar_data TEXT;
+    `,
+  },
 ];
 
 /**

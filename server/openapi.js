@@ -187,6 +187,14 @@ function buildPaths() {
         requestBody: jsonBody('#/components/schemas/PasswordChangeRequest'),
       }),
     },
+    '/api/v1/auth/me/profile': {
+      patch: op({
+        summary: 'Update current user profile',
+        tag: 'Auth',
+        stateChanging: true,
+        requestBody: jsonBody('#/components/schemas/ProfileUpdateRequest'),
+      }),
+    },
     '/api/v1/auth/users': {
       get: op({ summary: 'List users', tag: 'Auth', admin: true }),
       post: op({
@@ -205,6 +213,14 @@ function buildPaths() {
       }),
     },
     '/api/v1/auth/users/{id}': {
+      patch: op({
+        summary: 'Update user',
+        tag: 'Auth',
+        admin: true,
+        stateChanging: true,
+        params: [idParam('id', 'User ID')],
+        requestBody: jsonBody('#/components/schemas/UserUpdateRequest'),
+      }),
       delete: op({
         summary: 'Delete user',
         tag: 'Auth',
@@ -543,6 +559,7 @@ function buildOpenApiSpec(req, appVersion) {
             username: { type: 'string' },
             display_name: { type: 'string' },
             avatar_color: { type: 'string' },
+            avatar_data: { type: ['string', 'null'], description: 'PNG, JPEG, or WebP data URL.' },
             role: { type: 'string', enum: ['admin', 'member'] },
             family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
           },
@@ -554,6 +571,7 @@ function buildOpenApiSpec(req, appVersion) {
             id: { type: 'integer' },
             display_name: { type: 'string' },
             avatar_color: { type: 'string' },
+            avatar_data: { type: ['string', 'null'], description: 'PNG, JPEG, or WebP data URL.' },
             family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
             created_at: { type: 'string', format: 'date-time' },
           },
@@ -617,10 +635,30 @@ function buildOpenApiSpec(req, appVersion) {
             display_name: { type: 'string' },
             password: { type: 'string' },
             avatar_color: { type: 'string' },
+            avatar_data: { type: ['string', 'null'], description: 'PNG, JPEG, or WebP data URL.' },
             family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
             system_admin: { type: 'boolean' },
           },
           required: ['username', 'display_name', 'password'],
+        },
+        UserUpdateRequest: {
+          type: 'object',
+          properties: {
+            username: { type: 'string' },
+            display_name: { type: 'string' },
+            avatar_color: { type: 'string' },
+            avatar_data: { type: ['string', 'null'], description: 'PNG, JPEG, or WebP data URL. Use null to remove.' },
+            family_role: { type: 'string', enum: ['dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other'] },
+            system_admin: { type: 'boolean' },
+          },
+        },
+        ProfileUpdateRequest: {
+          type: 'object',
+          properties: {
+            display_name: { type: 'string' },
+            avatar_color: { type: 'string' },
+            avatar_data: { type: ['string', 'null'], description: 'PNG, JPEG, or WebP data URL. Use null to remove.' },
+          },
         },
         ApiToken: {
           type: 'object',

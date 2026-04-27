@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/members', (req, res) => {
   try {
     const members = db.get().prepare(`
-      SELECT id, display_name, avatar_color, family_role, created_at
+      SELECT id, display_name, avatar_color, avatar_data, family_role, created_at
       FROM users
       ORDER BY display_name COLLATE NOCASE ASC
     `).all();
