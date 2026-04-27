@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.1] - 2026-04-27
+
+### Fixed
+- Google Calendar: `upsertGoogleEvents` used `db.transaction()` instead of `db.get().transaction()`, causing a `TypeError: Cannot read properties of undefined (reading 'status')` on every initial sync — no events were imported
+
 ## [0.28.0] - 2026-04-27
 
 ### Added
