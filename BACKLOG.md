@@ -63,3 +63,26 @@ New suggestion? → [Open an issue](https://github.com/ulsklyc/oikos/issues/new?
 | - | Calendar event location display with RFC 5545 backslash-escape normalization (`fmtLocation()`) | v0.23.0 |
 | - | Tasks: filter defaults to `status: open`; effective due date sort; due chip shows time component | v0.23.0 |
 | - | Dashboard: FAB shortcuts open new-item modal directly after navigation | v0.23.0 |
+| - | Budget: DB-backed expense categories (stable slug keys), subcategories (35 predefined + custom), CSV export with subcategory column | v0.24.0 |
+| - | i18n: all 14 non-German locales extended with budget category & subcategory keys | v0.24.0 |
+| - | Server-side log messages and API error strings translated to English — contributed by @rafaelfoster | v0.24.0 |
+| - | UX/Accessibility: skip-to-content link, modal focus fix, swipe-to-close, 44 px touch targets, unique SVG gradient IDs | v0.24.1 |
+| - | API tokens: named Bearer / X-API-Key tokens for external integrations; SHA-256-hashed, expiry, revocation, last-used tracking | v0.25.0 |
+| - | OpenAPI 3.0 specification at `/api/v1/openapi.json` | v0.25.0 |
+| - | SPA router: dynamic imports, module cache, directional transitions, per-module accent theming | v0.25.x |
+| - | innerHTML → replaceChildren / insertAdjacentHTML migration across all modules (PR #88) | v0.25.x |
+| - | Birthdays module: name, birth date, photo, notes; auto-synced to calendar (yearly recurring event) and reminders (1 day before) | v0.26.0 |
+| - | Dashboard: birthdays widget, family participants widget, budget overview widget; customisable widget order | v0.26.0 |
+| - | Settings › General: custom application name | v0.26.0 |
+| - | Birthday image upload limit: 5 MB | v0.26.5 |
+| - | Family management: family roles (Dad, Mom, Parent, Child, etc.) separate from system access role | v0.27.0 |
+| - | Profile pictures: upload own avatar (PNG/JPEG/WebP, ≤ 5 MB, auto-resized to 512 px) | v0.27.0 |
+| - | Admin: edit any family member's profile (name, role, picture) | v0.27.0 |
+| - | API: `GET /api/v1/family/members`, `PATCH /api/v1/auth/users/:id`, `PATCH /api/v1/auth/me/profile` | v0.27.0 |
+| - | Google Calendar null guard: initial OAuth sync no longer silently fails on empty item arrays | v0.27.1 |
+| - | Navigation: sidebar tooltips in icon-only breakpoint; global keyboard shortcuts (`/`, `n`, `?`, `g d/t/c/s/n`) | v0.28.0 |
+| - | PWA: offline connectivity banner | v0.28.0 |
+| - | UX: `deleteWithUndo` for birthdays; contextual onboarding hints in all empty states | v0.28.0 |
+| - | Calendar: custom event icons (102 Lucide options via visual picker); birthday events auto-assigned `cake` icon | v0.29.0 |
+| - | Calendar: extended reminder presets (2 days, 1 week, 2 weeks) + fully custom reminder (number + unit) | v0.29.0 |
+| - | Calendar: locale-aware date text inputs (MDY / DMY / YMD) in all date fields across Calendar, Tasks, Meals, Birthdays, Budget | v0.29.0 |

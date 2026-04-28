@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.2] - 2026-04-28
+
+### Changed
+- Docs: SPEC updated with Reminders, Birthdays, and Family Management tables and module sections; Users table reflects `family_role` and `avatar_data` columns
+- Docs: README lists Reminders and Birthdays in the feature tagline and Highlights section
+- Docs: BACKLOG completed-features table brought up to date through v0.29.1
+
 ## [0.29.1] - 2026-04-28
 
 ### Changed

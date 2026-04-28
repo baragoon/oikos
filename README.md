@@ -2,7 +2,7 @@
   <img src="docs/logo.svg" alt="Oikos" width="120" />
   <h1>Oikos</h1>
   <p><strong>Self-hosted family planner for small households</strong></p>
-  <p>Tasks · Shopping Lists · Meal Planning · Recipes · Calendar Sync · Budget · Notes · Contacts</p>
+  <p>Tasks · Shopping Lists · Meal Planning · Recipes · Calendar Sync · Budget · Notes · Contacts · Birthdays · Reminders</p>
 
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT License"></a>
   <a href="https://github.com/ulsklyc/oikos/releases"><img src="https://img.shields.io/github/v/release/ulsklyc/oikos?style=flat-square&color=007AFF&label=release" alt="Latest Release"></a>
@@ -56,6 +56,12 @@
 **Budget Tracking:** Income and expenses, recurring entries, DB-backed expense categories with subcategories (35 predefined + custom), configurable currency (15 currencies), monthly trends, CSV export
 
 **Notes & Contacts:** Colored sticky notes with Markdown, contact directory with vCard import/export
+
+**Birthdays:** Personal birthday tracker with automatic annual calendar events, age calculation, profile photos (≤ 5 MB), and 1-day-before reminders — auto-synced, no manual setup needed.
+
+**Reminders:** Time-based reminders on any task or calendar event, with an in-app notification badge. Birthday reminders are created automatically.
+
+**Family Management:** Assign family roles (Dad, Mom, Child, etc.) and upload profile pictures per family member.
 
 **API Tokens:** Admins can create named Bearer / X-API-Key tokens for external integrations; tokens are SHA-256-hashed at rest, support optional expiry and revocation. OpenAPI 3.0 specification available at `/api/v1/openapi.json`.
 

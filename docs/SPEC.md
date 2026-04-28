@@ -15,7 +15,9 @@ Every table: `id INTEGER PRIMARY KEY`, `created_at TEXT`, `updated_at TEXT` (ISO
 | display_name | TEXT | |
 | password_hash | TEXT | bcrypt |
 | avatar_color | TEXT | HEX color code |
+| avatar_data | TEXT | Base64 data URL of profile picture (nullable) |
 | role | TEXT | 'admin' or 'member' |
+| family_role | TEXT | 'dad', 'mom', 'parent', 'child', 'grandparent', 'relative', 'other' (default 'other') |
 
 ### Tasks
 | Column | Type | Constraint |
@@ -190,6 +192,31 @@ Stores instances of a recurring entry deleted by the user so they are not re-gen
 | month | TEXT | YYYY-MM, NOT NULL |
 | PRIMARY KEY | | (parent_id, month) |
 
+### Reminders
+
+Per-user reminders attached to tasks or calendar events.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| entity_type | TEXT | 'task' or 'event', NOT NULL |
+| entity_id | INTEGER | FK → tasks or calendar_events, NOT NULL |
+| remind_at | TEXT | ISO 8601 datetime, NOT NULL |
+| dismissed | INTEGER | 0/1, default 0 |
+| created_by | INTEGER | FK → Users (CASCADE delete), NOT NULL |
+
+### Birthdays
+
+Birthday records with optional profile photo and automatic calendar event + reminder.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| name | TEXT | NOT NULL |
+| birth_date | TEXT | DATE (YYYY-MM-DD), NOT NULL |
+| notes | TEXT | nullable |
+| photo_data | TEXT | Base64 data URL (≤ 5 MB), nullable |
+| calendar_event_id | INTEGER | FK → calendar_events (SET NULL on delete), nullable |
+| created_by | INTEGER | FK → Users (CASCADE delete), NOT NULL |
+
 ### API Tokens
 Named Bearer / X-API-Key tokens for non-interactive external integrations. Admin-only creation and revocation. Token values are SHA-256-hashed at rest; the plaintext is shown only once after creation.
 
@@ -349,6 +376,8 @@ User management and app configuration. Logged-in users only.
 - **Language:** System (follows `navigator.language`), German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, Chinese, Japanese, Arabic, Hindi, Portuguese - via `oikos-locale-picker` web component; switch without page reload
 - **API Tokens (admin):** create named Bearer / X-API-Key tokens for external integrations; the full token value is shown only once immediately after creation; tokens can be revoked at any time; support optional expiry and track last-used timestamp
 - **Tab navigation:** Settings is organized in seven tabs (General, Meals, Budget, Shopping, Calendar, API Tokens, Account). Sticky tab bar, active tab persists in sessionStorage, Calendar tab auto-activates after OAuth callbacks.
+- **Family management (admin):** assign a `family_role` (Dad, Mom, Parent, Child, Grandparent, Relative, Other) to each user. Displayed in the family member list and profile views.
+- **Profile picture:** users can upload a personal avatar (PNG/JPEG/WebP/GIF, ≤ 5 MB), stored as a Base64 data URL in `avatar_data`. Displayed alongside display name across the app.
 - **App info:** version, license
 
 ### Budget (`/budget`)
@@ -364,6 +393,29 @@ User management and app configuration. Logged-in users only.
 - Monthly comparison (current vs. previous month)
 - CSV export includes a subcategory column and English column headers
 - API: `GET /api/v1/budget/categories`, `GET /api/v1/budget/categories/:key/subcategories` (optional `?lang=` localisation), `POST /api/v1/budget/categories`, `POST /api/v1/budget/categories/:key/subcategories`
+
+### Birthdays (`/birthdays`)
+
+Personal birthday tracker with automatic calendar integration.
+
+- CRUD: name, birth_date (day/month/year or day/month only for age-unknown entries), notes, photo
+- Profile photo upload (PNG/JPEG/WebP/GIF, ≤ 5 MB, stored as Base64 data URL)
+- **Upcoming view:** birthdays sorted by days until next occurrence; shows age when year is known
+- **Calendar integration:** creating or updating a birthday automatically creates/updates a recurring annual all-day calendar event (title: "🎂 {Name}"); deleting a birthday removes the linked event
+- **Automatic reminder:** a birthday reminder is synced 1 day before each occurrence (auto-dismissed when the birthday passes)
+- Search filter by name
+- API: `GET /api/v1/birthdays`, `GET /api/v1/birthdays/upcoming`, `GET /api/v1/birthdays/:id`, `POST /api/v1/birthdays`, `PUT /api/v1/birthdays/:id`, `DELETE /api/v1/birthdays/:id`
+
+### Reminders (`/reminders`)
+
+Time-based reminders attached to tasks or calendar events.
+
+- One reminder per entity (upsert — creating a new reminder replaces the previous one)
+- Reminder time set via datetime picker in the task or event modal
+- **Pending reminders:** polled on page load and at a fixed interval; displayed as an in-app notification badge/toast
+- **Birthday reminders** auto-synced from the Birthdays module (1 day before each occurrence)
+- Dismissing a reminder marks it `dismissed = 1`; dismissed reminders are not shown again
+- API: `GET /api/v1/reminders/pending`, `GET /api/v1/reminders?entity_type=&entity_id=`, `POST /api/v1/reminders`, `DELETE /api/v1/reminders/:id`, `POST /api/v1/reminders/:id/dismiss`
 
 ---
 
