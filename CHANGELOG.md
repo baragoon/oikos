@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-04-28
+
+### Added
+- Calendar: events can now have a custom icon chosen from 102 validated Lucide icons via a visual icon picker — icon is persisted in the database (`calendar_events.icon`)
+- Calendar: reminders now offer additional presets (2 days, 1 week, 2 weeks before) plus a fully custom option with configurable number and time unit (minutes/hours/days/weeks)
+- Calendar: birthday events are automatically assigned the `cake` icon when synced to the calendar
+- i18n: new reminder preset and custom-reminder labels added to all 16 locales
+
+### Changed
+- Calendar, Tasks, Meals, Birthdays, Budget: date inputs now use locale-aware text fields (respecting the user's configured date format: MDY / DMY / YMD) instead of native `<input type="date">` — inputs auto-correct format on blur
+- Calendar: `formatDate` inside the module now delegates to the i18n-aware `formatDate` from `i18n.js` for consistent locale formatting across all views
+
+### Fixed
+- Calendar: dentist icon `tooth` (unavailable in Lucide) replaced by `drill`; existing events with `icon = 'tooth'` are migrated to `drill` via migration 22
+- Calendar: reminder `remind_at` is now calculated correctly for all-day events (uses `T09:00` as base time instead of midnight)
+
+### Database
+- Migration 21: `ALTER TABLE calendar_events ADD COLUMN icon TEXT NOT NULL DEFAULT 'calendar'`
+- Migration 22: normalizes legacy `tooth` icon values to `drill`
+
 ## [0.28.1] - 2026-04-27
 
 ### Fixed
