@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.2] - 2026-04-28
+
+### Fixed
+- Calendar: date inputs in the event modal reverted from `type="text"` to `type="date"`, restoring the native date picker on iOS and other mobile browsers
+
 ## [0.30.1] - 2026-04-28
 
 ### Fixed

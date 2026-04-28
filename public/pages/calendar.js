@@ -1206,7 +1206,7 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
       <div class="modal-grid modal-grid--2">
         <div class="form-group">
           <label class="form-label" for="modal-start-date">${t('calendar.startDateLabel')}</label>
-          <input type="text" class="form-input js-date-input" id="modal-start-date" value="${formatDateInput(startDate)}" placeholder="${dateInputPlaceholder()}" inputmode="numeric">
+          <input type="date" class="form-input" id="modal-start-date" value="${startDate}">
         </div>
         <div class="form-group">
           <label class="form-label" for="modal-start-time">${t('calendar.startTimeLabel')}</label>
@@ -1216,7 +1216,7 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
       <div class="modal-grid modal-grid--2">
         <div class="form-group">
           <label class="form-label" for="modal-end-date">${t('calendar.endDateLabel')}</label>
-          <input type="text" class="form-input js-date-input" id="modal-end-date" value="${formatDateInput(endDate)}" placeholder="${dateInputPlaceholder()}" inputmode="numeric">
+          <input type="date" class="form-input" id="modal-end-date" value="${endDate}">
         </div>
         <div class="form-group">
           <label class="form-label" for="modal-end-time">${t('calendar.endTimeLabel')}</label>
@@ -1229,11 +1229,11 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
       <div class="modal-grid modal-grid--2">
         <div class="form-group">
           <label class="form-label" for="modal-allday-start">${t('calendar.fromLabel')}</label>
-          <input type="text" class="form-input js-date-input" id="modal-allday-start" value="${formatDateInput(startDate)}" placeholder="${dateInputPlaceholder()}" inputmode="numeric">
+          <input type="date" class="form-input" id="modal-allday-start" value="${startDate}">
         </div>
         <div class="form-group">
           <label class="form-label" for="modal-allday-end">${t('calendar.toLabel')}</label>
-          <input type="text" class="form-input js-date-input" id="modal-allday-end" value="${formatDateInput(endDate)}" placeholder="${dateInputPlaceholder()}" inputmode="numeric">
+          <input type="date" class="form-input" id="modal-allday-end" value="${endDate}">
         </div>
       </div>
     </div>
