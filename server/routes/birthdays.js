@@ -22,9 +22,6 @@ function loadBirthday(id) {
   return db.get().prepare('SELECT * FROM birthdays WHERE id = ?').get(id);
 }
 
-function loadBirthdayForUser(id, userId) {
-  return db.get().prepare('SELECT * FROM birthdays WHERE id = ? AND created_by = ?').get(id, userId);
-}
 
 function sortHydrated(rows) {
   return rows
@@ -37,8 +34,8 @@ router.get('/', (req, res) => {
     const userId = req.authUserId || req.session.userId;
     syncAllBirthdayReminders(db.get(), userId);
 
-    let sql = 'SELECT * FROM birthdays WHERE created_by = ?';
-    const params = [userId];
+    let sql = 'SELECT * FROM birthdays WHERE 1=1';
+    const params = [];
 
     if (req.query.q) {
       sql += ' AND name LIKE ?';
@@ -60,7 +57,7 @@ router.get('/upcoming', (req, res) => {
     const userId = req.authUserId || req.session.userId;
     syncAllBirthdayReminders(db.get(), userId);
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 5, 1), 50);
-    const rows = db.get().prepare('SELECT * FROM birthdays WHERE created_by = ? ORDER BY name COLLATE NOCASE ASC').all(userId);
+    const rows = db.get().prepare('SELECT * FROM birthdays ORDER BY name COLLATE NOCASE ASC').all();
     res.json({ data: sortHydrated(rows).slice(0, limit) });
   } catch (err) {
     log.error('GET /upcoming error:', err);
@@ -95,7 +92,7 @@ router.put('/:id', (req, res) => {
   try {
     const userId = req.authUserId || req.session.userId;
     const id = parseInt(req.params.id, 10);
-    const existing = loadBirthdayForUser(id, userId);
+    const existing = loadBirthday(id);
     if (!existing) return res.status(404).json({ error: 'Birthday not found.', code: 404 });
 
     const checks = [];
@@ -137,7 +134,7 @@ router.delete('/:id', (req, res) => {
   try {
     const userId = req.authUserId || req.session.userId;
     const id = parseInt(req.params.id, 10);
-    const existing = loadBirthdayForUser(id, userId);
+    const existing = loadBirthday(id);
     if (!existing) return res.status(404).json({ error: 'Birthday not found.', code: 404 });
 
     db.transaction(() => {

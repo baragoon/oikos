@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.3] - 2026-04-28
+
+### Changed
+- Birthdays: all family members can now view, edit, and delete any birthday entry regardless of who created it
+
 ## [0.30.2] - 2026-04-28
 
 ### Fixed
