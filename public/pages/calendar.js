@@ -169,6 +169,8 @@ const EVENT_ICONS = [
 ];
 
 const CUSTOM_EVENT_ICONS = new Set(['tooth']);
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+const ATTACHMENT_IMAGE_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 
 const HOUR_HEIGHT = 56; // px pro Stunde in Wochen-/Tagesansicht
 
@@ -310,6 +312,35 @@ function eventIconElement(icon, className = 'event-icon') {
   el.dataset.lucide = name;
   el.setAttribute('aria-hidden', 'true');
   return el;
+}
+
+function isImageAttachment(mime) {
+  return ATTACHMENT_IMAGE_MIME.has(String(mime || '').toLowerCase());
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error(t('calendar.attachmentReadError')));
+    reader.readAsDataURL(file);
+  });
+}
+
+function attachmentHtml(event) {
+  if (!event?.attachment_data) return '';
+  const name = esc(event.attachment_name || t('calendar.attachmentFallback'));
+  if (isImageAttachment(event.attachment_mime)) {
+    return `
+      <div class="event-popup__attachment event-popup__attachment--image">
+        <img src="${event.attachment_data}" alt="${name}">
+      </div>`;
+  }
+  return `
+    <a class="event-popup__attachment event-popup__attachment--file" href="${event.attachment_data}" download="${name}">
+      <i data-lucide="paperclip" aria-hidden="true"></i>
+      <span>${name}</span>
+    </a>`;
 }
 
 function bindDateInputs(root) {
@@ -631,6 +662,7 @@ function renderWeekView(container) {
   const timedEvs = days.map((d) =>
     eventsOnDay(d).filter((e) => !e.all_day && e.start_datetime.includes('T'))
   );
+  const layouts = timedEvs.map((events) => layoutOverlaps(events));
 
   container.innerHTML = `
     <div class="week-view">
@@ -674,7 +706,7 @@ function renderWeekView(container) {
                 ${Array.from({ length: 24 }, (_, h) => `
                   <div class="week-view__hour-line" style="top:${h * HOUR_HEIGHT}px;"></div>
                 `).join('')}
-                ${timedEvs[i].map((ev) => renderWeekEvent(ev)).join('')}
+                ${timedEvs[i].map((ev) => renderWeekEvent(ev, layouts[i].get(ev.id))).join('')}
                 ${d === state.today ? `<div class="week-view__now-line" id="now-line" style="top:${nowTop()}px;"></div>` : ''}
               </div>
             `).join('')}
@@ -712,19 +744,18 @@ function renderWeekView(container) {
   }
 }
 
-function renderWeekEvent(ev) {
-  const start = timeToMinutes(localTime(ev.start_datetime));
-  const end   = ev.end_datetime
-    ? timeToMinutes(localTime(ev.end_datetime))
-    : start + 60;
+function renderWeekEvent(ev, layout = null) {
+  const { start, end } = timeRangeForEvent(ev);
   const duration = Math.max(end - start, 30);
 
   const top    = (start / 60) * HOUR_HEIGHT;
   const height = (duration / 60) * HOUR_HEIGHT - 2;
+  const left = layout ? `calc(${(layout.colIndex / layout.totalCols) * 100}% + 2px)` : '2px';
+  const width = layout ? `calc(${100 / layout.totalCols}% - 4px)` : 'auto';
 
   return `
     <div class="week-event" data-id="${ev.id}"
-         style="top:${top}px;height:${height}px;${ev.cal_color || ev.color ? `background-color:${esc(ev.cal_color || ev.color)};` : ''}${getContrastColor(ev.cal_color || ev.color) ? `color:${getContrastColor(ev.cal_color || ev.color)};` : ''}">
+         style="top:${top}px;height:${height}px;left:${left};width:${width};${ev.cal_color || ev.color ? `background-color:${esc(ev.cal_color || ev.color)};` : ''}${getContrastColor(ev.cal_color || ev.color) ? `color:${getContrastColor(ev.cal_color || ev.color)};` : ''}">
       <div class="week-event__title">${eventIconHtml(ev.icon, 'event-icon event-icon--compact')}<span>${esc(ev.title)}</span></div>
       <div class="week-event__time">${formatTime(ev.start_datetime)}${ev.end_datetime ? '–' + formatTime(ev.end_datetime) : ''}</div>
     </div>
@@ -743,6 +774,66 @@ function nowTop() {
   return (minutes / 60) * HOUR_HEIGHT;
 }
 
+function timeRangeForEvent(ev) {
+  const start = timeToMinutes(localTime(ev.start_datetime));
+  const end = ev.end_datetime
+    ? timeToMinutes(localTime(ev.end_datetime))
+    : start + 60;
+  return {
+    start,
+    end: Math.max(end, start + 30),
+  };
+}
+
+function layoutOverlaps(events) {
+  const groups = [];
+  const sorted = [...events].sort((a, b) => {
+    const aRange = timeRangeForEvent(a);
+    const bRange = timeRangeForEvent(b);
+    return aRange.start - bRange.start || aRange.end - bRange.end;
+  });
+
+  let current = [];
+  let currentEnd = -1;
+  for (const ev of sorted) {
+    const range = timeRangeForEvent(ev);
+    if (!current.length || range.start < currentEnd) {
+      current.push(ev);
+      currentEnd = current.length === 1 ? range.end : Math.max(currentEnd, range.end);
+    } else {
+      groups.push(current);
+      current = [ev];
+      currentEnd = range.end;
+    }
+  }
+  if (current.length) groups.push(current);
+
+  const layout = new Map();
+  for (const group of groups) {
+    const columns = [];
+    const placements = [];
+    for (const ev of group) {
+      const range = timeRangeForEvent(ev);
+      let colIndex = columns.findIndex((end) => end <= range.start);
+      if (colIndex === -1) {
+        colIndex = columns.length;
+        columns.push(range.end);
+      } else {
+        columns[colIndex] = range.end;
+      }
+      placements.push({ ev, colIndex });
+    }
+    const totalCols = Math.max(columns.length, 1);
+    for (const placement of placements) {
+      layout.set(placement.ev.id, {
+        colIndex: placement.colIndex,
+        totalCols,
+      });
+    }
+  }
+  return layout;
+}
+
 // --------------------------------------------------------
 // Tagesansicht
 // --------------------------------------------------------
@@ -752,6 +843,7 @@ function renderDayView(container) {
   const dayEvs  = eventsOnDay(state.cursor);
   const allday  = dayEvs.filter((e) => e.all_day || !e.start_datetime.includes('T'));
   const timed   = dayEvs.filter((e) => !e.all_day && e.start_datetime.includes('T'));
+  const layout = layoutOverlaps(timed);
 
   container.innerHTML = `
     <div class="day-view">
@@ -781,7 +873,7 @@ function renderDayView(container) {
             ${Array.from({ length: 24 }, (_, h) => `
               <div class="week-view__hour-line" style="top:${h * HOUR_HEIGHT}px;"></div>
             `).join('')}
-            ${timed.map((ev) => renderWeekEvent(ev)).join('')}
+            ${timed.map((ev) => renderWeekEvent(ev, layout.get(ev.id))).join('')}
             ${state.cursor === state.today ? `<div class="week-view__now-line" style="top:${nowTop()}px;"></div>` : ''}
           </div>
         </div>
@@ -902,6 +994,7 @@ function showEventPopup(ev, anchor) {
       <div>${timeStr}</div>
       ${ev.location ? `<div>📍 ${esc(fmtLocation(ev.location))}</div>` : ''}
       ${ev.description ? `<div>${esc(ev.description)}</div>` : ''}
+      ${ev.attachment_data ? attachmentHtml(ev) : ''}
       ${ev.assigned_name ? `<div>👤 ${esc(ev.assigned_name)}</div>` : ''}
     </div>
     <div class="event-popup__actions">
@@ -1163,6 +1256,47 @@ function openEventModal({ mode, event = null, date = null, reminder = null }) {
 
       const reminderOffset = panel.querySelector('#modal-reminder-offset');
       const reminderCustom = panel.querySelector('#modal-reminder-custom');
+      const attachmentInput = panel.querySelector('#modal-attachment');
+      const attachmentPreview = panel.querySelector('#modal-attachment-preview');
+      const attachmentState = {
+        name: event?.attachment_name || null,
+        mime: event?.attachment_mime || null,
+        size: event?.attachment_size || null,
+        data: event?.attachment_data || null,
+      };
+      const syncAttachmentPreview = () => {
+        if (!attachmentPreview) return;
+        attachmentPreview.innerHTML = '';
+        if (!attachmentState.data) {
+          attachmentPreview.hidden = true;
+          return;
+        }
+        attachmentPreview.hidden = false;
+        if (isImageAttachment(attachmentState.mime)) {
+          attachmentPreview.innerHTML = `<img src="${attachmentState.data}" alt="${esc(attachmentState.name || '')}">`;
+        } else {
+          attachmentPreview.innerHTML = `<a href="${attachmentState.data}" download="${esc(attachmentState.name || '')}">${esc(attachmentState.name || '')}</a>`;
+        }
+      };
+      attachmentInput?.addEventListener('change', async () => {
+        const file = attachmentInput.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_ATTACHMENT_BYTES) {
+          window.oikos?.showToast(t('calendar.attachmentTooLarge'), 'error');
+          attachmentInput.value = '';
+          return;
+        }
+        try {
+          attachmentState.data = await readFileAsDataUrl(file);
+          attachmentState.name = file.name;
+          attachmentState.mime = file.type || 'application/octet-stream';
+          attachmentState.size = file.size;
+          syncAttachmentPreview();
+        } catch (err) {
+          window.oikos?.showToast(err.message, 'danger');
+        }
+      });
+      syncAttachmentPreview();
       reminderOffset?.addEventListener('change', () => {
         if (reminderCustom) reminderCustom.hidden = reminderOffset.value !== 'custom';
       });
@@ -1174,7 +1308,7 @@ function openEventModal({ mode, event = null, date = null, reminder = null }) {
         await deleteEvent(event.id);
       });
 
-      panel.querySelector('#modal-save').addEventListener('click', () => saveEvent(panel, mode, event?.id, reminder));
+      panel.querySelector('#modal-save').addEventListener('click', () => saveEvent(panel, mode, event?.id, reminder, attachmentState));
       if (window.lucide) lucide.createIcons();
     },
   });
@@ -1309,6 +1443,19 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
                 placeholder="${t('calendar.descriptionPlaceholder')}">${esc(isEdit && event.description ? event.description : '')}</textarea>
     </div>
 
+    <div class="form-group">
+      <label class="form-label" for="modal-attachment">${t('calendar.attachmentLabel')}</label>
+      <input class="form-input" id="modal-attachment" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <div class="form-help">${t('calendar.attachmentHint')}</div>
+      <div class="event-attachment-preview" id="modal-attachment-preview" ${isEdit && event.attachment_data ? '' : 'hidden'}>
+        ${isEdit && event.attachment_data
+          ? (isImageAttachment(event.attachment_mime)
+            ? `<img src="${event.attachment_data}" alt="${esc(event.attachment_name || '')}">`
+            : `<a href="${event.attachment_data}" download="${esc(event.attachment_name || '')}">${esc(event.attachment_name || '')}</a>`)
+          : ''}
+      </div>
+    </div>
+
     ${renderRRuleFields('event', isEdit ? event.recurrence_rule : null)}
 
     ${renderCalendarReminderSection(reminder, event)}
@@ -1324,7 +1471,7 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
     </div>`;
 }
 
-async function saveEvent(overlay, mode, eventId, existingReminder = null) {
+async function saveEvent(overlay, mode, eventId, existingReminder = null, attachmentState = null) {
   const saveBtn = overlay.querySelector('#modal-save');
   const title   = overlay.querySelector('#modal-title').value.trim();
 
@@ -1382,6 +1529,10 @@ async function saveEvent(overlay, mode, eventId, existingReminder = null) {
       all_day: allday ? 1 : 0,
       location, color, icon, assigned_to: assigned_to ? parseInt(assigned_to, 10) : null,
       recurrence_rule: rrule.recurrence_rule,
+      attachment_name: attachmentState?.name || null,
+      attachment_mime: attachmentState?.mime || null,
+      attachment_size: attachmentState?.size || null,
+      attachment_data: attachmentState?.data || null,
     };
 
     let savedEventId = eventId;

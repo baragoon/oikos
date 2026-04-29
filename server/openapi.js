@@ -349,7 +349,13 @@ function buildPaths() {
     },
     '/api/v1/calendar': {
       get: op({ summary: 'List calendar events', tag: 'Calendar' }),
-      post: op({ summary: 'Create calendar event', tag: 'Calendar', stateChanging: true, requestBody: jsonBody(null) }),
+      post: op({
+        summary: 'Create calendar event',
+        tag: 'Calendar',
+        stateChanging: true,
+        description: 'Supports optional local file attachments via `attachment_name`, `attachment_mime`, `attachment_size`, and `attachment_data` (base64 data URL).',
+        requestBody: jsonBody(null),
+      }),
     },
     '/api/v1/calendar/upcoming': { get: op({ summary: 'List upcoming events', tag: 'Calendar' }) },
     '/api/v1/calendar/google/auth': { get: op({ summary: 'Start Google Calendar OAuth', tag: 'Calendar', admin: true }) },
@@ -374,7 +380,14 @@ function buildPaths() {
     },
     '/api/v1/calendar/{id}': {
       get: op({ summary: 'Get calendar event', tag: 'Calendar', params: [idParam()] }),
-      put: op({ summary: 'Update calendar event', tag: 'Calendar', params: [idParam()], stateChanging: true, requestBody: jsonBody(null) }),
+      put: op({
+        summary: 'Update calendar event',
+        tag: 'Calendar',
+        params: [idParam()],
+        stateChanging: true,
+        description: 'Supports optional local file attachments via `attachment_name`, `attachment_mime`, `attachment_size`, and `attachment_data` (base64 data URL).',
+        requestBody: jsonBody(null),
+      }),
       delete: op({ summary: 'Delete calendar event', tag: 'Calendar', params: [idParam()], stateChanging: true }),
     },
     '/api/v1/calendar/{id}/reset': {

@@ -20,6 +20,19 @@ const log = createLogger('Calendar');
 const router         = express.Router();
 
 const VALID_SOURCES  = ['local', 'google', 'apple', 'ics'];
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+const ATTACHMENT_MIME = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
 const ICS_COLOR_RE   = /^#[0-9a-fA-F]{6}$/;
 const VALID_EVENT_ICONS = new Set([
   'calendar', 'tooth', 'drill', 'alarm-clock', 'clock', 'bell', 'map-pin', 'home',
@@ -57,6 +70,20 @@ function eventIcon(value) {
   const raw = typeof value === 'string' && value.trim() ? value.trim() : 'calendar';
   const icon = raw === 'drill' ? 'tooth' : raw;
   return VALID_EVENT_ICONS.has(icon) ? icon : null;
+}
+
+function parseAttachment(dataUrl) {
+  const raw = typeof dataUrl === 'string' ? dataUrl.trim() : '';
+  if (!raw) return { name: null, mime: null, size: null, data: null };
+  const match = raw.match(/^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/);
+  if (!match) throw new Error('attachment_data: ungültiges Dateiformat.');
+  const mime = match[1].toLowerCase();
+  if (!ATTACHMENT_MIME.has(mime)) throw new Error('attachment_data: Dateityp nicht erlaubt.');
+  const base64 = match[2].replace(/\s/g, '');
+  const buffer = Buffer.from(base64, 'base64');
+  if (!buffer.length) throw new Error('attachment_data: Datei ist leer.');
+  if (buffer.length > MAX_ATTACHMENT_BYTES) throw new Error('attachment_data: Datei darf höchstens 5 MB groß sein.');
+  return { name: null, mime, size: buffer.length, data: base64 };
 }
 
 // --------------------------------------------------------
@@ -591,17 +618,24 @@ router.post('/', (req, res) => {
       if (!user) return res.status(400).json({ error: 'assigned_to: Benutzer nicht gefunden', code: 400 });
     }
 
+    const attachment = req.body.attachment_data ? parseAttachment(req.body.attachment_data) : { mime: null, size: null, data: null };
+
     const result = db.get().prepare(`
       INSERT INTO calendar_events
         (title, description, start_datetime, end_datetime, all_day,
-         location, color, icon, assigned_to, created_by, recurrence_rule)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         location, color, icon, assigned_to, created_by, recurrence_rule,
+         attachment_name, attachment_mime, attachment_size, attachment_data)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       vTitle.value, vDesc.value,
       vStart.value, vEnd.value,
       all_day ? 1 : 0, vLoc.value,
       vColor.value, vIcon, assigned_to || null,
-      userId, vRrule.value
+      userId, vRrule.value,
+      req.body.attachment_name || null,
+      attachment.mime,
+      attachment.size,
+      attachment.data
     );
 
     const event = db.get().prepare(`
@@ -646,10 +680,17 @@ router.put('/:id', (req, res) => {
     if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
     const vIcon = req.body.icon !== undefined ? eventIcon(req.body.icon) : event.icon;
     if (!vIcon) return res.status(400).json({ error: 'icon: invalid calendar event icon.', code: 400 });
+    const attachment = req.body.attachment_data !== undefined
+      ? (req.body.attachment_data ? parseAttachment(req.body.attachment_data) : { mime: null, size: null, data: null })
+      : {
+          mime: event.attachment_mime,
+          size: event.attachment_size,
+          data: event.attachment_data,
+        };
 
     const {
       title, description, start_datetime, end_datetime,
-      all_day, location, color: colorVal, assigned_to, recurrence_rule,
+      all_day, location, color: colorVal, assigned_to, recurrence_rule, attachment_name,
     } = req.body;
 
     const userModified = event.external_source !== 'local' ? 1 : event.user_modified;
@@ -666,6 +707,10 @@ router.put('/:id', (req, res) => {
           icon            = COALESCE(?, icon),
           assigned_to     = ?,
           recurrence_rule = ?,
+          attachment_name = ?,
+          attachment_mime  = ?,
+          attachment_size  = ?,
+          attachment_data  = ?,
           user_modified   = ?
       WHERE id = ?
     `).run(
@@ -679,6 +724,10 @@ router.put('/:id', (req, res) => {
       req.body.icon !== undefined ? vIcon : null,
       assigned_to !== undefined ? (assigned_to || null) : event.assigned_to,
       recurrence_rule !== undefined ? (recurrence_rule || null) : event.recurrence_rule,
+      attachment_name !== undefined ? (attachment_name || null) : event.attachment_name,
+      attachment.mime,
+      attachment.size,
+      attachment.data,
       userModified,
       id
     );

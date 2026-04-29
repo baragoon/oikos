@@ -386,8 +386,6 @@
 
 .week-event {
   position: absolute;
-  left: 2px;
-  right: 2px;
   border-radius: var(--radius-xs);
   padding: var(--space-0h) var(--space-1);
   font-size: var(--text-xs);
@@ -417,6 +415,29 @@
 .week-event__time {
   font-size: var(--text-xs);
   opacity: 0.85;
+}
+
+.event-attachment-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.event-attachment-preview img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.event-attachment-preview a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-accent);
+  word-break: break-word;
 }
 
 /* --------------------------------------------------------
@@ -761,6 +782,25 @@
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
+}
+
+.event-popup__attachment {
+  margin-top: var(--space-2);
+}
+
+.event-popup__attachment--image img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.event-popup__attachment--file {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-accent);
 }
 
 /* --------------------------------------------------------
