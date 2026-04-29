@@ -322,7 +322,8 @@ function openBirthdayModal({ mode, birthday = null }) {
       const fileInput = panel.querySelector('#bd-photo');
       const photoEdit = panel.querySelector('#bd-photo-edit');
       const renderPreview = () => {
-        preview.innerHTML = birthdayPreviewHtml(nameInput.value.trim(), photoData);
+        preview.replaceChildren();
+        preview.insertAdjacentHTML('beforeend', birthdayPreviewHtml(nameInput.value.trim(), photoData));
       };
       nameInput.addEventListener('input', renderPreview);
       preview.addEventListener('click', () => fileInput?.click());

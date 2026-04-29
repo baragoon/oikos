@@ -376,11 +376,11 @@
     },
     "iconLabel": "Icon",
     "invalidDate": "Bitte ein gültiges Datum im ausgewählten Format verwenden.",
-    "attachmentLabel": "Attachment",
-    "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
-    "attachmentFallback": "Attachment",
-    "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentLabel": "Anhang",
+    "attachmentHint": "Lokales Bild, PDF oder Dokument anhängen. Bilder werden im Ereignis-Popup angezeigt.",
+    "attachmentFallback": "Anhang",
+    "attachmentReadError": "Der Anhang konnte nicht gelesen werden.",
+    "attachmentTooLarge": "Der Anhang darf höchstens 5 MB groß sein."
   },
   "notes": {
     "title": "Notizen",

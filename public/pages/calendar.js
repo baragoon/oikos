@@ -1266,16 +1266,16 @@ function openEventModal({ mode, event = null, date = null, reminder = null }) {
       };
       const syncAttachmentPreview = () => {
         if (!attachmentPreview) return;
-        attachmentPreview.innerHTML = '';
+        attachmentPreview.replaceChildren();
         if (!attachmentState.data) {
           attachmentPreview.hidden = true;
           return;
         }
         attachmentPreview.hidden = false;
         if (isImageAttachment(attachmentState.mime)) {
-          attachmentPreview.innerHTML = `<img src="${attachmentState.data}" alt="${esc(attachmentState.name || '')}">`;
+          attachmentPreview.insertAdjacentHTML('beforeend', `<img src="${attachmentState.data}" alt="${esc(attachmentState.name || '')}">`);
         } else {
-          attachmentPreview.innerHTML = `<a href="${attachmentState.data}" download="${esc(attachmentState.name || '')}">${esc(attachmentState.name || '')}</a>`;
+          attachmentPreview.insertAdjacentHTML('beforeend', `<a href="${attachmentState.data}" download="${esc(attachmentState.name || '')}">${esc(attachmentState.name || '')}</a>`);
         }
       };
       attachmentInput?.addEventListener('change', async () => {

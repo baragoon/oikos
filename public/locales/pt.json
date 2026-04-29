@@ -362,8 +362,8 @@
     "attachmentLabel": "Anexo",
     "attachmentHint": "Anexe uma imagem, PDF ou documento local. Imagens aparecem no pop-up do evento.",
     "attachmentFallback": "Anexo",
-    "attachmentReadError": "Nao foi possivel ler o anexo.",
-    "attachmentTooLarge": "O anexo pode ter no maximo 5 MB."
+    "attachmentReadError": "Não foi possível ler o anexo.",
+    "attachmentTooLarge": "O anexo pode ter no máximo 5 MB."
   },
   "notes": {
     "title": "Quadro de notas",
