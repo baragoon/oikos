@@ -209,6 +209,11 @@ function renderTaskCard(task, opts = {}) {
                 aria-label="${t('tasks.editButton')}">
           <i data-lucide="pencil" class="icon-base" aria-hidden="true"></i>
         </button>
+        ${task.status !== 'archived' ? `
+        <button class="btn btn--ghost btn--icon btn--icon-sm" data-action="archive-task" data-id="${task.id}"
+                aria-label="${t('tasks.archiveButton')}">
+          <i data-lucide="archive" class="icon-base" aria-hidden="true"></i>
+        </button>` : ''}
       </div>
 
       ${progress !== null ? `
@@ -1508,6 +1513,16 @@ function wireTaskList(container) {
         openTaskModal({ task, users: state.users, reminder }, container);
       } catch (err) {
         window.oikos.showToast(t('tasks.loadError'), 'danger');
+      }
+    }
+
+    if (action === 'archive-task') {
+      try {
+        await api.patch(`/tasks/${id}/status`, { status: 'archived' });
+        window.oikos.showToast(t('tasks.archivedToast'), 'success');
+        await loadTasks(container);
+      } catch (err) {
+        window.oikos.showToast(err.message, 'danger');
       }
     }
 
