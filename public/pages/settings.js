@@ -795,7 +795,7 @@ function bindEvents(container, user, users, categories, icsSubscriptions, apiTok
   bindCategoryEvents(container);
   bindIcsEvents(container, user, icsSubscriptions);
   bindApiTokenEvents(container, apiTokens);
-  bindBackupEvents(container);
+  if (typeof bindBackupEvents === 'function') bindBackupEvents(container);
   // Theme-Toggle
   const themeToggle = container.querySelector('#theme-toggle');
   if (themeToggle) {
