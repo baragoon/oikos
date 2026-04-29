@@ -465,7 +465,13 @@ function renderAppShell(container) {
   const sidebarItems = document.createElement('div');
   sidebarItems.className = 'nav-sidebar__items';
   sidebarItems.setAttribute('role', 'list');
-  navItems().forEach((item) => sidebarItems.appendChild(navItemEl(item)));
+  navItems()
+    .filter((item) => !item.kitchenGroup)
+    .forEach((item) => {
+      sidebarItems.appendChild(navItemEl(item));
+      if (item.path === '/calendar') sidebarItems.appendChild(sidebarKitchenEl());
+    });
+  if (window.lucide) window.lucide.createIcons({ el: sidebarItems });
   sidebar.appendChild(sidebarLogo);
   sidebar.appendChild(sidebarItems);
 
@@ -521,7 +527,7 @@ function renderAppShell(container) {
   moreBtn.setAttribute('aria-label', t('nav.more'));
   moreBtn.setAttribute('aria-expanded', 'false');
   const moreBtnIcon = document.createElement('i');
-  moreBtnIcon.dataset.lucide = 'grid-2x2';
+  moreBtnIcon.dataset.lucide = 'ellipsis';
   moreBtnIcon.className = 'nav-item__icon';
   moreBtnIcon.setAttribute('aria-hidden', 'true');
   const moreBtnLabel = document.createElement('span');
@@ -547,7 +553,7 @@ function renderAppShell(container) {
   dragHandle.className = 'more-sheet__handle';
   dragHandle.setAttribute('aria-hidden', 'true');
   moreSheet.insertAdjacentElement('afterbegin', dragHandle);
-  navItems().filter((i) => !i.sidebarOnly).slice(PRIMARY_NAV).forEach((item) => moreSheet.appendChild(moreItemEl(item)));
+  navItems().filter((i) => !i.kitchenGroup).slice(PRIMARY_NAV).forEach((item) => moreSheet.appendChild(moreItemEl(item)));
 
   const searchOverlay = document.createElement('div');
   searchOverlay.className = 'search-overlay';
@@ -945,10 +951,10 @@ function navItems() {
     { path: '/budget',    label: t('nav.budget'),    icon: 'wallet'           },
     { path: '/documents', label: t('nav.documents'), icon: 'folder-lock'      },
     { path: '/settings',  label: t('nav.settings'),  icon: 'settings'         },
-    // Sidebar only (Küche-Gruppe):
-    { path: '/meals',     label: t('nav.meals'),     icon: 'utensils',      sidebarOnly: true },
-    { path: '/recipes',   label: t('nav.recipes'),   icon: 'book-text',     sidebarOnly: true },
-    { path: '/shopping',  label: t('nav.shopping'),  icon: 'shopping-cart', sidebarOnly: true },
+    // Kitchen-Gruppe: via Küche-Nav-Button (Bottom-Nav + Sidebar) + kitchen-tabs-bar erreichbar
+    { path: '/meals',     label: t('nav.meals'),     icon: 'utensils',      kitchenGroup: true },
+    { path: '/recipes',   label: t('nav.recipes'),   icon: 'book-text',     kitchenGroup: true },
+    { path: '/shopping',  label: t('nav.shopping'),  icon: 'shopping-cart', kitchenGroup: true },
   ];
 }
 
@@ -969,6 +975,30 @@ function navItemEl({ path, label, icon }) {
   span.textContent = label;
   a.appendChild(i);
   a.appendChild(span);
+  return a;
+}
+
+function sidebarKitchenEl() {
+  const a = document.createElement('a');
+  a.href = '/meals';
+  a.id = 'sidebar-kitchen-nav';
+  a.className = 'nav-item';
+  a.setAttribute('role', 'listitem');
+  a.setAttribute('aria-label', t('nav.kitchen'));
+  a.setAttribute('title', t('nav.kitchen'));
+  const icon = document.createElement('i');
+  icon.dataset.lucide = 'utensils';
+  icon.className = 'nav-item__icon';
+  icon.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.className = 'nav-item__label';
+  label.textContent = t('nav.kitchen');
+  a.appendChild(icon);
+  a.appendChild(label);
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigate(getLastKitchenRoute());
+  });
   return a;
 }
 
@@ -1008,9 +1038,18 @@ function updateNav(path) {
     kitchenNavBtn.toggleAttribute('aria-current', isKitchen);
   }
 
+  const sidebarKitchenNav = document.querySelector('#sidebar-kitchen-nav');
+  if (sidebarKitchenNav) {
+    if (isKitchenRoute(path)) {
+      sidebarKitchenNav.setAttribute('aria-current', 'page');
+    } else {
+      sidebarKitchenNav.removeAttribute('aria-current');
+    }
+  }
+
   const moreBtn = document.querySelector('#more-btn');
   if (moreBtn) {
-    const secondaryItems = navItems().filter((i) => !i.sidebarOnly).slice(PRIMARY_NAV);
+    const secondaryItems = navItems().filter((i) => !i.kitchenGroup).slice(PRIMARY_NAV);
     const activeSecondary = secondaryItems.find((n) => n.path === path);
     const inMoreSheet = !!activeSecondary;
 
@@ -1124,6 +1163,20 @@ function showToast(message, type = 'default', duration = 3000, onUndo = null) {
 // --------------------------------------------------------
 
 // --------------------------------------------------------
+// Fehler-Hilfsfunktion
+// --------------------------------------------------------
+
+function friendlyError(err) {
+  if (!navigator.onLine) return t('common.errorOffline');
+  const status = err?.status ?? err?.response?.status;
+  if (status === 403) return t('common.errorForbidden');
+  if (status === 404) return t('common.errorNotFound');
+  if (status >= 500) return t('common.errorServer');
+  if (err?.name === 'AbortError' || err?.name === 'TimeoutError') return t('common.errorTimeout');
+  return err?.data?.error || err?.message || t('common.errorGeneric');
+}
+
+// --------------------------------------------------------
 // Globale Fehler-Handler (Error Boundary)
 // --------------------------------------------------------
 
@@ -1138,8 +1191,7 @@ window.addEventListener('unhandledrejection', (e) => {
   // Auth-Fehler werden bereits von auth:expired behandelt
   if (e.reason?.status === 401) return;
   console.error('[Oikos] Unbehandeltes Promise-Rejection:', e.reason);
-  const msg = e.reason?.message || t('common.errorGeneric');
-  showToast(msg, 'danger');
+  showToast(friendlyError(e.reason), 'danger');
   e.preventDefault(); // Konsolenfehler unterdrücken (bereits geloggt)
 });
 
@@ -1189,7 +1241,15 @@ window.addEventListener('locale-changed', () => {
   if (moreBtnLabel) moreBtnLabel.textContent = t('nav.more');
 
   if (navSidebarItems) {
-    navSidebarItems.replaceChildren(...navItems().map(navItemEl));
+    const sidebarEls = [];
+    navItems()
+      .filter((item) => !item.kitchenGroup)
+      .forEach((item) => {
+        sidebarEls.push(navItemEl(item));
+        if (item.path === '/calendar') sidebarEls.push(sidebarKitchenEl());
+      });
+    navSidebarItems.replaceChildren(...sidebarEls);
+    if (window.lucide) window.lucide.createIcons({ el: navSidebarItems });
   }
   if (bottomItems) {
     const kitchenBtnEl = bottomItems.querySelector('#kitchen-btn');
@@ -1202,7 +1262,7 @@ window.addEventListener('locale-changed', () => {
   }
   if (moreSheet) {
     const handle = moreSheet.querySelector('.more-sheet__handle');
-    const newMoreItems = navItems().filter((i) => !i.sidebarOnly).slice(PRIMARY_NAV).map(moreItemEl);
+    const newMoreItems = navItems().filter((i) => !i.kitchenGroup).slice(PRIMARY_NAV).map(moreItemEl);
     moreSheet.replaceChildren(handle, ...newMoreItems);
   }
 
@@ -1294,6 +1354,7 @@ if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
 window.oikos = {
   navigate,
   showToast,
+  friendlyError,
   setThemeColor,
   applyTheme: (value) => {
     localStorage.setItem('oikos-theme', value);
