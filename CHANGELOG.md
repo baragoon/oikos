@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-04-29
+
+### Added
+- Navigation: new "Küche" (Kitchen) button in the bottom bar groups Meals, Recipes and Shopping behind a single entry point with a persistent tab bar inside each sub-module
+- Navigation: new "Suche" (Search) button added to the bottom bar for one-tap access to the search overlay
+- Kitchen tabs bar: sticky segment-control (Meals / Recipes / Shopping) injected at the top of each sub-module page; remembers the last active tab via sessionStorage
+- Keyboard shortcuts: `g k` navigates to Kitchen (last tab), `g k m` → Meals, `g k r` → Recipes, `g k s` → Shopping
+- i18n: `nav.kitchen`, `nav.search` and `shortcuts.goKitchen` keys added to all 15 locale files
+
+### Changed
+- Navigation: bottom bar reorganised — Dashboard, Calendar, Küche, Suche, Mehr (5 items)
+- Navigation: Meals, Recipes and Shopping removed from the More sheet; they are accessible via the Kitchen tab bar and the sidebar on desktop
+- More sheet: reduced from 3-column to 2-column grid for larger touch targets; search trigger removed
+- More sheet: drag-handle added at the top; swipe-down gesture closes the sheet
+
 ## [0.33.1] - 2026-04-29
 
 ### Changed
