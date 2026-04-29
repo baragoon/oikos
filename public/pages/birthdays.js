@@ -276,9 +276,20 @@ function openBirthdayModal({ mode, birthday = null }) {
     content: `
       <div class="birthday-modal">
         <div class="birthday-modal__identity">
-          <button type="button" class="birthday-avatar-editor" id="birthday-preview" aria-label="${t('birthdays.photoLabel')}">
-            ${birthdayPreviewHtml(birthday?.name || '', photoData)}
-          </button>
+          <div class="birthday-modal__photo-wrap">
+            <button type="button" class="birthday-avatar-editor" id="birthday-preview" aria-label="${t('birthdays.photoLabel')}">
+              ${birthdayPreviewHtml(birthday?.name || '', photoData)}
+            </button>
+            <input class="sr-only" id="bd-photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+            <div class="birthday-modal__photo-actions">
+              <button type="button" class="birthday-modal__photo-action" id="bd-photo-edit" aria-label="${t('birthdays.photoLabel')}" title="${t('birthdays.photoLabel')}">
+                <i data-lucide="pencil" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="birthday-modal__photo-action birthday-modal__photo-action--danger" id="bd-remove-photo" aria-label="${t('birthdays.removePhoto')}" title="${t('birthdays.removePhoto')}">
+                <i data-lucide="trash-2" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
           <div class="birthday-modal__fields">
             <div class="form-group">
               <label class="form-label" for="bd-name">${t('birthdays.nameLabel')}</label>
@@ -289,15 +300,6 @@ function openBirthdayModal({ mode, birthday = null }) {
               <input class="form-input" id="bd-birth-date" type="date" value="${esc(birthday?.birth_date || '')}">
             </div>
           </div>
-        </div>
-        <input class="sr-only" id="bd-photo" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
-        <div class="birthday-modal__photo-actions">
-          <button type="button" class="birthday-modal__photo-action" id="bd-photo-edit" aria-label="${t('birthdays.photoLabel')}" title="${t('birthdays.photoLabel')}">
-            <i data-lucide="pencil" aria-hidden="true"></i>
-          </button>
-          <button type="button" class="birthday-modal__photo-action birthday-modal__photo-action--danger" id="bd-remove-photo" aria-label="${t('birthdays.removePhoto')}" title="${t('birthdays.removePhoto')}">
-            <i data-lucide="trash-2" aria-hidden="true"></i>
-          </button>
         </div>
         <div class="form-group">
           <label class="form-label" for="bd-notes">${t('birthdays.notesLabel')}</label>
