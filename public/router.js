@@ -131,7 +131,7 @@ let _pendingLoginRedirect = false;
 const ROUTE_ORDER = ['/', '/tasks', '/calendar', '/birthdays', '/meals', '/recipes', '/shopping',
                      '/notes', '/contacts', '/budget', '/documents', '/settings'];
 
-const PRIMARY_NAV = 4;
+const PRIMARY_NAV = 3;
 
 const DEFAULT_APP_NAME = 'Oikos';
 const APP_NAME_STORAGE_KEY = 'oikos-app-name';
@@ -350,19 +350,11 @@ async function renderPage(route, previousPath = null) {
 
     // Richtung bestimmen (previousPath ist der alte Pfad vor der Navigation)
     const direction = getDirection(previousPath, route.path);
-    const outClass  = direction === 'right' ? 'page-transition--out-left' : 'page-transition--out-right';
     const inClass   = direction === 'right' ? 'page-transition--in-right' : 'page-transition--in-left';
 
     // Performance: backdrop-filter während Übergang deaktivieren (Android-Optimierung).
     // glass.css setzt alle backdrop-filter im app-content auf none solange diese Klasse aktiv ist.
     document.documentElement.classList.add('navigating');
-
-    // Alte Seite kurz ausfaden, falls vorhanden
-    const oldPage = content.querySelector('.page-transition');
-    if (oldPage) {
-      oldPage.classList.add(outClass);
-      await new Promise(r => setTimeout(r, 120));
-    }
 
     // Alter Inhalt ist jetzt weg - altes Stylesheet kann entfernt werden
     const pageWrapper = document.createElement('div');
@@ -486,6 +478,20 @@ function renderAppShell(container) {
   const bottomItems = document.createElement('div');
   bottomItems.className = 'nav-bottom__items';
   navItems().slice(0, PRIMARY_NAV).forEach((item) => bottomItems.appendChild(navItemEl(item)));
+  const searchNavBtn = document.createElement('button');
+  searchNavBtn.className = 'nav-item nav-item--search';
+  searchNavBtn.id = 'search-nav-btn';
+  searchNavBtn.setAttribute('aria-label', t('search.title'));
+  const searchNavIcon = document.createElement('i');
+  searchNavIcon.dataset.lucide = 'search';
+  searchNavIcon.className = 'nav-item__icon';
+  searchNavIcon.setAttribute('aria-hidden', 'true');
+  const searchNavLabel = document.createElement('span');
+  searchNavLabel.className = 'nav-item__label';
+  searchNavLabel.textContent = t('search.title');
+  searchNavBtn.appendChild(searchNavIcon);
+  searchNavBtn.appendChild(searchNavLabel);
+  bottomItems.appendChild(searchNavBtn);
   const moreBtn = document.createElement('button');
   moreBtn.className = 'nav-item nav-item--more';
   moreBtn.id = 'more-btn';
@@ -758,6 +764,7 @@ function initMoreSheet(container) {
  */
 function initSearch(container) {
   const searchBtn    = container.querySelector('#search-btn');
+  const searchNavBtn = container.querySelector('#search-nav-btn');
   const searchClose  = container.querySelector('#search-close');
   const overlay      = container.querySelector('#search-overlay');
   const input        = container.querySelector('#search-input');
@@ -770,6 +777,7 @@ function initSearch(container) {
   let _searchTrapHandler = null;
 
   function openSearch() {
+    window._openSearch = openSearch;
     if (window._closeMoreSheet) window._closeMoreSheet();
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.add('search-overlay--visible');
@@ -804,6 +812,7 @@ function initSearch(container) {
   }
 
   searchBtn.addEventListener('click', openSearch);
+  if (searchNavBtn) searchNavBtn.addEventListener('click', openSearch);
   searchClose.addEventListener('click', closeSearch);
 
   document.addEventListener('keydown', (e) => {
@@ -878,18 +887,18 @@ function renderSearchResults(container, data, onClose) {
 
 function navItems() {
   return [
-    { path: '/',         label: t('nav.dashboard'), icon: 'layout-dashboard' },
-    { path: '/tasks',    label: t('nav.tasks'),     icon: 'check-square'     },
-    { path: '/birthdays', label: t('nav.birthdays'), icon: 'cake'            },
-    { path: '/calendar', label: t('nav.calendar'),  icon: 'calendar'         },
-    { path: '/meals',    label: t('nav.meals'),     icon: 'utensils'         },
-    { path: '/recipes',  label: t('nav.recipes'),   icon: 'book-text'        },
-    { path: '/shopping', label: t('nav.shopping'),  icon: 'shopping-cart'    },
-    { path: '/notes',    label: t('nav.notes'),     icon: 'sticky-note'      },
-    { path: '/contacts', label: t('nav.contacts'),  icon: 'book-user'        },
-    { path: '/budget',   label: t('nav.budget'),    icon: 'wallet'           },
-    { path: '/documents', label: t('nav.documents'), icon: 'folder-lock'     },
-    { path: '/settings', label: t('nav.settings'),  icon: 'settings'         },
+    { path: '/',          label: t('nav.dashboard'), icon: 'layout-dashboard' },
+    { path: '/tasks',     label: t('nav.tasks'),     icon: 'check-square'     },
+    { path: '/calendar',  label: t('nav.calendar'),  icon: 'calendar'         },
+    { path: '/shopping',  label: t('nav.shopping'),  icon: 'shopping-cart'    },
+    { path: '/meals',     label: t('nav.meals'),     icon: 'utensils'         },
+    { path: '/recipes',   label: t('nav.recipes'),   icon: 'book-text'        },
+    { path: '/birthdays', label: t('nav.birthdays'), icon: 'cake'             },
+    { path: '/notes',     label: t('nav.notes'),     icon: 'sticky-note'      },
+    { path: '/contacts',  label: t('nav.contacts'),  icon: 'book-user'        },
+    { path: '/budget',    label: t('nav.budget'),    icon: 'wallet'           },
+    { path: '/documents', label: t('nav.documents'), icon: 'folder-lock'      },
+    { path: '/settings',  label: t('nav.settings'),  icon: 'settings'         },
   ];
 }
 
@@ -1128,7 +1137,27 @@ window.addEventListener('locale-changed', () => {
   if (bottomItems) {
     const moreBtn = bottomItems.querySelector('#more-btn');
     const newItems = navItems().slice(0, PRIMARY_NAV).map(navItemEl);
-    bottomItems.replaceChildren(...newItems, moreBtn);
+    // Such-Button neu erstellen (wird durch replaceChildren entfernt)
+    const newSearchBtn = document.createElement('button');
+    newSearchBtn.className = 'nav-item nav-item--search';
+    newSearchBtn.id = 'search-nav-btn';
+    newSearchBtn.setAttribute('aria-label', t('search.title'));
+    const newSearchIcon = document.createElement('i');
+    newSearchIcon.dataset.lucide = 'search';
+    newSearchIcon.className = 'nav-item__icon';
+    newSearchIcon.setAttribute('aria-hidden', 'true');
+    const newSearchLbl = document.createElement('span');
+    newSearchLbl.className = 'nav-item__label';
+    newSearchLbl.textContent = t('search.title');
+    newSearchBtn.appendChild(newSearchIcon);
+    newSearchBtn.appendChild(newSearchLbl);
+    bottomItems.replaceChildren(...newItems, newSearchBtn, moreBtn);
+    // Event-Listener auf neuen Such-Button
+    if (newSearchBtn) {
+      newSearchBtn.addEventListener('click', () => {
+        if (window._openSearch) window._openSearch();
+      });
+    }
   }
   if (moreSheet) {
     const searchBtn = moreSheet.querySelector('#search-btn');
