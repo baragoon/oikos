@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.36.1] - 2026-04-29
+
+### Fixed
+- Date input: default date format changed from US (`MM/DD/YYYY`) to day-month-year (`DD.MM.YYYY`) for new users
+- Date input: dot-separated dates (`DD.MM.YYYY`) are now accepted in addition to slash-separated dates
+- Date input: `dmy` placeholder and display format updated to use dots instead of slashes
+
 ## [0.36.0] - 2026-04-29
 
 ### Added

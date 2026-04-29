@@ -9,7 +9,7 @@ const SUPPORTED_LOCALES = ['de', 'en', 'es', 'fr', 'it', 'sv', 'el', 'ru', 'tr',
 const DEFAULT_LOCALE = 'de';
 const STORAGE_KEY = 'oikos-locale';
 const DATE_FORMAT_KEY = 'oikos-date-format';
-const DEFAULT_DATE_FORMAT = 'mdy';
+const DEFAULT_DATE_FORMAT = 'dmy';
 
 let currentLocale = DEFAULT_LOCALE;
 let translations = {};
@@ -100,7 +100,7 @@ function formatDateParts(date, useUtc = false) {
   const month = String((useUtc ? d.getUTCMonth() : d.getMonth()) + 1).padStart(2, '0');
   const day = String(useUtc ? d.getUTCDate() : d.getDate()).padStart(2, '0');
   switch (getDateFormatPreference()) {
-    case 'dmy': return `${day}/${month}/${year}`;
+    case 'dmy': return `${day}.${month}.${year}`;
     case 'ymd': return `${year}-${month}-${day}`;
     default: return `${month}/${day}/${year}`;
   }
@@ -127,7 +127,7 @@ export function formatDate(date) {
 
 export function dateInputPlaceholder() {
   switch (getDateFormatPreference()) {
-    case 'dmy': return 'DD/MM/YYYY';
+    case 'dmy': return 'DD.MM.YYYY';
     case 'ymd': return 'YYYY-MM-DD';
     default: return 'MM/DD/YYYY';
   }
@@ -145,7 +145,7 @@ export function parseDateInput(value) {
   const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (isoMatch) return isValidDateParts(isoMatch[1], isoMatch[2], isoMatch[3]) ? raw : '';
 
-  const slashMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const slashMatch = raw.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
   if (!slashMatch) return '';
 
   const [, first, second, year] = slashMatch;
