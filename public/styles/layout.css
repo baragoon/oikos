@@ -676,7 +676,7 @@
 }
 
 /* Tooltip für collapsed Sidebar (nur Icons sichtbar bei 1024–1439px) */
-@media (min-width: 1024px) and (max-width: 1439px) {
+@media (min-width: 1024px) and (max-width: 1279px) {
   .nav-sidebar .nav-item {
     overflow: visible;
   }
@@ -710,7 +710,7 @@
 /* ================================================================
  * Sidebar Expanded (≥ 1280px) - Labels sichtbar
  * ================================================================ */
-@media (min-width: 1440px) {
+@media (min-width: 1280px) {
   :root {
     --sidebar-width: var(--sidebar-width-expanded);
   }

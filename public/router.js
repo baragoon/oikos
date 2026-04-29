@@ -521,7 +521,7 @@ function renderAppShell(container) {
   moreBtn.setAttribute('aria-label', t('nav.more'));
   moreBtn.setAttribute('aria-expanded', 'false');
   const moreBtnIcon = document.createElement('i');
-  moreBtnIcon.dataset.lucide = 'grid-2x2';
+  moreBtnIcon.dataset.lucide = 'ellipsis';
   moreBtnIcon.className = 'nav-item__icon';
   moreBtnIcon.setAttribute('aria-hidden', 'true');
   const moreBtnLabel = document.createElement('span');
