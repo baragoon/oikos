@@ -193,6 +193,11 @@
   .widget--wide {
     grid-column: span 2;
   }
+
+  /* Sekundäre Widgets: 2 Spalten ab 3-Spalten-Grid */
+  .widget--secondary {
+    grid-column: span 2;
+  }
 }
 
 @media (min-width: 1280px) {
@@ -205,10 +210,20 @@
     grid-column: span 2;
   }
 
+  /* Im 4-Spalten-Grid: sekundäre Widgets nur 1 Spalte */
+  .widget--secondary {
+    grid-column: span 1;
+  }
+
   /* Greeting-Widget über alle 4 Spalten */
   .widget-greeting {
     grid-column: 1 / -1;
   }
+}
+
+/* Primäre Widgets: subtile Akzentlinie oben */
+.widget-wrapper.widget--wide > .widget {
+  border-top: 2px solid var(--active-module-accent, var(--color-accent));
 }
 
 /* --------------------------------------------------------

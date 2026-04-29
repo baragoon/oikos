@@ -110,7 +110,8 @@ function showOnboarding(appContainer) {
 // Widget-Definitionen (Reihenfolge = Standard-Layout)
 // --------------------------------------------------------
 
-const WIDGET_IDS = ['weather', 'tasks', 'calendar', 'birthdays', 'budget', 'family', 'shopping', 'meals', 'notes'];
+// NEU — primäre Inhalte (tasks, calendar) ganz oben
+const WIDGET_IDS = ['tasks', 'calendar', 'weather', 'meals', 'shopping', 'birthdays', 'budget', 'family', 'notes'];
 
 const DEFAULT_WIDGET_CONFIG = WIDGET_IDS.map((id, i) => ({ id, visible: true, order: i }));
 
@@ -552,8 +553,13 @@ function renderDashboardOverview(user) {
 }
 
 function widgetTileClass(id) {
-  const wideIds = ['tasks', 'budget', 'notes', 'weather'];
-  return wideIds.includes(id) ? 'widget--wide' : '';
+  // Primär: immer 2 Spalten breit (die wichtigsten Inhalte)
+  const primaryIds = ['tasks', 'calendar'];
+  // Sekundär: 2 Spalten ab 3-Spalten-Breakpoint (1024px)
+  const secondaryIds = ['weather', 'shopping'];
+  if (primaryIds.includes(id))   return 'widget--wide';
+  if (secondaryIds.includes(id)) return 'widget--secondary';
+  return '';
 }
 
 function renderDashboardLayout(cfg, data, weather, currency) {
