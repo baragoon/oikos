@@ -182,6 +182,11 @@
   .widget--wide {
     grid-column: 1 / -1;
   }
+
+  /* Sekundäre Widgets bei 2 Spalten: 1 Spalte */
+  .widget--secondary {
+    grid-column: span 1;
+  }
 }
 
 @media (min-width: 1024px) {
