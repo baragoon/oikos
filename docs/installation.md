@@ -472,7 +472,7 @@ Admins can restore a backup from **Settings → Backup Management**. For operati
 
 ```bash
 docker compose stop oikos
-docker compose run --rm -v "$PWD/oikos-backup-20260401.db:/tmp/oikos-restore.db:ro" --entrypoint node oikos scripts/restore-backup.js /tmp/oikos-restore.db
+docker compose run --rm -v "$PWD/oikos-backup-20260401.db:/tmp/oikos-restore.db:ro" oikos node scripts/restore-backup.js /tmp/oikos-restore.db
 docker compose up -d
 ```
 

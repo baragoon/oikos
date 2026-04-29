@@ -761,7 +761,7 @@ export async function render(container, { user }) {
             <h3 class="settings-card__title">${t('settings.backupCliTitle')}</h3>
             <p class="form-hint">${t('settings.backupCliHint')}</p>
             <pre class="settings-code-block"><code>docker compose stop oikos
-docker compose run --rm -v "$PWD/oikos-backup.db:/tmp/oikos-restore.db:ro" --entrypoint node oikos scripts/restore-backup.js /tmp/oikos-restore.db
+docker compose run --rm -v "$PWD/oikos-backup.db:/tmp/oikos-restore.db:ro" oikos node scripts/restore-backup.js /tmp/oikos-restore.db
 docker compose up -d</code></pre>
             <p class="form-hint">${t('settings.backupCliBackupHint')}</p>
             <pre class="settings-code-block"><code>docker compose exec oikos node -e "import('./server/db.js').then(async db =&gt; { await db.backupToFile('/data/oikos-backup.db'); process.exit(0); })"
