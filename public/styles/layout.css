@@ -663,6 +663,38 @@
   }
 }
 
+/* Tooltip für collapsed Sidebar (nur Icons sichtbar bei 1024–1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .nav-sidebar .nav-item {
+    overflow: visible;
+  }
+
+  .nav-sidebar .nav-item::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(var(--sidebar-width) + var(--space-2));
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border-subtle);
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: calc(var(--z-nav) + 10);
+  }
+
+  .nav-sidebar .nav-item:hover::after {
+    opacity: 1;
+  }
+}
+
 /* ================================================================
  * Sidebar Expanded (≥ 1280px) - Labels sichtbar
  * ================================================================ */
