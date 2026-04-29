@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.32.2] - 2026-04-29
+
+### Changed
+- Bottom navigation restructured: Dashboard, Tasks, Calendar as first three primary slots; Search promoted to a dedicated fourth bottom-nav button (no longer buried in the More sheet)
+- Sidebar tooltips added for the collapsed mode (1024–1439 px) — hovering an icon now shows a label tooltip so module names remain discoverable without expanding the sidebar
+
 ## [0.32.1] - 2026-04-29
 
 ### Fixed
