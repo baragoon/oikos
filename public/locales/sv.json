@@ -955,6 +955,9 @@
       "taxes": "Skatter",
       "work": "Arbete",
       "other": "Övrigt"
-    }
+    },
+    "dropzoneTitle": "Släpp filen här eller klicka för att välja",
+    "dropzoneHint": "Dra en fil till området eller använd filväljaren.",
+    "selectedFileLabel": "Vald: {{name}}"
   }
 }

@@ -955,6 +955,9 @@
       "taxes": "税金",
       "work": "仕事",
       "other": "その他"
-    }
+    },
+    "dropzoneTitle": "ここにファイルをドロップ、またはクリックして選択",
+    "dropzoneHint": "この領域にファイルをドラッグするか、ファイル選択を使用します。",
+    "selectedFileLabel": "選択済み: {{name}}"
   }
 }

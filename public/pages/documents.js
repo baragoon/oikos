@@ -277,7 +277,15 @@ function openDocumentModal(doc = null) {
         ${!isEdit ? `
         <div class="form-group">
           <label class="label" for="document-file">${t('documents.fileLabel')}</label>
-          <input class="input" id="document-file" type="file" required>
+          <label class="document-dropzone" id="document-dropzone" for="document-file">
+            <input class="sr-only" id="document-file" type="file" required>
+            <span class="document-dropzone__icon">
+              <i data-lucide="file-up" aria-hidden="true"></i>
+            </span>
+            <span class="document-dropzone__title">${t('documents.dropzoneTitle')}</span>
+            <span class="document-dropzone__hint">${t('documents.dropzoneHint')}</span>
+            <span class="document-dropzone__file" id="document-selected-file" hidden></span>
+          </label>
           <p class="document-form__hint">${t('documents.fileHint')}</p>
         </div>` : ''}
         <div class="modal-grid modal-grid--2">
@@ -314,8 +322,44 @@ function openDocumentModal(doc = null) {
       const syncVisibility = () => { picker.hidden = visibility.value !== 'restricted'; };
       visibility.addEventListener('change', syncVisibility);
       syncVisibility();
+      bindDropzone(panel);
       form.addEventListener('submit', (event) => saveDocument(event, doc));
     },
+  });
+}
+
+function bindDropzone(panel) {
+  const dropzone = panel.querySelector('#document-dropzone');
+  const input = panel.querySelector('#document-file');
+  const selected = panel.querySelector('#document-selected-file');
+  if (!dropzone || !input || !selected) return;
+
+  const syncSelectedFile = () => {
+    const file = input.files?.[0];
+    selected.hidden = !file;
+    selected.textContent = file ? t('documents.selectedFileLabel', { name: file.name }) : '';
+  };
+
+  input.addEventListener('change', syncSelectedFile);
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropzone.classList.add('document-dropzone--active');
+    });
+  });
+  ['dragleave', 'drop'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropzone.classList.remove('document-dropzone--active');
+    });
+  });
+  dropzone.addEventListener('drop', (event) => {
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    input.files = transfer.files;
+    syncSelectedFile();
   });
 }
 

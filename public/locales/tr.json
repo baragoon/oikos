@@ -955,6 +955,9 @@
       "taxes": "Vergiler",
       "work": "İş",
       "other": "Diğer"
-    }
+    },
+    "dropzoneTitle": "Dosyayı buraya bırakın veya seçmek için tıklayın",
+    "dropzoneHint": "Bir dosyayı bu alana sürükleyin veya dosya seçiciyi kullanın.",
+    "selectedFileLabel": "Seçildi: {{name}}"
   }
 }

@@ -955,6 +955,9 @@
       "taxes": "Tasse",
       "work": "Lavoro",
       "other": "Altro"
-    }
+    },
+    "dropzoneTitle": "Rilascia il file qui o fai clic per scegliere",
+    "dropzoneHint": "Trascina un file in quest’area oppure usa il selettore.",
+    "selectedFileLabel": "Selezionato: {{name}}"
   }
 }

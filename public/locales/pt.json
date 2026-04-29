@@ -961,6 +961,9 @@
       "taxes": "Impostos",
       "work": "Trabalho",
       "other": "Outros"
-    }
+    },
+    "dropzoneTitle": "Solte o arquivo aqui ou clique para escolher",
+    "dropzoneHint": "Arraste um arquivo para esta area, ou use o seletor de arquivos.",
+    "selectedFileLabel": "Selecionado: {{name}}"
   }
 }

@@ -979,6 +979,9 @@
       "taxes": "Taxes",
       "work": "Work",
       "other": "Other"
-    }
+    },
+    "dropzoneTitle": "Drop file here or click to choose",
+    "dropzoneHint": "Drag a file into this area, or use the file picker.",
+    "selectedFileLabel": "Selected: {{name}}"
   }
 }

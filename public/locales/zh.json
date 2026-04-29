@@ -955,6 +955,9 @@
       "taxes": "税务",
       "work": "工作",
       "other": "其他"
-    }
+    },
+    "dropzoneTitle": "将文件拖到此处或点击选择",
+    "dropzoneHint": "将文件拖入此区域，或使用文件选择器。",
+    "selectedFileLabel": "已选择：{{name}}"
   }
 }
