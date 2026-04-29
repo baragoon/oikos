@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.34.1] - 2026-04-29
+
+### Fixed
+- Kitchen tabs bar disappeared after navigating to Shopping, because the page overwrote the container a second time after loading data
+
 ## [0.34.0] - 2026-04-29
 
 ### Added
