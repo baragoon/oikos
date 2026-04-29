@@ -840,8 +840,6 @@ export async function render(container, { user }) {
       </div>
     </div>
   `;
-  renderKitchenTabsBar(container, '/shopping');
-
   try {
     await Promise.all([loadCategories(), loadLists()]);
     if (state.lists.length) {
@@ -864,6 +862,7 @@ export async function render(container, { user }) {
     </div>
   `;
 
+  renderKitchenTabsBar(container, '/shopping');
   renderTabs(container);
   wireTabBar(container);
   renderListContent(container);
