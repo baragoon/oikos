@@ -358,7 +358,12 @@
       "resetToast": "Changes reset."
     },
     "iconLabel": "Icon",
-    "invalidDate": "Use a valid date in the selected date format."
+    "invalidDate": "Use a valid date in the selected date format.",
+    "attachmentLabel": "Attachment",
+    "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
+    "attachmentFallback": "Attachment",
+    "attachmentReadError": "The attachment could not be read.",
+    "attachmentTooLarge": "Attachment may be at most 5 MB."
   },
   "notes": {
     "title": "Board",

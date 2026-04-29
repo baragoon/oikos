@@ -375,7 +375,12 @@
       "resetToast": "Änderungen zurückgesetzt."
     },
     "iconLabel": "Icon",
-    "invalidDate": "Bitte ein gültiges Datum im ausgewählten Format verwenden."
+    "invalidDate": "Bitte ein gültiges Datum im ausgewählten Format verwenden.",
+    "attachmentLabel": "Anhang",
+    "attachmentHint": "Lokales Bild, PDF oder Dokument anhängen. Bilder werden im Ereignis-Popup angezeigt.",
+    "attachmentFallback": "Anhang",
+    "attachmentReadError": "Der Anhang konnte nicht gelesen werden.",
+    "attachmentTooLarge": "Der Anhang darf höchstens 5 MB groß sein."
   },
   "notes": {
     "title": "Notizen",
