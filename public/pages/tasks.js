@@ -532,6 +532,7 @@ function openTaskModal({ task = null, users = [], reminder = null } = {}, contai
     content: renderModalContent({ task, users, reminder }),
     size: 'lg',
     onSave(panel) {
+      panel.querySelector('.modal-panel__body')?.classList.add('modal-panel__body--tasks-fit');
       // RRULE-Events binden
       bindRRuleEvents(document, 'task');
 

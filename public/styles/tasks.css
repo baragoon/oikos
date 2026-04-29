@@ -9,6 +9,10 @@
  * -------------------------------------------------------- */
 .tasks-page { --module-accent: var(--module-tasks); }
 
+.modal-panel__body--tasks-fit {
+  flex: 0 1 auto;
+}
+
 /* --------------------------------------------------------
  * Seiten-Layout
  * -------------------------------------------------------- */
@@ -754,5 +758,4 @@
   background-color: var(--color-accent-light);
   opacity: 0.5;
 }
-
 
