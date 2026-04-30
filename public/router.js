@@ -132,7 +132,7 @@ let _pendingLoginRedirect = false;
 const ROUTE_ORDER = ['/', '/calendar', '/tasks', '/meals', '/recipes', '/shopping',
                      '/birthdays', '/notes', '/contacts', '/budget', '/documents', '/settings'];
 
-const PRIMARY_NAV = 2;
+const PRIMARY_NAV = 3;
 
 const DEFAULT_APP_NAME = 'Oikos';
 const APP_NAME_STORAGE_KEY = 'oikos-app-name';
@@ -366,6 +366,16 @@ async function renderPage(route, previousPath = null) {
 
     await module.render(pageWrapper, { user: currentUser });
 
+    // FAB Long Loop: Einstiegsanimation nach FAB_SEEN_MAX Views deaktivieren
+    if (pageWrapper.querySelector('.page-fab')) {
+      let fabCount = parseInt(localStorage.getItem(FAB_SEEN_KEY) ?? '0', 10);
+      if (fabCount < FAB_SEEN_MAX) {
+        fabCount++;
+        localStorage.setItem(FAB_SEEN_KEY, String(fabCount));
+      }
+      document.documentElement.classList.toggle('fab-anim-done', fabCount >= FAB_SEEN_MAX);
+    }
+
     // Route-Announcer: Screenreader über Seitenwechsel informieren (gezielt, nicht gesamter Inhalt)
     const announcer = document.getElementById('route-announcer');
     if (announcer) {
@@ -504,23 +514,6 @@ function renderAppShell(container) {
   kitchenBtn.addEventListener('click', () => navigate(getLastKitchenRoute()));
   bottomItems.appendChild(kitchenBtn);
 
-  const searchNavBtn = document.createElement('button');
-  searchNavBtn.className = 'nav-item nav-item--search';
-  searchNavBtn.id = 'search-btn';
-  searchNavBtn.type = 'button';
-  searchNavBtn.setAttribute('aria-label', t('nav.search'));
-  searchNavBtn.setAttribute('title', t('nav.search'));
-  const searchNavIcon = document.createElement('i');
-  searchNavIcon.dataset.lucide = 'search';
-  searchNavIcon.className = 'nav-item__icon';
-  searchNavIcon.setAttribute('aria-hidden', 'true');
-  const searchNavLabel = document.createElement('span');
-  searchNavLabel.className = 'nav-item__label';
-  searchNavLabel.textContent = t('nav.search');
-  searchNavBtn.appendChild(searchNavIcon);
-  searchNavBtn.appendChild(searchNavLabel);
-  bottomItems.appendChild(searchNavBtn);
-
   const moreBtn = document.createElement('button');
   moreBtn.className = 'nav-item nav-item--more';
   moreBtn.id = 'more-btn';
@@ -553,6 +546,29 @@ function renderAppShell(container) {
   dragHandle.className = 'more-sheet__handle';
   dragHandle.setAttribute('aria-hidden', 'true');
   moreSheet.insertAdjacentElement('afterbegin', dragHandle);
+
+  const moreSearchBar = document.createElement('div');
+  moreSearchBar.className = 'more-sheet__search';
+  moreSearchBar.id = 'more-sheet-search';
+  moreSearchBar.setAttribute('role', 'button');
+  moreSearchBar.setAttribute('tabindex', '0');
+  moreSearchBar.setAttribute('aria-label', t('search.placeholder'));
+  const moreSearchIcon = document.createElement('i');
+  moreSearchIcon.dataset.lucide = 'search';
+  moreSearchIcon.className = 'more-sheet__search-icon';
+  moreSearchIcon.setAttribute('aria-hidden', 'true');
+  const moreSearchPlaceholder = document.createElement('span');
+  moreSearchPlaceholder.className = 'more-sheet__search-placeholder';
+  moreSearchPlaceholder.textContent = t('search.placeholder');
+  const moreSearchKbd = document.createElement('kbd');
+  moreSearchKbd.className = 'more-sheet__search-kbd';
+  moreSearchKbd.textContent = '/';
+  moreSearchKbd.setAttribute('aria-hidden', 'true');
+  moreSearchBar.appendChild(moreSearchIcon);
+  moreSearchBar.appendChild(moreSearchPlaceholder);
+  moreSearchBar.appendChild(moreSearchKbd);
+  moreSheet.appendChild(moreSearchBar);
+
   navItems().filter((i) => !i.kitchenGroup).slice(PRIMARY_NAV).forEach((item) => moreSheet.appendChild(moreItemEl(item)));
 
   const searchOverlay = document.createElement('div');
@@ -606,15 +622,28 @@ function renderAppShell(container) {
     });
   });
 
-  initMoreSheet(container);
+  const openSearch = initSearch(container);
+  initMoreSheet(container, openSearch);
   initNavHideOnScroll(container);
-  initSearch(container);
   initOfflineBanner();
   initKeyboardShortcuts();
+  if (localStorage.getItem(SEARCH_KBD_KEY)) {
+    document.documentElement.classList.add('search-kbd-done');
+  }
 }
 
+const FAB_SEEN_KEY = 'oikos:fabSeenCount';
+const FAB_SEEN_MAX = 5;
+const SEARCH_KBD_KEY = 'oikos:searchKbdUsed';
+
 const SHORTCUTS = [
-  { key: '/',   description: () => t('shortcuts.search'),  action: () => document.getElementById('search-btn')?.click() },
+  { key: '/',   description: () => t('shortcuts.search'),  action: () => {
+    if (!localStorage.getItem(SEARCH_KBD_KEY)) {
+      localStorage.setItem(SEARCH_KBD_KEY, '1');
+      document.documentElement.classList.add('search-kbd-done');
+    }
+    document.getElementById('more-sheet-search')?.click();
+  } },
   { key: 'n',   description: () => t('shortcuts.new'),     action: () => document.querySelector('.page-fab')?.click() },
   { key: '?',   description: () => t('shortcuts.help'),    action: () => showShortcutsModal() },
   { key: 'g d', description: () => t('shortcuts.goDash'),  action: () => navigate('/') },
@@ -774,7 +803,7 @@ function initNavHideOnScroll(container) {
 /**
  * Öffnet/schließt das More-Sheet und die Backdrop.
  */
-function initMoreSheet(container) {
+function initMoreSheet(container, openSearch) {
   const moreBtn  = container.querySelector('#more-btn');
   const backdrop = container.querySelector('#more-backdrop');
   const sheet    = container.querySelector('#more-sheet');
@@ -812,6 +841,15 @@ function initMoreSheet(container) {
     el.addEventListener('click', () => closeSheet());
   });
 
+  const moreSearchBar = sheet.querySelector('#more-sheet-search');
+  if (moreSearchBar && openSearch) {
+    const triggerSearch = () => { closeSheet(); openSearch(); };
+    moreSearchBar.addEventListener('click', triggerSearch);
+    moreSearchBar.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerSearch(); }
+    });
+  }
+
   window._closeMoreSheet = closeSheet;
 }
 
@@ -819,12 +857,11 @@ function initMoreSheet(container) {
  * Initialisiert die Suchfunktion (Overlay + API-Calls).
  */
 function initSearch(container) {
-  const searchBtn   = container.querySelector('#search-btn');
   const searchClose = container.querySelector('#search-close');
   const overlay      = container.querySelector('#search-overlay');
   const input        = container.querySelector('#search-input');
   const results      = container.querySelector('#search-results');
-  if (!searchBtn || !overlay || !input || !results) return;
+  if (!overlay || !input || !results) return null;
 
   // Leichtgewichtiger Focus Trap für das Search Overlay.
   // Eigenständig (kein modal.js), da modul-globale Variablen in modal.js
@@ -832,7 +869,6 @@ function initSearch(container) {
   let _searchTrapHandler = null;
 
   function openSearch() {
-    window._openSearch = openSearch;
     if (window._closeMoreSheet) window._closeMoreSheet();
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.add('search-overlay--visible');
@@ -866,8 +902,7 @@ function initSearch(container) {
     results.replaceChildren();
   }
 
-  searchBtn.addEventListener('click', openSearch);
-  searchClose.addEventListener('click', closeSearch);
+  if (searchClose) searchClose.addEventListener('click', closeSearch);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && overlay.classList.contains('search-overlay--visible')) {
@@ -892,6 +927,8 @@ function initSearch(container) {
       }
     }, 300);
   });
+
+  return openSearch;
 }
 
 /**
@@ -1093,6 +1130,9 @@ function renderError(container, err) {
  * @param {'default'|'success'|'danger'|'warning'} type
  * @param {number} duration - ms
  */
+const TOAST_SUCCESS_KEY = 'oikos:toastSuccessCount';
+const TOAST_SUCCESS_MAX = 50;
+
 const TOAST_ICONS = {
   success: '<svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
   danger:  '<svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
@@ -1102,6 +1142,13 @@ const TOAST_ICONS = {
 function showToast(message, type = 'default', duration = 3000, onUndo = null) {
   const container = document.getElementById('toast-container');
   if (!container) return;
+
+  // Long Loop: Success-Toasts nach TOAST_SUCCESS_MAX Aufrufen unterdrücken
+  if (type === 'success' && typeof onUndo !== 'function') {
+    const successCount = parseInt(localStorage.getItem(TOAST_SUCCESS_KEY) ?? '0', 10) + 1;
+    localStorage.setItem(TOAST_SUCCESS_KEY, String(successCount));
+    if (successCount > TOAST_SUCCESS_MAX) return;
+  }
 
   // Max. 3 gleichzeitige Toasts: ältesten entfernen falls Limit erreicht
   const existing = container.querySelectorAll('.toast');
@@ -1253,17 +1300,21 @@ window.addEventListener('locale-changed', () => {
   }
   if (bottomItems) {
     const kitchenBtnEl = bottomItems.querySelector('#kitchen-btn');
-    const searchBtnEl  = bottomItems.querySelector('#search-btn');
     const moreBtn      = bottomItems.querySelector('#more-btn');
     if (kitchenBtnEl) kitchenBtnEl.querySelector('.nav-item__label').textContent = t('nav.kitchen');
-    if (searchBtnEl)  searchBtnEl.querySelector('.nav-item__label').textContent  = t('nav.search');
     const newItems = navItems().slice(0, PRIMARY_NAV).map(navItemEl);
-    bottomItems.replaceChildren(...newItems, kitchenBtnEl, searchBtnEl, moreBtn);
+    bottomItems.replaceChildren(...newItems, kitchenBtnEl, moreBtn);
   }
   if (moreSheet) {
     const handle = moreSheet.querySelector('.more-sheet__handle');
+    const searchBar = moreSheet.querySelector('#more-sheet-search');
+    if (searchBar) {
+      const placeholder = searchBar.querySelector('.more-sheet__search-placeholder');
+      if (placeholder) placeholder.textContent = t('search.placeholder');
+      searchBar.setAttribute('aria-label', t('search.placeholder'));
+    }
     const newMoreItems = navItems().filter((i) => !i.kitchenGroup).slice(PRIMARY_NAV).map(moreItemEl);
-    moreSheet.replaceChildren(handle, ...newMoreItems);
+    moreSheet.replaceChildren(handle, ...(searchBar ? [searchBar] : []), ...newMoreItems);
   }
 
   document.querySelectorAll('[data-route]').forEach((el) => {

@@ -26,7 +26,7 @@ Every table: `id INTEGER PRIMARY KEY`, `created_at TEXT`, `updated_at TEXT` (ISO
 | description | TEXT | |
 | category | TEXT | Household, School, Shopping, Repairs, Other |
 | priority | TEXT | none (default), low, medium, high, urgent |
-| status | TEXT | open, in_progress, done |
+| status | TEXT | open, in_progress, done, archived |
 | due_date | TEXT | DATE, nullable |
 | due_time | TEXT | TIME, nullable |
 | assigned_to | INTEGER | FK → Users |
@@ -108,6 +108,7 @@ Reusable recipe cards that can be pre-filled into meal slots.
 | all_day | INTEGER | 0/1 |
 | location | TEXT | |
 | color | TEXT | HEX |
+| icon | TEXT | Lucide icon name, default 'calendar' |
 | assigned_to | INTEGER | FK → Users |
 | created_by | INTEGER | FK → Users, NOT NULL |
 | external_calendar_id | TEXT | ID from external calendar |
@@ -116,6 +117,10 @@ Reusable recipe cards that can be pre-filled into meal slots.
 | subscription_id | INTEGER | FK → ICS Subscriptions (CASCADE delete) |
 | user_modified | INTEGER | 0/1 — prevents sync overwrite when 1 |
 | calendar_ref_id | INTEGER | FK → External Calendars (ON DELETE SET NULL) |
+| attachment_name | TEXT | Original filename of attached file, nullable |
+| attachment_mime | TEXT | MIME type (e.g. image/jpeg, application/pdf), nullable |
+| attachment_size | INTEGER | File size in bytes, nullable |
+| attachment_data | TEXT | Base64 data URL of attachment (≤ 5 MB), nullable |
 
 ### External Calendars
 Display metadata (name, color) for synced Google/Apple calendars. Populated automatically during sync.
@@ -146,6 +151,7 @@ Display metadata (name, color) for synced Google/Apple calendars. Populated auto
 | email | TEXT | |
 | address | TEXT | |
 | notes | TEXT | |
+| family_user_id | INTEGER | FK → Users (CASCADE delete), UNIQUE (one linked user per contact), nullable |
 
 ### Budget Entries
 | Column | Type | Constraint |
@@ -215,6 +221,7 @@ Birthday records with optional profile photo and automatic calendar event + remi
 | notes | TEXT | nullable |
 | photo_data | TEXT | Base64 data URL (≤ 5 MB), nullable |
 | calendar_event_id | INTEGER | FK → calendar_events (SET NULL on delete), nullable |
+| family_user_id | INTEGER | FK → Users (CASCADE delete), UNIQUE (one linked user per birthday), nullable |
 | created_by | INTEGER | FK → Users (CASCADE delete), NOT NULL |
 
 ### API Tokens
@@ -246,6 +253,33 @@ External calendar feeds subscribed by users (read-only, auto-synced).
 | last_modified | TEXT | HTTP Last-Modified for conditional fetch |
 | last_sync | TEXT | ISO timestamp of last successful sync |
 | created_at | TEXT | ISO timestamp |
+
+### Family Documents
+Upload and manage family files with per-document access control.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| name | TEXT | NOT NULL (display name) |
+| description | TEXT | nullable |
+| category | TEXT | medical, school, identity, insurance, finance, home, vehicle, legal, travel, pets, warranty, taxes, work, other (default) |
+| status | TEXT | active (default), archived |
+| visibility | TEXT | family (default), restricted, private |
+| original_name | TEXT | NOT NULL (original filename) |
+| mime_type | TEXT | NOT NULL |
+| file_size | INTEGER | NOT NULL (bytes) |
+| content_data | TEXT | NOT NULL (Base64 data URL) |
+| storage_provider | TEXT | local (default), external |
+| storage_key | TEXT | nullable (external storage path) |
+| created_by | INTEGER | FK → Users (CASCADE delete), NOT NULL |
+
+### Family Document Access
+Allowlist for `visibility = 'restricted'` documents — only listed users can see the document.
+
+| Column | Type | Constraint |
+|--------|------|-----------|
+| document_id | INTEGER | FK → Family Documents (CASCADE delete), NOT NULL |
+| user_id | INTEGER | FK → Users (CASCADE delete), NOT NULL |
+| PRIMARY KEY | | (document_id, user_id) |
 
 ### Sync Config
 Key-value table for OAuth tokens and CalDAV credentials.
@@ -286,6 +320,8 @@ Skeleton loading instead of spinners. Clicking any widget navigates to that modu
 - Assignment to users (avatar color as indicator)
 - Priorities shown visually via color/icon
 - Recurring: automatically create next instance on completion
+- Archive: completed tasks can be archived (status = 'archived'); visible in a separate Archived filter
+- Inline reminder presets: offset from due date/time — 15 min, 1 h, 1 d, 2 d, 1 w, 2 w, or fully custom offset
 - Mobile swipe: left = done, right = edit
 - Badge for overdue tasks
 
@@ -330,9 +366,12 @@ Reusable recipe cards linked to meal slots.
 - Recurring via iCal RRULE
 - **Google Calendar:** OAuth 2.0, Calendar API v3, two-way sync
 - **Apple Calendar:** CalDAV (tsdav), two-way sync
-- **ICS Subscriptions:** Subscribe to any public ICS/webcal URL (e.g. public holidays, sports schedules). Per-subscription color, private/shared visibility, manual "Sync now" and automatic sync on the shared interval. RRULE events expanded into a rolling ±6/+12 month window. SSRF-protected (DNS pre-resolution), ETag/Last-Modified conditional fetch, 10 MB limit, 15 s timeout. User-edited events are protected from being overwritten (`user_modified`); a "Reset to original" link restores them.
+- **ICS Subscriptions:** Subscribe to any public ICS/webcal URL (e.g. public holidays, sports schedules). Per-subscription color, private/shared visibility, manual "Sync now" and automatic sync on the shared interval. Edit name, color, and visibility of any subscription inline. RRULE events expanded into a rolling ±6/+12 month window. SSRF-protected (DNS pre-resolution), ETag/Last-Modified conditional fetch, 10 MB limit, 15 s timeout. User-edited events are protected from being overwritten (`user_modified`); a "Reset to original" link restores them.
 - **External calendar names & colors:** Google and Apple sync stores each calendar's display name and background color in the `external_calendars` table (migration v14). A colored `event-cal-label` badge appears in event popups, agenda, month, week, and day views when `cal_name` is present.
 - **Event location:** Event popup and dashboard display the location field with RFC 5545 backslash-escape normalization (`\n`, `\,`, `\;`, `\\`) via `fmtLocation()` in `public/utils/html.js`.
+- **Custom event icons:** Each event can have an icon chosen from 102 validated Lucide icons via a visual picker. Birthday events are automatically assigned the `cake` icon. Icon stored in `calendar_events.icon`.
+- **File attachments:** Events support a single file attachment (images, PDFs, Office documents, ≤ 5 MB). Images are displayed inline in the event popup; other files show a download link. Drag-and-drop upload supported in the event modal. Stored as Base64 in `attachment_data`.
+- **Overlapping events:** In week and day views, timed events that overlap in time are rendered side-by-side using a column-layout algorithm instead of stacking.
 - Configurable sync interval (default 15 min)
 - External events visually distinguishable
 - Conflicts: external event wins, local additions are preserved
@@ -356,6 +395,19 @@ Masonry grid with colored sticky notes.
 - vCard export: each contact downloadable as `.vcf` (`GET /api/v1/contacts/:id/vcard`)
 - vCard import: upload file → client-side parser (FN, TEL, EMAIL, ADR, NOTE, CATEGORIES) → create contact
 
+### Documents (`/documents`)
+
+Upload and manage family files with per-document access control.
+
+- CRUD: name, description, category, file upload (PDF, images, text, Office documents; ≤ 5 MB)
+- Drag-and-drop upload in the new-document modal
+- **Grid / list view** toggle; view mode persisted in localStorage
+- **Category tags:** 14 predefined categories (medical, school, identity, insurance, finance, home, vehicle, legal, travel, pets, warranty, taxes, work, other)
+- **Visibility:** family (all members see it), restricted (only selected members), private (only the uploader)
+- **Archive / restore** — archived documents hidden from the main view, accessible via the Archive filter
+- **Download** — original file downloaded with its original filename
+- API: `GET /api/v1/documents`, `POST /api/v1/documents`, `GET /api/v1/documents/:id`, `PUT /api/v1/documents/:id`, `DELETE /api/v1/documents/:id`, `GET /api/v1/documents/:id/download`
+
 ### Login (`/login`)
 
 Unauthenticated users are redirected here. No public registration form - admin creates users via setup wizard (`setup.js`) or Settings.
@@ -375,8 +427,9 @@ User management and app configuration. Logged-in users only.
 - **Weather:** configure OpenWeatherMap location
 - **Language:** System (follows `navigator.language`), German, English, Spanish, French, Italian, Swedish, Greek, Russian, Turkish, Chinese, Japanese, Arabic, Hindi, Portuguese - via `oikos-locale-picker` web component; switch without page reload
 - **API Tokens (admin):** create named Bearer / X-API-Key tokens for external integrations; the full token value is shown only once immediately after creation; tokens can be revoked at any time; support optional expiry and track last-used timestamp
-- **Tab navigation:** Settings is organized in seven tabs (General, Meals, Budget, Shopping, Calendar, API Tokens, Account). Sticky tab bar, active tab persists in sessionStorage, Calendar tab auto-activates after OAuth callbacks.
-- **Family management (admin):** assign a `family_role` (Dad, Mom, Parent, Child, Grandparent, Relative, Other) to each user. Displayed in the family member list and profile views.
+- **Backup Management (admin):** download the current database as a file (`GET /api/v1/backup/database`) or restore from a backup file (`POST /api/v1/backup/restore`, drag-and-drop supported). Validates that the uploaded file is a valid Oikos database. A rollback copy is created automatically before restore.
+- **Tab navigation:** Settings is organized in eight tabs (General, Meals, Budget, Shopping, Calendar, Family, API Tokens, Account). Admin-only tabs: Family, API Tokens, Backup. Sticky tab bar, active tab persists in sessionStorage, Calendar tab auto-activates after OAuth callbacks.
+- **Family management (admin):** assign a `family_role` (Dad, Mom, Parent, Child, Grandparent, Relative, Other) to each user, and set per-member phone, email, and birthday — automatically synced to Contacts and Birthdays. Displayed in the family member list and profile views.
 - **Profile picture:** users can upload a personal avatar (PNG/JPEG/WebP/GIF, ≤ 5 MB), stored as a Base64 data URL in `avatar_data`. Displayed alongside display name across the app.
 - **App info:** version, license
 

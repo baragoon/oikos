@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.4] - 2026-04-30
+
+### Fixed
+- Dashboard portrait mode on mobile: layout no longer overflows to landscape width; `overflow: visible` override in the Admin Dashboard Layout CSS block has been removed so the correct `overflow: clip` takes effect, and `.app-content` now uses `overflow-x: hidden` (instead of `clip`) to properly contain layout overflow at the scroll container level
+
+## [0.38.3] - 2026-04-30
+
+### Fixed
+- Dashboard portrait mode on Android: horizontal scrollbar no longer appears due to subpixel overflow in the main scroll container (`overflow-x: clip` added to `.app-content`)
+
+## [0.38.2] - 2026-04-30
+
+### Fixed
+- Recurring calendar events with `FREQ=WEEKLY;INTERVAL=N;BYDAY=...` (N > 1) now correctly skip N−1 weeks between occurrences instead of repeating every week
+
+## [0.38.1] - 2026-04-30
+
+### Changed
+- Docs: SPEC.md — `family_documents` and `family_document_access` tables added; `calendar_events` extended with `icon` and four attachment columns; `contacts` and `birthdays` extended with `family_user_id`; Tasks `status` includes `archived`; Documents module section added; Calendar section updated with icons, file attachments, and overlapping event rendering; Settings section updated with Backup Management tab and family member contact fields
+- Docs: BACKLOG.md — completed features table brought up to date through v0.38.0 (v0.30.0–v0.38.0 entries added)
+- Docs: README.md — Backup entry added to the feature table; Documents entry updated with exact category count
+- Docs: CONTRIBUTING.md — `innerHTML` security note updated to reflect current `insertAdjacentHTML`/`replaceChildren`/`esc()` pattern; individual test-suite commands listed
+
+## [0.38.0] - 2026-04-30
+
+### Added
+- FAB entry animation now stops after 5 page views (long loop progressive reduction)
+- Search keyboard shortcut hint (`/`) hides permanently after first keyboard use
+- Success toasts are suppressed after 50 successful saves to reduce noise for power users
+- Empty state CTA button fades in with a short delay to draw attention as the primary action
+- Form fields pulse with a red glow on the second or subsequent validation failure on the same field
+- Shopping quick-add input shows a brief accent-colour glow after each successful item add
+
+## [0.37.2] - 2026-04-30
+
+### Changed
+- Search bar in More sheet: added hover, active, and focus states with accent colour highlight and subtle scale feedback
+- Search bar icon changes to accent colour on hover and press for clearer trigger affordance
+- Keyboard shortcut hint (`/`) shown inside search bar on desktop as discoverability signal
+
+## [0.37.1] - 2026-04-30
+
+### Changed
+- Bottom navigation: Tasks replaces Search as a primary tab bar item
+- More menu: layout changed from two columns to a three-column grid (two rows of three)
+- Search: embedded as a narrow bar at the top of the More sheet instead of a standalone bottom-nav button
+
+## [0.37.0] - 2026-04-30
+
+### Added
+- Calendar: drag-and-drop file upload dropzone for event attachments (consistent with Documents module)
+- Calendar: popup positioning now fully viewport-aware (flips above anchor if insufficient space below)
+
+### Fixed
+- Calendar: event attachments with raw base64 data (no `data:` prefix) now render correctly as images
+- Calendar: "file too large" error is now shown correctly when saving an oversized attachment
+
+### Changed
+- Theme init script extracted from inline `<script>` to `/theme-init.js` for a stricter Content Security Policy (`'self'` only, no SHA hash)
+- Modal overlay is now vertically centered on mobile (with safe-area insets) matching desktop behavior; rounded corners on all sides
+- Modal `max-height` is computed from `100dvh` minus safe-area insets for accurate sizing on notched devices
+
 ## [0.36.1] - 2026-04-29
 
 ### Fixed

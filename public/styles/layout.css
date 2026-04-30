@@ -128,6 +128,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -218,7 +219,7 @@
   padding: var(--space-4) var(--space-4) calc(var(--space-4) + var(--safe-area-inset-bottom));
   z-index: calc(var(--z-nav) + 2);
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
   transform: translateY(100%);
   transition: transform 0.25s var(--ease-out);
@@ -236,6 +237,78 @@
   border-radius: var(--radius-full);
   background-color: var(--color-border);
   margin: 0 auto var(--space-2);
+}
+
+/* ── More-Sheet Suchleiste ── */
+.more-sheet__search {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-elevated);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: text;
+  margin-bottom: var(--space-1);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform 0.1s ease;
+  user-select: none;
+}
+
+.more-sheet__search:hover {
+  border-color: var(--color-border-strong, var(--color-border));
+  background-color: var(--color-surface-hover);
+}
+
+.more-sheet__search:active {
+  outline: none;
+  border-color: var(--color-accent);
+  background-color: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-elevated));
+  transform: scale(0.985);
+}
+
+.more-sheet__search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.more-sheet__search-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.more-sheet__search:hover .more-sheet__search-icon,
+.more-sheet__search:active .more-sheet__search-icon {
+  color: var(--color-accent);
+}
+
+.more-sheet__search-placeholder {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  flex: 1;
+}
+
+.more-sheet__search-kbd {
+  display: none;
+  font-size: var(--text-xs);
+  color: var(--color-text-quaternary, var(--color-text-tertiary));
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  font-family: inherit;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  html:not(.search-kbd-done) .more-sheet__search-kbd {
+    display: inline;
+  }
 }
 
 /* ── More-Item ── */
@@ -505,6 +578,11 @@
   outline: 2px solid var(--color-bg);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--color-accent);
+}
+
+/* Long Loop: FAB-Animation nach N Aufrufen deaktivieren */
+html.fab-anim-done .page-fab {
+  animation: none;
 }
 
 /* Desktop: FAB Position anpassen (keine Bottom-Nav) und etwas kleiner */
@@ -1311,6 +1389,22 @@
   display: flex;
 }
 
+/* Pulse-Animation bei wiederholtem Fehler */
+@keyframes field-error-pulse {
+  0%, 100% { box-shadow: none; }
+  40%       { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 35%, transparent); }
+}
+
+.form-field--error-repeat .input,
+.form-field--error-repeat .form-input {
+  animation: field-error-pulse 500ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-field--error-repeat .input,
+  .form-field--error-repeat .form-input { animation: none; }
+}
+
 /* --------------------------------------------------------
  * Toggle-Switch
  * Custom iOS-style toggle, ersetzt native Checkboxen.
@@ -1433,6 +1527,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .empty-state { animation: none; }
+  .empty-state__cta { animation: none; }
 }
 
 .empty-state__icon {
@@ -1468,6 +1563,7 @@
 
 .empty-state__cta {
   margin-top: var(--space-2);
+  animation: list-item-in 300ms var(--ease-out) 300ms both;
 }
 
 .empty-state--compact {
@@ -2239,6 +2335,23 @@ textarea.input { resize: vertical; }
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+}
+
+/* --------------------------------------------------------
+ * Signature Moment: Eingabefeld-Glow nach erfolgreichem Item-Add
+ * -------------------------------------------------------- */
+@keyframes input-add-flash {
+  0%   { box-shadow: none; }
+  25%  { box-shadow: 0 0 0 3px color-mix(in srgb, var(--module-accent, var(--color-accent)) 45%, transparent); }
+  100% { box-shadow: none; }
+}
+
+.quick-add__input--flash {
+  animation: input-add-flash 550ms var(--ease-out) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-add__input--flash { animation: none; }
 }
 
 /* --------------------------------------------------------

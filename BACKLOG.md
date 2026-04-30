@@ -86,3 +86,20 @@ New suggestion? → [Open an issue](https://github.com/ulsklyc/oikos/issues/new?
 | - | Calendar: custom event icons (102 Lucide options via visual picker); birthday events auto-assigned `cake` icon | v0.29.0 |
 | - | Calendar: extended reminder presets (2 days, 1 week, 2 weeks) + fully custom reminder (number + unit) | v0.29.0 |
 | - | Calendar: locale-aware date text inputs (MDY / DMY / YMD) in all date fields across Calendar, Tasks, Meals, Birthdays, Budget | v0.29.0 |
+| - | i18n: recipe strings contributed by @baragoon for 13 locales (ar, el, es, fr, hi, it, ja, pt, ru, sv, tr, zh, uk) | v0.30.0 |
+| - | Family: phone, email, and birthday fields on family member records, auto-synced to Contacts and Birthdays | v0.31.0 |
+| - | Settings: dedicated Family Management tab and API Tokens tab (admin-only) | v0.31.0 |
+| - | Settings: ICS subscription edit modal — update name, color, and shared visibility inline | v0.31.2 |
+| - | Documents module: upload and manage family files with grid/list view, category tags, visibility ACL (family / restricted / private), archive, download | v0.32.0 |
+| - | Tasks: archive status — completed tasks can be archived; visible in dedicated Archived filter | v0.32.0 |
+| - | Tasks: inline reminder presets (15 min–2 weeks or custom offset from due date/time) | v0.32.0 |
+| - | Typography: Plus Jakarta Sans variable font self-hosted under `public/fonts/` — no CDN dependency at runtime | v0.32.3 |
+| - | Module toolbars sticky while scrolling (Tasks, Notes, Calendar, Contacts, Shopping) | v0.32.3 |
+| - | Calendar: overlapping timed events render side-by-side in week and day views | v0.33.0 |
+| - | Calendar: event file attachments (images, PDFs, Office documents ≤ 5 MB); drag-and-drop upload; inline image preview | v0.33.0 |
+| - | Navigation: Kitchen (Meals / Recipes / Shopping) grouped behind a single bottom-bar entry with a persistent tab bar | v0.34.0 |
+| - | Settings: Backup Management tab (admin-only) — database download and restore via file upload with pre-restore rollback copy | v0.35.0 |
+| - | UX: empty states in all modules include a primary CTA button that triggers the page FAB | v0.36.0 |
+| - | UX: `friendlyError()` helper — unhandled promise rejections show status-code-aware messages instead of raw error text | v0.36.0 |
+| - | Date input: default format changed to DMY with dot separator; dot-separated dates accepted everywhere | v0.36.1 |
+| - | Microinteraction long loops: FAB entry animation stops after 5 views; keyboard shortcut hint hides after first use; success toasts suppressed after 50 saves; empty-state CTA delayed fade-in | v0.38.0 |
