@@ -2337,6 +2337,23 @@ textarea.input { resize: vertical; }
 }
 
 /* --------------------------------------------------------
+ * Signature Moment: Eingabefeld-Glow nach erfolgreichem Item-Add
+ * -------------------------------------------------------- */
+@keyframes input-add-flash {
+  0%   { box-shadow: none; }
+  25%  { box-shadow: 0 0 0 3px color-mix(in srgb, var(--module-accent, var(--color-accent)) 45%, transparent); }
+  100% { box-shadow: none; }
+}
+
+.quick-add__input--flash {
+  animation: input-add-flash 550ms var(--ease-out) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-add__input--flash { animation: none; }
+}
+
+/* --------------------------------------------------------
  * Windows High Contrast / Forced Colors
  * -------------------------------------------------------- */
 @media (forced-colors: active) {
