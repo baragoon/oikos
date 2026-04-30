@@ -8,7 +8,7 @@ import { api } from '/api.js';
 import { renderRRuleFields, bindRRuleEvents, getRRuleValues } from '/rrule-ui.js';
 import { openModal as openSharedModal, closeModal } from '/components/modal.js';
 import { stagger } from '/utils/ux.js';
-import { t, formatDate as formatPreferredDate, formatTime, dateInputPlaceholder, formatDateInput, parseDateInput, isDateInputValid } from '/i18n.js';
+import { t, formatDate as formatPreferredDate, formatTime, dateInputPlaceholder, formatDateInput, parseDateInput, isDateInputValid, formatTimeInput, parseTimeInput, timeInputPlaceholder } from '/i18n.js';
 import { esc, fmtLocation } from '/utils/html.js';
 import { refresh as refreshReminders } from '/reminders.js';
 
@@ -171,6 +171,7 @@ const EVENT_ICONS = [
 const CUSTOM_EVENT_ICONS = new Set(['tooth']);
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 const ATTACHMENT_IMAGE_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+const CALENDAR_VIEW_STORAGE_KEY = 'oikos-calendar-view';
 
 const HOUR_HEIGHT = 56; // px pro Stunde in Wochen-/Tagesansicht
 
@@ -211,6 +212,22 @@ let _container = null;
 
 function pad(n) { return String(n).padStart(2, '0'); }
 function isoDate(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+
+function getSavedCalendarView() {
+  try {
+    const saved = localStorage.getItem(CALENDAR_VIEW_STORAGE_KEY);
+    return VIEWS.includes(saved) ? saved : 'month';
+  } catch {
+    return 'month';
+  }
+}
+
+function setSavedCalendarView(view) {
+  if (!VIEWS.includes(view)) return;
+  try {
+    localStorage.setItem(CALENDAR_VIEW_STORAGE_KEY, view);
+  } catch {}
+}
 
 // Extract YYYY-MM-DD in the browser's local timezone from any datetime string.
 // For date-only strings (≤10 chars) slicing is safe; for datetime strings with an
@@ -438,7 +455,7 @@ export async function render(container, { user }) {
   _container = container;
   state.today  = isoDate(new Date());
   state.cursor = state.today;
-  state.view   = 'month';
+  state.view   = getSavedCalendarView();
 
   container.innerHTML = `
     <div class="calendar-page" id="calendar-page">
@@ -506,6 +523,7 @@ function renderToolbar() {
     btn.addEventListener('click', async () => {
       if (btn.dataset.view === state.view) return;
       state.view = btn.dataset.view;
+      setSavedCalendarView(state.view);
       bar.querySelectorAll('[data-view]').forEach((b) =>
         b.classList.toggle('cal-toolbar__view-btn--active', b.dataset.view === state.view)
       );
@@ -1184,6 +1202,15 @@ function renderCalendarReminderSection(reminder = null, event = null) {
     </div>`;
 }
 
+function bindTimeInputs(root) {
+  root.querySelectorAll('.js-time-input').forEach((input) => {
+    input.addEventListener('blur', () => {
+      const parsed = parseTimeInput(input.value);
+      if (parsed) input.value = formatTimeInput(parsed);
+    });
+  });
+}
+
 // --------------------------------------------------------
 // Event-Modal (Erstellen / Bearbeiten)
 // --------------------------------------------------------
@@ -1245,6 +1272,7 @@ function openEventModal({ mode, event = null, date = null, reminder = null }) {
       if (isEdit && event?.all_day) { timeFields.style.display = 'none'; alldayFields.style.display = ''; }
 
       bindDateInputs(panel);
+      bindTimeInputs(panel);
 
       const iconInput = panel.querySelector('#modal-icon');
       const iconTrigger = panel.querySelector('#modal-icon-trigger');
@@ -1435,7 +1463,7 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
         </div>
         <div class="form-group">
           <label class="form-label" for="modal-start-time">${t('calendar.startTimeLabel')}</label>
-          <input type="time" class="form-input" id="modal-start-time" value="${startTime}">
+          <input type="text" class="form-input js-time-input" id="modal-start-time" value="${formatTimeInput(startTime)}" placeholder="${timeInputPlaceholder()}">
         </div>
       </div>
       <div class="modal-grid modal-grid--2">
@@ -1445,7 +1473,7 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
         </div>
         <div class="form-group">
           <label class="form-label" for="modal-end-time">${t('calendar.endTimeLabel')}</label>
-          <input type="time" class="form-input" id="modal-end-time" value="${endTime}">
+          <input type="text" class="form-input js-time-input" id="modal-end-time" value="${formatTimeInput(endTime)}" placeholder="${timeInputPlaceholder()}">
         </div>
       </div>
     </div>
@@ -1553,9 +1581,15 @@ async function saveEvent(overlay, mode, eventId, existingReminder = null, attach
     end_datetime   = end_datetime || null;
   } else {
     const sd = readDateInput(overlay, '#modal-start-date');
-    const st = overlay.querySelector('#modal-start-time').value;
+    const stRaw = overlay.querySelector('#modal-start-time').value;
+    const st = parseTimeInput(stRaw);
     const ed = readDateInput(overlay, '#modal-end-date');
-    const et = overlay.querySelector('#modal-end-time').value;
+    const etRaw = overlay.querySelector('#modal-end-time').value;
+    const et = parseTimeInput(etRaw);
+    if ((stRaw && !st) || (etRaw && !et)) {
+      window.oikos?.showToast(t('calendar.invalidDate'), 'error');
+      return;
+    }
     start_datetime = st ? `${sd}T${st}` : sd;
     end_datetime   = ed ? (et ? `${ed}T${et}` : ed) : null;
   }
