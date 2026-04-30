@@ -366,6 +366,16 @@ async function renderPage(route, previousPath = null) {
 
     await module.render(pageWrapper, { user: currentUser });
 
+    // FAB Long Loop: Einstiegsanimation nach FAB_SEEN_MAX Views deaktivieren
+    if (pageWrapper.querySelector('.page-fab')) {
+      let fabCount = parseInt(localStorage.getItem(FAB_SEEN_KEY) ?? '0', 10);
+      if (fabCount < FAB_SEEN_MAX) {
+        fabCount++;
+        localStorage.setItem(FAB_SEEN_KEY, String(fabCount));
+      }
+      document.documentElement.classList.toggle('fab-anim-done', fabCount >= FAB_SEEN_MAX);
+    }
+
     // Route-Announcer: Screenreader über Seitenwechsel informieren (gezielt, nicht gesamter Inhalt)
     const announcer = document.getElementById('route-announcer');
     if (announcer) {
@@ -618,6 +628,9 @@ function renderAppShell(container) {
   initOfflineBanner();
   initKeyboardShortcuts();
 }
+
+const FAB_SEEN_KEY = 'oikos:fabSeenCount';
+const FAB_SEEN_MAX = 5;
 
 const SHORTCUTS = [
   { key: '/',   description: () => t('shortcuts.search'),  action: () => document.getElementById('more-sheet-search')?.click() },
