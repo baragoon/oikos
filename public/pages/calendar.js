@@ -171,6 +171,7 @@ const EVENT_ICONS = [
 const CUSTOM_EVENT_ICONS = new Set(['tooth']);
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 const ATTACHMENT_IMAGE_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+const CALENDAR_VIEW_STORAGE_KEY = 'oikos-calendar-view';
 
 const HOUR_HEIGHT = 56; // px pro Stunde in Wochen-/Tagesansicht
 
@@ -211,6 +212,24 @@ let _container = null;
 
 function pad(n) { return String(n).padStart(2, '0'); }
 function isoDate(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+
+function getSavedCalendarView() {
+  try {
+    const saved = localStorage.getItem(CALENDAR_VIEW_STORAGE_KEY);
+    return VIEWS.includes(saved) ? saved : 'month';
+  } catch {
+    return 'month';
+  }
+}
+
+function setSavedCalendarView(view) {
+  if (!VIEWS.includes(view)) return;
+  try {
+    localStorage.setItem(CALENDAR_VIEW_STORAGE_KEY, view);
+  } catch {
+    // Ignore storage failures; view still works for this session.
+  }
+}
 
 // Extract YYYY-MM-DD in the browser's local timezone from any datetime string.
 // For date-only strings (≤10 chars) slicing is safe; for datetime strings with an
@@ -438,7 +457,7 @@ export async function render(container, { user }) {
   _container = container;
   state.today  = isoDate(new Date());
   state.cursor = state.today;
-  state.view   = 'month';
+  state.view   = getSavedCalendarView();
 
   container.innerHTML = `
     <div class="calendar-page" id="calendar-page">
@@ -506,6 +525,7 @@ function renderToolbar() {
     btn.addEventListener('click', async () => {
       if (btn.dataset.view === state.view) return;
       state.view = btn.dataset.view;
+      setSavedCalendarView(state.view);
       bar.querySelectorAll('[data-view]').forEach((b) =>
         b.classList.toggle('cal-toolbar__view-btn--active', b.dataset.view === state.view)
       );
