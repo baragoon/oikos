@@ -226,9 +226,7 @@ function setSavedCalendarView(view) {
   if (!VIEWS.includes(view)) return;
   try {
     localStorage.setItem(CALENDAR_VIEW_STORAGE_KEY, view);
-  } catch {
-    // Ignore storage failures; view still works for this session.
-  }
+  } catch {}
 }
 
 // Extract YYYY-MM-DD in the browser's local timezone from any datetime string.

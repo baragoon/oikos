@@ -148,7 +148,7 @@ router.put('/', (req, res) => {
 
     if (time_format !== undefined) {
       if (!VALID_TIME_FORMATS.includes(time_format)) {
-        return res.status(400).json({ error: `Ungültiges Zeitformat. Erlaubt: ${VALID_TIME_FORMATS.join(', ')}`, code: 400 });
+        return res.status(400).json({ error: `Invalid time format. Allowed: ${VALID_TIME_FORMATS.join(', ')}`, code: 400 });
       }
       cfgSet('time_format', time_format);
     }
