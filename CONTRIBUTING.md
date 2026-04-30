@@ -47,7 +47,17 @@ npm run dev
 npm test              # All suites
 ```
 
-Tests use the Node.js built-in test runner with in-memory SQLite. No running server or database required - tests import route handlers directly.
+Individual suites (faster during development):
+
+```bash
+npm run test:db && npm run test:tasks && npm run test:shopping
+npm run test:meals && npm run test:calendar && npm run test:ncb
+npm run test:reminders && npm run test:dashboard && npm run test:api
+npm run test:ics-parser && npm run test:ics-sub
+npm run test:modal-utils && npm run test:ux-utils
+```
+
+Tests use the Node.js built-in test runner with in-memory SQLite (`--experimental-sqlite`). No running server or database required — tests import route handlers directly.
 
 ---
 
@@ -177,9 +187,8 @@ PRs are reviewed by the maintainer. Expect feedback within a few days. Once appr
 
 - ES modules everywhere (`import`/`export`, never `require`)
 - Semicolons: **yes**
-- Header comment in every file: purpose, module, dependencies
 - `try/catch` in every route handler - no unhandled promise rejections
-- No `eval()`, no `innerHTML` with user input - use `textContent` or DOM API
+- No dynamic code execution. Never write user data directly into an HTML string — use `esc()` from `public/utils/html.js` in template literals, or DOM API (`createElement`, `textContent`). Use `insertAdjacentHTML` to append HTML fragments, `replaceChildren()` to replace content. Direct `innerHTML` writes are blocked by a pre-commit hook.
 
 ### Frontend
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.1] - 2026-04-30
+
+### Changed
+- Docs: SPEC.md — `family_documents` and `family_document_access` tables added; `calendar_events` extended with `icon` and four attachment columns; `contacts` and `birthdays` extended with `family_user_id`; Tasks `status` includes `archived`; Documents module section added; Calendar section updated with icons, file attachments, and overlapping event rendering; Settings section updated with Backup Management tab and family member contact fields
+- Docs: BACKLOG.md — completed features table brought up to date through v0.38.0 (v0.30.0–v0.38.0 entries added)
+- Docs: README.md — Backup entry added to the feature table; Documents entry updated with exact category count
+- Docs: CONTRIBUTING.md — `innerHTML` security note updated to reflect current `insertAdjacentHTML`/`replaceChildren`/`esc()` pattern; individual test-suite commands listed
+
 ## [0.38.0] - 2026-04-30
 
 ### Added
