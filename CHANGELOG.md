@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.37.1] - 2026-04-30
+
+### Changed
+- Bottom navigation: Tasks replaces Search as a primary tab bar item
+- More menu: layout changed from two columns to a three-column grid (two rows of three)
+- Search: embedded as a narrow bar at the top of the More sheet instead of a standalone bottom-nav button
+
 ## [0.37.0] - 2026-04-30
 
 ### Added

@@ -218,7 +218,7 @@
   padding: var(--space-4) var(--space-4) calc(var(--space-4) + var(--safe-area-inset-bottom));
   z-index: calc(var(--z-nav) + 2);
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
   transform: translateY(100%);
   transition: transform 0.25s var(--ease-out);
@@ -236,6 +236,40 @@
   border-radius: var(--radius-full);
   background-color: var(--color-border);
   margin: 0 auto var(--space-2);
+}
+
+/* ── More-Sheet Suchleiste ── */
+.more-sheet__search {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-elevated);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: text;
+  margin-bottom: var(--space-1);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.more-sheet__search:active,
+.more-sheet__search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.more-sheet__search-icon {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex-shrink: 0;
+}
+
+.more-sheet__search-placeholder {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
 }
 
 /* ── More-Item ── */
