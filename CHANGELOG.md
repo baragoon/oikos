@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-04-30
+
+### Added
+- FAB entry animation now stops after 5 page views (long loop progressive reduction)
+- Search keyboard shortcut hint (`/`) hides permanently after first keyboard use
+- Success toasts are suppressed after 50 successful saves to reduce noise for power users
+- Empty state CTA button fades in with a short delay to draw attention as the primary action
+- Form fields pulse with a red glow on the second or subsequent validation failure on the same field
+- Shopping quick-add input shows a brief accent-colour glow after each successful item add
+
 ## [0.37.2] - 2026-04-30
 
 ### Changed
