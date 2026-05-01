@@ -113,16 +113,11 @@ function showOnboarding(appContainer) {
 // NEU — primäre Inhalte (tasks, calendar) ganz oben
 const WIDGET_IDS = ['tasks', 'calendar', 'weather', 'meals', 'shopping', 'birthdays', 'budget', 'family', 'notes'];
 
-const WIDGET_SIZE_OPTIONS = ['1x1', '2x1', '2x2', '3x1', '3x2', '4x1', '4x2'];
-const WIDGET_SIZE_LABELS = {
-  '1x1': '1x1',
-  '2x1': '2x1',
-  '2x2': '2x2',
-  '3x1': '3x1',
-  '3x2': '3x2',
-  '4x1': '4x1',
-  '4x2': '4x2',
-};
+const WIDGET_SIZE_OPTIONS = ['1x1', '1x2', '1x3', '1x4', '2x1', '2x2', '2x3', '2x4', '3x1', '3x2', '3x3', '3x4', '4x1', '4x2', '4x3', '4x4'];
+
+function widgetSizeLabel(size) {
+  return t(`dashboard.widgetSize_${size.replace('x', '_')}`);
+}
 
 function defaultWidgetSize(id) {
   if (['tasks', 'calendar'].includes(id)) return '2x2';
@@ -612,9 +607,22 @@ function widgetSizeClass(size) {
   return WIDGET_SIZE_OPTIONS.includes(size) ? `widget-size--${size}` : 'widget-size--1x1';
 }
 
+function renderSizeMiniGrid(size) {
+  return `<span class="widget-size-mini" aria-hidden="true">${renderSizeMiniGridCells(size)}</span>`;
+}
+
+function renderSizeMiniGridCells(size) {
+  const [cols, rows] = size.split('x').map(Number);
+  return Array.from({ length: 16 }, (_, i) => {
+    const col = (i % 4) + 1;
+    const row = Math.floor(i / 4) + 1;
+    return `<span class="${col <= cols && row <= rows ? 'is-active' : ''}"></span>`;
+  }).join('');
+}
+
 function renderWidgetCustomizeControls(w) {
   const sizeOptions = WIDGET_SIZE_OPTIONS.map((size) => `
-    <option value="${size}" ${w.size === size ? 'selected' : ''}>${WIDGET_SIZE_LABELS[size]}</option>
+    <option value="${size}" ${w.size === size ? 'selected' : ''}>${widgetSizeLabel(size)}</option>
   `).join('');
 
   return `
@@ -624,6 +632,7 @@ function renderWidgetCustomizeControls(w) {
       </button>
       <label class="widget-edit-controls__size">
         <span>${t('dashboard.customizeSize')}</span>
+        ${renderSizeMiniGrid(w.size)}
         <select class="widget-edit-controls__select" data-widget-size="${esc(w.id)}" aria-label="${t('dashboard.customizeSizeFor', { widget: widgetLabel(w.id) })}">
           ${sizeOptions}
         </select>
@@ -878,7 +887,7 @@ function openCustomizeModal(currentConfig, onSave) {
       const isFirst = i === 0;
       const isLast  = i === draft.length - 1;
       const sizeOptions = WIDGET_SIZE_OPTIONS.map((size) => `
-        <option value="${size}" ${w.size === size ? 'selected' : ''}>${WIDGET_SIZE_LABELS[size]}</option>
+        <option value="${size}" ${w.size === size ? 'selected' : ''}>${widgetSizeLabel(size)}</option>
       `).join('');
       return `
         <div class="customize-row" data-id="${esc(w.id)}" style="view-transition-name: widget-row-${esc(w.id)}">
@@ -891,6 +900,7 @@ function openCustomizeModal(currentConfig, onSave) {
           <span class="customize-row__name">${widgetLabel(w.id)}</span>
           <label class="customize-row__size">
             <span>${t('dashboard.customizeSize')}</span>
+            ${renderSizeMiniGrid(w.size)}
             <select class="form-input customize-row__select" data-size-id="${esc(w.id)}" aria-label="${t('dashboard.customizeSizeFor', { widget: widgetLabel(w.id) })}">
               ${sizeOptions}
             </select>
@@ -969,7 +979,13 @@ function openCustomizeModal(currentConfig, onSave) {
         list.querySelectorAll('[data-size-id]').forEach((select) => {
           select.addEventListener('change', () => {
             const entry = draft.find((w) => w.id === select.dataset.sizeId);
-            if (entry && WIDGET_SIZE_OPTIONS.includes(select.value)) entry.size = select.value;
+            if (!entry || !WIDGET_SIZE_OPTIONS.includes(select.value)) return;
+            entry.size = select.value;
+            const mini = select.closest('.customize-row__size')?.querySelector('.widget-size-mini');
+            if (mini) {
+              mini.replaceChildren();
+              mini.insertAdjacentHTML('afterbegin', renderSizeMiniGridCells(select.value));
+            }
           });
         });
 
@@ -1094,14 +1110,45 @@ function wireLinks(container, rerender, { editing = false } = {}) {
   });
 }
 
-function reorderWidgetConfig(config, fromId, toId) {
+function reorderWidgetConfig(config, fromId, toId, placement = 'before') {
   const fromIdx = config.findIndex((w) => w.id === fromId);
-  const toIdx = config.findIndex((w) => w.id === toId);
+  let toIdx = config.findIndex((w) => w.id === toId);
   if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return config;
   const next = config.map((w) => ({ ...w }));
   const [moved] = next.splice(fromIdx, 1);
+  if (fromIdx < toIdx) toIdx -= 1;
+  if (placement === 'after') toIdx += 1;
   next.splice(toIdx, 0, moved);
   return next.map((w, i) => ({ ...w, order: i }));
+}
+
+function closestWidgetDrop(grid, event, draggedId) {
+  const candidates = [...grid.querySelectorAll('.widget-wrapper[data-widget-id]')]
+    .filter((item) => item.dataset.widgetId !== draggedId);
+  if (!candidates.length) return null;
+
+  let nearest = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  for (const item of candidates) {
+    const rect = item.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = event.clientX - centerX;
+    const dy = event.clientY - centerY;
+    const distance = (dy * dy * 1.7) + (dx * dx);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = { item, rect };
+    }
+  }
+  if (!nearest) return null;
+
+  const sameRow = event.clientY >= nearest.rect.top && event.clientY <= nearest.rect.bottom;
+  const placement = sameRow
+    ? (event.clientX > nearest.rect.left + nearest.rect.width / 2 ? 'after' : 'before')
+    : (event.clientY > nearest.rect.top + nearest.rect.height / 2 ? 'after' : 'before');
+
+  return { id: nearest.item.dataset.widgetId, placement, item: nearest.item };
 }
 
 function updateWidgetConfig(config, id, patch) {
@@ -1179,6 +1226,23 @@ export async function render(container, { user }) {
     const grid = container.querySelector('#dashboard-widget-grid');
     if (!grid) return;
     let draggedId = '';
+    let currentDrop = null;
+
+    const clearDropHint = () => {
+      grid.querySelectorAll('.widget-wrapper--drop-before, .widget-wrapper--drop-after').forEach((el) => {
+        el.classList.remove('widget-wrapper--drop-before', 'widget-wrapper--drop-after');
+      });
+    };
+
+    const updateDropHint = (event) => {
+      if (!draggedId) return null;
+      clearDropHint();
+      currentDrop = closestWidgetDrop(grid, event, draggedId);
+      if (currentDrop) {
+        currentDrop.item.classList.add(currentDrop.placement === 'after' ? 'widget-wrapper--drop-after' : 'widget-wrapper--drop-before');
+      }
+      return currentDrop;
+    };
 
     grid.querySelectorAll('.widget-wrapper[data-widget-id]').forEach((wrapper) => {
       wrapper.addEventListener('dragstart', (event) => {
@@ -1190,26 +1254,32 @@ export async function render(container, { user }) {
       wrapper.addEventListener('dragend', () => {
         draggedId = '';
         wrapper.classList.remove('widget-wrapper--dragging');
-        grid.querySelectorAll('.widget-wrapper--drag-over').forEach((el) => el.classList.remove('widget-wrapper--drag-over'));
+        currentDrop = null;
+        clearDropHint();
       });
-      wrapper.addEventListener('dragover', (event) => {
-        event.preventDefault();
-        if (draggedId && draggedId !== wrapper.dataset.widgetId) {
-          wrapper.classList.add('widget-wrapper--drag-over');
-          event.dataTransfer.dropEffect = 'move';
-        }
-      });
-      wrapper.addEventListener('dragleave', () => {
-        wrapper.classList.remove('widget-wrapper--drag-over');
-      });
-      wrapper.addEventListener('drop', (event) => {
-        event.preventDefault();
-        wrapper.classList.remove('widget-wrapper--drag-over');
-        const fromId = event.dataTransfer.getData('text/plain') || draggedId;
-        const toId = wrapper.dataset.widgetId;
-        widgetConfig = reorderWidgetConfig(widgetConfig, fromId, toId);
+    });
+
+    grid.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      updateDropHint(event);
+    });
+
+    grid.addEventListener('dragleave', (event) => {
+      if (!grid.contains(event.relatedTarget)) {
+        currentDrop = null;
+        clearDropHint();
+      }
+    });
+
+    grid.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const fromId = event.dataTransfer.getData('text/plain') || draggedId;
+      const drop = currentDrop || updateDropHint(event);
+      if (fromId && drop) {
+        widgetConfig = reorderWidgetConfig(widgetConfig, fromId, drop.id, drop.placement);
         rebuildDashboard(widgetConfig);
-      });
+      }
     });
 
     grid.querySelectorAll('[data-widget-size]').forEach((select) => {
