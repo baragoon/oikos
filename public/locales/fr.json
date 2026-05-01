@@ -199,7 +199,8 @@
     "archivedToast": "Tâche archivée.",
     "kanbanArchived": "Archivé",
     "reminderNeedsDueDate": "Définissez une date d'échéance pour activer les rappels de tâche.",
-    "emptyAction": "Créer une tâche"
+    "emptyAction": "Créer une tâche",
+    "navLabelOverdue": "Tâches, {{count}} en retard"
   },
   "shopping": {
     "title": "Courses",
@@ -378,7 +379,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Bleu",
+    "colorCoral": "Corail",
+    "colorCyan": "Cyan",
+    "colorGray": "Gris",
+    "colorGreen": "Vert",
+    "colorOrange": "Orange",
+    "colorPurple": "Violet",
+    "colorRed": "Rouge",
+    "colorSkyBlue": "Bleu ciel",
+    "colorYellow": "Jaune"
   },
   "notes": {
     "title": "Notes",
@@ -417,7 +428,15 @@
     "formatCode": "Code",
     "formatQuote": "Citation",
     "formatDivider": "Séparateur",
-    "emptyAction": "Créer une note"
+    "emptyAction": "Créer une note",
+    "colorAmber": "Ambre",
+    "colorBlue": "Bleu",
+    "colorGreen": "Vert",
+    "colorOrange": "Orange",
+    "colorPurple": "Violet",
+    "colorTeal": "Sarcelle",
+    "colorWhite": "Blanc",
+    "colorYellow": "Jaune"
   },
   "contacts": {
     "title": "Contacts",
@@ -951,7 +970,8 @@
     "deleteConfirm": "Supprimer l'anniversaire de \"{{name}}\" ?",
     "ageNoteToday": "Fête ses {{age}} ans aujourd'hui.",
     "ageNoteTomorrow": "Fêtera ses {{age}} ans demain.",
-    "ageNoteDays": "Fêtera ses {{age}} ans dans {{days}} jours."
+    "ageNoteDays": "Fêtera ses {{age}} ans dans {{days}} jours.",
+    "photoOptional": "Optionnel : vous pouvez enregistrer sans photo de profil."
   },
   "reminders": {
     "sectionTitle": "Rappel",
@@ -999,7 +1019,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Créez des recettes et associez-les à votre planification des repas."
+    "recipes": "Créez des recettes et associez-les à votre planification des repas.",
+    "birthdays": "Ajoutez des anniversaires — vous recevrez un rappel à temps.",
+    "budget": "Créez des catégories et enregistrez revenus et dépenses.",
+    "calendar": "Connectez Google Agenda dans Paramètres → Intégrations pour une synchronisation automatique.",
+    "contacts": "Ajoutez des contacts importants — médecin, école, urgences — pour un accès rapide.",
+    "meals": "Planifiez les repas de la semaine et associez des recettes.",
+    "notes": "Appuyez sur + pour une nouvelle note. Les notes sont indexées en texte intégral.",
+    "shopping": "Ajoutez des articles et glissez pour cocher ou supprimer.",
+    "tasks": "Appuyez sur + pour créer votre première tâche. Glissez une carte à gauche pour supprimer."
   },
   "documents": {
     "title": "Documents",
@@ -1063,6 +1091,14 @@
     "selectedFileLabel": "Sélectionné : {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Cuisine"
+    "goKitchen": "Cuisine",
+    "goCal": "Calendrier",
+    "goDash": "Tableau de bord",
+    "goNotes": "Notes",
+    "goShop": "Liste de courses",
+    "goTasks": "Tâches",
+    "help": "Raccourcis clavier",
+    "new": "Créer une nouvelle entrée",
+    "search": "Ouvrir la recherche"
   }
 }

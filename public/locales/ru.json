@@ -199,7 +199,8 @@
     "archivedToast": "Задача архивирована.",
     "kanbanArchived": "Архивировано",
     "reminderNeedsDueDate": "Установите срок выполнения, чтобы включить напоминания о задаче.",
-    "emptyAction": "Создать задачу"
+    "emptyAction": "Создать задачу",
+    "navLabelOverdue": "Задачи, {{count}} просрочено"
   },
   "shopping": {
     "title": "Покупки",
@@ -378,7 +379,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Синий",
+    "colorCoral": "Коралловый",
+    "colorCyan": "Голубой",
+    "colorGray": "Серый",
+    "colorGreen": "Зелёный",
+    "colorOrange": "Оранжевый",
+    "colorPurple": "Фиолетовый",
+    "colorRed": "Красный",
+    "colorSkyBlue": "Небесно-голубой",
+    "colorYellow": "Жёлтый"
   },
   "notes": {
     "title": "Заметки",
@@ -417,7 +428,15 @@
     "formatCode": "Код",
     "formatQuote": "Цитата",
     "formatDivider": "Разделитель",
-    "emptyAction": "Создать заметку"
+    "emptyAction": "Создать заметку",
+    "colorAmber": "Янтарный",
+    "colorBlue": "Синий",
+    "colorGreen": "Зелёный",
+    "colorOrange": "Оранжевый",
+    "colorPurple": "Фиолетовый",
+    "colorTeal": "Бирюзовый",
+    "colorWhite": "Белый",
+    "colorYellow": "Жёлтый"
   },
   "contacts": {
     "title": "Контакты",
@@ -951,7 +970,8 @@
     "deleteConfirm": "Удалить день рождения \"{{name}}\"?",
     "ageNoteToday": "Исполняется {{age}} сегодня.",
     "ageNoteTomorrow": "Исполнится {{age}} завтра.",
-    "ageNoteDays": "Исполнится {{age}} через {{days}} дн."
+    "ageNoteDays": "Исполнится {{age}} через {{days}} дн.",
+    "photoOptional": "Необязательно: можно сохранить без фото профиля."
   },
   "reminders": {
     "sectionTitle": "Напоминание",
@@ -999,7 +1019,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Создавайте рецепты и связывайте их с вашим планом питания."
+    "recipes": "Создавайте рецепты и связывайте их с вашим планом питания.",
+    "birthdays": "Добавьте дни рождения — вы получите напоминание вовремя.",
+    "budget": "Создайте категории и фиксируйте доходы и расходы.",
+    "calendar": "Подключите Google Календарь в Настройках → Интеграции для автоматической синхронизации.",
+    "contacts": "Добавьте важные контакты — врач, школа, экстренная помощь — для быстрого доступа.",
+    "meals": "Планируйте питание на неделю и прикрепляйте рецепты.",
+    "notes": "Нажмите + для новой заметки. Заметки ищутся по полному тексту.",
+    "shopping": "Добавьте товары и смахните для отметки или удаления.",
+    "tasks": "Нажмите + для создания первой задачи. Смахните карточку влево для удаления."
   },
   "documents": {
     "title": "Документы",
@@ -1063,6 +1091,14 @@
     "selectedFileLabel": "Выбрано: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Кухня"
+    "goKitchen": "Кухня",
+    "goCal": "Календарь",
+    "goDash": "Дашборд",
+    "goNotes": "Заметки",
+    "goShop": "Список покупок",
+    "goTasks": "Задачи",
+    "help": "Горячие клавиши",
+    "new": "Создать новую запись",
+    "search": "Открыть поиск"
   }
 }

@@ -199,7 +199,8 @@
     "archivedToast": "Görev arşivlendi.",
     "kanbanArchived": "Arşivlenmiş",
     "reminderNeedsDueDate": "Görev hatırlatıcılarını etkinleştirmek için bir son tarih belirleyin.",
-    "emptyAction": "Görev oluştur"
+    "emptyAction": "Görev oluştur",
+    "navLabelOverdue": "Görevler, {{count}} gecikmiş"
   },
   "shopping": {
     "title": "Alışveriş",
@@ -378,7 +379,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Mavi",
+    "colorCoral": "Mercan",
+    "colorCyan": "Camgöbeği",
+    "colorGray": "Gri",
+    "colorGreen": "Yeşil",
+    "colorOrange": "Turuncu",
+    "colorPurple": "Mor",
+    "colorRed": "Kırmızı",
+    "colorSkyBlue": "Gökyüzü mavisi",
+    "colorYellow": "Sarı"
   },
   "notes": {
     "title": "Notlar",
@@ -417,7 +428,15 @@
     "formatCode": "Kod",
     "formatQuote": "Alıntı",
     "formatDivider": "Ayırıcı",
-    "emptyAction": "Not oluştur"
+    "emptyAction": "Not oluştur",
+    "colorAmber": "Amber",
+    "colorBlue": "Mavi",
+    "colorGreen": "Yeşil",
+    "colorOrange": "Turuncu",
+    "colorPurple": "Mor",
+    "colorTeal": "Teal",
+    "colorWhite": "Beyaz",
+    "colorYellow": "Sarı"
   },
   "contacts": {
     "title": "Kişiler",
@@ -951,7 +970,8 @@
     "deleteConfirm": "\"{{name}}\" için doğum günü silinsin mi?",
     "ageNoteToday": "Bugün {{age}} yaşına giriyor.",
     "ageNoteTomorrow": "Yarın {{age}} yaşına giriyor.",
-    "ageNoteDays": "{{days}} gün içinde {{age}} yaşına girecek."
+    "ageNoteDays": "{{days}} gün içinde {{age}} yaşına girecek.",
+    "photoOptional": "İsteğe bağlı: Profil fotoğrafı olmadan da kaydedebilirsiniz."
   },
   "reminders": {
     "sectionTitle": "Hatırlatıcı",
@@ -999,7 +1019,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Tarifler oluşturun ve yemek planlayıcınıza bağlayın."
+    "recipes": "Tarifler oluşturun ve yemek planlayıcınıza bağlayın.",
+    "birthdays": "Doğum günleri ekleyin — zamanında hatırlatma alacaksınız.",
+    "budget": "Kategoriler oluşturun ve gelir ile giderleri kaydedin.",
+    "calendar": "Otomatik senkronizasyon için Ayarlar → Entegrasyonlar'dan Google Takvim'i bağlayın.",
+    "contacts": "Önemli kişileri ekleyin — doktor, okul, acil durum — hızlı erişim için.",
+    "meals": "Haftalık öğünleri planlayın ve tarifleri bağlayın.",
+    "notes": "Yeni not için + tuşuna dokunun. Notlar tam metin olarak aranır.",
+    "shopping": "Öğeleri ekleyin ve işaretlemek ya da silmek için kaydırın.",
+    "tasks": "İlk görevinizi oluşturmak için + tuşuna dokunun. Silmek için kartı sola kaydırın."
   },
   "documents": {
     "title": "Belgeler",
@@ -1063,6 +1091,14 @@
     "selectedFileLabel": "Seçildi: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Mutfak"
+    "goKitchen": "Mutfak",
+    "goCal": "Takvim",
+    "goDash": "Pano",
+    "goNotes": "Notlar",
+    "goShop": "Alışveriş listesi",
+    "goTasks": "Görevler",
+    "help": "Klavye kısayolları",
+    "new": "Yeni giriş oluştur",
+    "search": "Aramayı aç"
   }
 }

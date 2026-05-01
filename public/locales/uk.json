@@ -199,7 +199,8 @@
     "archivedToast": "Завдання архівовано.",
     "kanbanArchived": "Архівовано",
     "reminderNeedsDueDate": "Встановіть дату виконання, щоб увімкнути нагадування про завдання.",
-    "emptyAction": "Створити завдання"
+    "emptyAction": "Створити завдання",
+    "navLabelOverdue": "Завдання, {{count}} прострочено"
   },
   "shopping": {
     "title": "Покупки",
@@ -378,7 +379,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Синій",
+    "colorCoral": "Коралевий",
+    "colorCyan": "Блакитний",
+    "colorGray": "Сірий",
+    "colorGreen": "Зелений",
+    "colorOrange": "Помаранчевий",
+    "colorPurple": "Фіолетовий",
+    "colorRed": "Червоний",
+    "colorSkyBlue": "Небесно-блакитний",
+    "colorYellow": "Жовтий"
   },
   "notes": {
     "title": "Нотатки",
@@ -417,7 +428,15 @@
     "formatCode": "Код",
     "formatQuote": "Цитата",
     "formatDivider": "Розділювач",
-    "emptyAction": "Створити нотатку"
+    "emptyAction": "Створити нотатку",
+    "colorAmber": "Бурштиновий",
+    "colorBlue": "Синій",
+    "colorGreen": "Зелений",
+    "colorOrange": "Помаранчевий",
+    "colorPurple": "Фіолетовий",
+    "colorTeal": "Бірюзовий",
+    "colorWhite": "Білий",
+    "colorYellow": "Жовтий"
   },
   "contacts": {
     "title": "Контакти",
@@ -982,7 +1001,8 @@
     "deleteConfirm": "Видалити день народження для \"{{name}}\"?",
     "ageNoteToday": "Сьогодні виповнюється {{age}}.",
     "ageNoteTomorrow": "Завтра виповниться {{age}}.",
-    "ageNoteDays": "За {{days}} дн. виповниться {{age}}."
+    "ageNoteDays": "За {{days}} дн. виповниться {{age}}.",
+    "photoOptional": "Необов'язково: можна зберегти без фото профілю."
   },
   "onboarding": {
     "step1Title": "Welcome to Oikos",
@@ -1071,6 +1091,14 @@
     "selectedFileLabel": "Вибрано: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Кухня"
+    "goKitchen": "Кухня",
+    "goCal": "Календар",
+    "goDash": "Дашборд",
+    "goNotes": "Нотатки",
+    "goShop": "Список покупок",
+    "goTasks": "Завдання",
+    "help": "Гарячі клавіші",
+    "new": "Створити новий запис",
+    "search": "Відкрити пошук"
   }
 }

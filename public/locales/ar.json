@@ -199,7 +199,8 @@
     "archivedToast": "تم أرشفة المهمة.",
     "kanbanArchived": "مؤرشف",
     "reminderNeedsDueDate": "حدّد تاريخ استحقاق لتفعيل تذكيرات المهمة.",
-    "emptyAction": "إنشاء مهمة"
+    "emptyAction": "إنشاء مهمة",
+    "navLabelOverdue": "المهام، {{count}} متأخرة"
   },
   "shopping": {
     "title": "التسوق",
@@ -378,7 +379,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "أزرق",
+    "colorCoral": "مرجاني",
+    "colorCyan": "سماوي",
+    "colorGray": "رمادي",
+    "colorGreen": "أخضر",
+    "colorOrange": "برتقالي",
+    "colorPurple": "بنفسجي",
+    "colorRed": "أحمر",
+    "colorSkyBlue": "أزرق سماوي",
+    "colorYellow": "أصفر"
   },
   "notes": {
     "title": "لوحة الملاحظات",
@@ -417,7 +428,15 @@
     "formatCode": "كود",
     "formatQuote": "اقتباس",
     "formatDivider": "فاصل",
-    "emptyAction": "إنشاء ملاحظة"
+    "emptyAction": "إنشاء ملاحظة",
+    "colorAmber": "كهرماني",
+    "colorBlue": "أزرق",
+    "colorGreen": "أخضر",
+    "colorOrange": "برتقالي",
+    "colorPurple": "بنفسجي",
+    "colorTeal": "أخضر مزرق",
+    "colorWhite": "أبيض",
+    "colorYellow": "أصفر"
   },
   "contacts": {
     "title": "جهات الاتصال",
@@ -951,7 +970,8 @@
     "deleteConfirm": "هل تريد حذف عيد ميلاد \"{{name}}\"؟",
     "ageNoteToday": "سيكمل {{age}} عامًا اليوم.",
     "ageNoteTomorrow": "سيكمل {{age}} عامًا غدًا.",
-    "ageNoteDays": "سيكمل {{age}} عامًا بعد {{days}} يومًا."
+    "ageNoteDays": "سيكمل {{age}} عامًا بعد {{days}} يومًا.",
+    "photoOptional": "اختياري: يمكنك الحفظ بدون صورة ملف شخصي."
   },
   "reminders": {
     "sectionTitle": "تذكير",
@@ -999,7 +1019,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "أنشئ وصفات واربطها بمخطط الوجبات."
+    "recipes": "أنشئ وصفات واربطها بمخطط الوجبات.",
+    "birthdays": "أضف أعياد الميلاد — ستتلقى تذكيراً في الوقت المناسب.",
+    "budget": "أنشئ الفئات وسجّل الدخل والمصروفات.",
+    "calendar": "اربط تقويم Google من الإعدادات ← التكاملات للمزامنة التلقائية.",
+    "contacts": "أضف جهات اتصال مهمة — طبيب، مدرسة، طوارئ — للوصول السريع.",
+    "meals": "خطط وجباتك للأسبوع واربط الوصفات.",
+    "notes": "اضغط + لملاحظة جديدة. يتم البحث في الملاحظات بالنص الكامل.",
+    "shopping": "أضف عناصر واسحب للتحديد أو الحذف.",
+    "tasks": "اضغط + لإنشاء أول مهمة. اسحب البطاقة يساراً للحذف."
   },
   "documents": {
     "title": "المستندات",
@@ -1063,6 +1091,14 @@
     "selectedFileLabel": "المحدد: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "المطبخ"
+    "goKitchen": "المطبخ",
+    "goCal": "التقويم",
+    "goDash": "لوحة التحكم",
+    "goNotes": "الملاحظات",
+    "goShop": "قائمة التسوق",
+    "goTasks": "المهام",
+    "help": "اختصارات لوحة المفاتيح",
+    "new": "إنشاء إدخال جديد",
+    "search": "فتح البحث"
   }
 }
