@@ -287,6 +287,22 @@ function refreshLoanStatus(loanId) {
   return loan;
 }
 
+function entryWithLoanMeta(id) {
+  return db.get().prepare(`
+    SELECT b.*, u.display_name AS creator_name,
+           p.id AS loan_payment_id,
+           p.loan_id AS loan_id,
+           p.installment_number AS loan_installment_number,
+           l.title AS loan_title,
+           l.borrower AS loan_borrower
+    FROM budget_entries b
+    LEFT JOIN users u ON u.id = b.created_by
+    LEFT JOIN budget_loan_payments p ON p.budget_entry_id = b.id
+    LEFT JOIN budget_loans l ON l.id = p.loan_id
+    WHERE b.id = ?
+  `).get(id);
+}
+
 // --------------------------------------------------------
 // Statische Routen vor /:id
 // --------------------------------------------------------
@@ -761,21 +777,36 @@ router.get('/', (req, res) => {
   try {
     const today = new Date().toISOString().slice(0, 7);
     const month = req.query.month || today;
+    const loanId = req.query.loan_id ? parseInt(req.query.loan_id, 10) : null;
 
-    if (!MONTH_RE.test(month))
+    if (!loanId && !MONTH_RE.test(month))
       return res.status(400).json({ error: 'month muss YYYY-MM sein', code: 400 });
 
-    generateRecurringInstances(db.get(), month);
+    if (!loanId) generateRecurringInstances(db.get(), month);
 
     const from   = `${month}-01`;
     const to     = `${month}-31`;
     let sql      = `
-      SELECT b.*, u.display_name AS creator_name
+      SELECT b.*, u.display_name AS creator_name,
+             p.id AS loan_payment_id,
+             p.loan_id AS loan_id,
+             p.installment_number AS loan_installment_number,
+             l.title AS loan_title,
+             l.borrower AS loan_borrower
       FROM budget_entries b
       LEFT JOIN users u ON u.id = b.created_by
-      WHERE b.date BETWEEN ? AND ?
+      LEFT JOIN budget_loan_payments p ON p.budget_entry_id = b.id
+      LEFT JOIN budget_loans l ON l.id = p.loan_id
     `;
-    const params = [from, to];
+    const params = [];
+
+    if (loanId) {
+      sql += ' WHERE p.loan_id = ?';
+      params.push(loanId);
+    } else {
+      sql += ' WHERE b.date BETWEEN ? AND ?';
+      params.push(from, to);
+    }
 
     if (req.query.category && validCategoryKeys().includes(req.query.category)) {
       sql += ' AND b.category = ?';
@@ -822,11 +853,7 @@ router.post('/', (req, res) => {
       req.session.userId
     );
 
-    const entry = db.get().prepare(`
-      SELECT b.*, u.display_name AS creator_name
-      FROM budget_entries b LEFT JOIN users u ON u.id = b.created_by
-      WHERE b.id = ?
-    `).get(result.lastInsertRowid);
+    const entry = entryWithLoanMeta(result.lastInsertRowid);
 
     res.status(201).json({ data: entry });
   } catch (err) {
@@ -856,6 +883,12 @@ router.put('/:id', (req, res) => {
     const errors = collectErrors(checks);
     if (errors.length) return res.status(400).json({ error: errors.join(' '), code: 400 });
     const { title, amount, category, subcategory: requestedSubcategory, date, is_recurring, recurrence_rule } = req.body;
+    const linkedPayment = db.get().prepare(`
+      SELECT * FROM budget_loan_payments WHERE budget_entry_id = ?
+    `).get(id);
+    if (linkedPayment && amount !== undefined && Number(amount) <= 0) {
+      return res.status(400).json({ error: 'Loan repayment entries must remain income.', code: 400 });
+    }
     const nextCategory = category ?? entry.category;
     const subcategory = requestedSubcategory !== undefined || category !== undefined
       ? validateSubcategory(nextCategory, requestedSubcategory ?? entry.subcategory)
@@ -864,31 +897,45 @@ router.put('/:id', (req, res) => {
       return res.status(400).json({ error: 'Invalid subcategory.', code: 400 });
     }
 
-    db.get().prepare(`
-      UPDATE budget_entries
-      SET title           = COALESCE(?, title),
-          amount          = COALESCE(?, amount),
-          category        = COALESCE(?, category),
-          subcategory     = COALESCE(?, subcategory),
-          date            = COALESCE(?, date),
-          is_recurring    = COALESCE(?, is_recurring),
-          recurrence_rule = ?
-      WHERE id = ?
-    `).run(
-      title?.trim() ?? null,
-      amount !== undefined ? Number(amount) : null,
-      category ?? null,
-      subcategory !== undefined ? subcategory : null,
-      date ?? null,
-      is_recurring !== undefined ? (is_recurring ? 1 : 0) : null,
-      recurrence_rule !== undefined ? (recurrence_rule || null) : entry.recurrence_rule,
-      id
-    );
+    const tx = db.get().transaction(() => {
+      db.get().prepare(`
+        UPDATE budget_entries
+        SET title           = COALESCE(?, title),
+            amount          = COALESCE(?, amount),
+            category        = COALESCE(?, category),
+            subcategory     = COALESCE(?, subcategory),
+            date            = COALESCE(?, date),
+            is_recurring    = COALESCE(?, is_recurring),
+            recurrence_rule = ?
+        WHERE id = ?
+      `).run(
+        title?.trim() ?? null,
+        amount !== undefined ? Number(amount) : null,
+        category ?? null,
+        subcategory !== undefined ? subcategory : null,
+        date ?? null,
+        is_recurring !== undefined ? (is_recurring ? 1 : 0) : null,
+        recurrence_rule !== undefined ? (recurrence_rule || null) : entry.recurrence_rule,
+        id
+      );
 
-    const updated = db.get().prepare(`
-      SELECT b.*, u.display_name AS creator_name
-      FROM budget_entries b LEFT JOIN users u ON u.id = b.created_by WHERE b.id = ?
-    `).get(id);
+      if (linkedPayment) {
+        db.get().prepare(`
+          UPDATE budget_loan_payments
+          SET amount = COALESCE(?, amount),
+              paid_date = COALESCE(?, paid_date)
+          WHERE id = ?
+        `).run(
+          amount !== undefined ? cents(amount) : null,
+          date ?? null,
+          linkedPayment.id
+        );
+        refreshLoanStatus(linkedPayment.loan_id);
+      }
+    });
+    tx();
+
+    const updated = entryWithLoanMeta(id);
 
     res.json({ data: updated });
   } catch (err) {
@@ -908,7 +955,18 @@ router.delete('/:id', (req, res) => {
     const entry = db.get().prepare('SELECT * FROM budget_entries WHERE id = ?').get(id);
     if (!entry) return res.status(404).json({ error: 'Entry not found', code: 404 });
 
-    db.get().prepare('DELETE FROM budget_entries WHERE id = ?').run(id);
+    const linkedPayment = db.get().prepare(`
+      SELECT * FROM budget_loan_payments WHERE budget_entry_id = ?
+    `).get(id);
+
+    const tx = db.get().transaction(() => {
+      if (linkedPayment) {
+        db.get().prepare('DELETE FROM budget_loan_payments WHERE id = ?').run(linkedPayment.id);
+      }
+      db.get().prepare('DELETE FROM budget_entries WHERE id = ?').run(id);
+      if (linkedPayment) refreshLoanStatus(linkedPayment.loan_id);
+    });
+    tx();
 
     // Wenn eine Instanz gelöscht wird: Monat als übersprungen markieren
     if (entry.recurrence_parent_id) {

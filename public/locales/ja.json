@@ -597,7 +597,19 @@
     "loanSavedToast": "貸付を保存しました",
     "loanDeletedToast": "貸付を削除しました",
     "loanPaymentAddedToast": "返済を記録しました",
-    "typeLoan": "貸付"
+    "typeLoan": "貸付",
+    "tabsLabel": "予算セクション",
+    "budgetTab": "予算",
+    "loansTab": "貸付",
+    "filteredTransactions": "絞り込み済み取引",
+    "clearLoanFilter": "フィルター解除",
+    "loanFilterActive": "貸付：{{title}}",
+    "filterLoanTransactions": "この貸付の取引を表示",
+    "loansEmptyDescription": "+ ボタンから貸付を選んで作成します。",
+    "newCategoryTitle": "新しいカテゴリ",
+    "newCategoryPlaceholder": "カテゴリ名",
+    "newSubcategoryTitle": "新しいサブカテゴリ",
+    "newSubcategoryPlaceholder": "サブカテゴリ名"
   },
   "settings": {
     "title": "設定",

@@ -597,7 +597,19 @@
     "loanSavedToast": "تم حفظ القرض",
     "loanDeletedToast": "تم حذف القرض",
     "loanPaymentAddedToast": "تم تسجيل الدفع",
-    "typeLoan": "قرض"
+    "typeLoan": "قرض",
+    "tabsLabel": "أقسام الميزانية",
+    "budgetTab": "الميزانية",
+    "loansTab": "القروض",
+    "filteredTransactions": "المعاملات المصفاة",
+    "clearLoanFilter": "مسح الفلتر",
+    "loanFilterActive": "القرض: {{title}}",
+    "filterLoanTransactions": "عرض معاملات هذا القرض",
+    "loansEmptyDescription": "أنشئ قرضًا من زر + واختر قرض.",
+    "newCategoryTitle": "فئة جديدة",
+    "newCategoryPlaceholder": "اسم الفئة",
+    "newSubcategoryTitle": "فئة فرعية جديدة",
+    "newSubcategoryPlaceholder": "اسم الفئة الفرعية"
   },
   "settings": {
     "title": "الإعدادات",

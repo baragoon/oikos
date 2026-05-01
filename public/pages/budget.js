@@ -125,6 +125,8 @@ let state = {
   summary:     null,
   prevSummary: null, // Vormonat für Monatsvergleich
   loans:       { loans: [], summary: { active_count: 0, remaining_amount: 0, remaining_installments: 0 } },
+  activeTab:   'budget',
+  loanFilterId: null,
   currency:    'EUR',
   meta:        { expenseCategories: [], incomeCategories: [], expenseSubcategories: {} },
 };
@@ -161,8 +163,11 @@ function setHtml(element, html) {
 async function loadMonth(month) {
   const prevMonth = addMonths(month, -1);
   try {
+    const entriesPath = state.loanFilterId
+      ? `/budget?loan_id=${encodeURIComponent(state.loanFilterId)}`
+      : `/budget?month=${month}`;
     const [entriesRes, summaryRes, prevSummaryRes, loansRes] = await Promise.all([
-      api.get(`/budget?month=${month}`),
+      api.get(entriesPath),
       api.get(`/budget/summary?month=${month}`),
       api.get(`/budget/summary?month=${prevMonth}`),
       api.get('/budget/loans'),
@@ -224,6 +229,14 @@ export async function render(container, { user }) {
         </button>
         <button class="budget-nav__today" id="budget-today">${t('budget.currentMonth')}</button>
         <span class="budget-nav__label" id="budget-label"></span>
+        <div class="budget-tabs" role="tablist" aria-label="${t('budget.tabsLabel')}">
+          <button class="budget-tab" id="budget-tab-budget" type="button" role="tab" aria-selected="true" data-tab="budget">
+            ${t('budget.budgetTab')}
+          </button>
+          <button class="budget-tab" id="budget-tab-loans" type="button" role="tab" aria-selected="false" data-tab="loans">
+            ${t('budget.loansTab')}
+          </button>
+        </div>
         <button class="btn btn--primary btn--icon" id="budget-add" aria-label="${t('budget.addEntryLabel')}">
           <i data-lucide="plus" aria-hidden="true"></i>
         </button>
@@ -273,6 +286,12 @@ function wireNav() {
   const addHandler = () => openBudgetModal({ mode: 'create' });
   _container.querySelector('#budget-add').addEventListener('click', addHandler);
   _container.querySelector('#fab-new-budget').addEventListener('click', addHandler);
+  _container.querySelectorAll('.budget-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      state.activeTab = tab.dataset.tab;
+      renderBody();
+    });
+  });
   updateLabel();
 }
 
@@ -292,10 +311,19 @@ function renderBody() {
 
   const s    = state.summary;
   const p    = state.prevSummary;
+  updateTabs();
+  if (state.activeTab === 'loans') {
+    setHtml(body, renderLoansPage());
+    wireLoansPage();
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
   const balanceClass = s.balance >= 0 ? 'budget-summary-card--balance-positive' : 'budget-summary-card--balance-negative';
   const prevLabel = p ? formatMonthLabel(p.month).split(' ')[0].slice(0, 3) : '';
 
   setHtml(body, `
+    <div class="budget-tab-panel budget-tab-panel--budget">
     <!-- Zusammenfassung -->
     <div class="budget-summary">
       <div class="budget-summary-card budget-summary-card--income">
@@ -324,21 +352,30 @@ function renderBody() {
       </div>
     </div>` : ''}
 
-    ${renderLoansDashboard()}
-
     <!-- Transaktionsliste -->
     <div class="budget-list-section">
       <div class="budget-list-header">
-        <span class="budget-list-header__title">${t('budget.transactions')}</span>
-        ${state.entries.length ? `
+        <div>
+          <span class="budget-list-header__title">${state.loanFilterId ? t('budget.filteredTransactions') : t('budget.transactions')}</span>
+          ${state.loanFilterId ? `<div class="budget-list-header__filter">${esc(activeLoanLabel())}</div>` : ''}
+        </div>
+        <div class="budget-list-header__actions">
+        ${state.loanFilterId ? `
+        <button class="btn btn--secondary" id="budget-clear-loan-filter"
+           style="font-size:var(--text-sm);padding:var(--space-1) var(--space-3);">
+          <i data-lucide="x" style="width:14px;height:14px;margin-right:4px;" aria-hidden="true"></i>${t('budget.clearLoanFilter')}
+        </button>` : ''}
+        ${state.entries.length && !state.loanFilterId ? `
         <a href="/api/v1/budget/export?month=${state.month}" class="btn btn--secondary"
            style="font-size:var(--text-sm);padding:var(--space-1) var(--space-3);">
           <i data-lucide="download" style="width:14px;height:14px;margin-right:4px;" aria-hidden="true"></i>CSV
         </a>` : ''}
+        </div>
       </div>
       <div class="budget-list" id="budget-list">
         ${renderEntries()}
       </div>
+    </div>
     </div>
   `);
 
@@ -346,21 +383,10 @@ function renderBody() {
   _container.querySelector('#empty-cta-budget')?.addEventListener('click', () => {
     document.querySelector('.page-fab')?.click();
   });
-  _container.querySelectorAll('[data-action="loan-pay"]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      await markLoanPayment(parseInt(btn.dataset.id, 10));
-    });
-  });
-  _container.querySelectorAll('[data-action="loan-edit"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const loan = state.loans.loans.find((item) => item.id === parseInt(btn.dataset.id, 10));
-      if (loan) openLoanModal(loan);
-    });
-  });
-  _container.querySelectorAll('[data-action="loan-delete"]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      await deleteLoan(parseInt(btn.dataset.id, 10));
-    });
+  _container.querySelector('#budget-clear-loan-filter')?.addEventListener('click', async () => {
+    state.loanFilterId = null;
+    await loadMonth(state.month);
+    renderBody();
   });
   stagger(_container.querySelector('#budget-list')?.querySelectorAll('.budget-entry') ?? []);
 
@@ -374,6 +400,19 @@ function renderBody() {
       if (entry) openBudgetModal({ mode: 'edit', entry });
     }
   });
+}
+
+function updateTabs() {
+  _container.querySelectorAll('.budget-tab').forEach((tab) => {
+    const active = tab.dataset.tab === state.activeTab;
+    tab.classList.toggle('budget-tab--active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+}
+
+function activeLoanLabel() {
+  const loan = state.loans.loans.find((item) => item.id === state.loanFilterId);
+  return loan ? t('budget.loanFilterActive', { title: loan.title }) : '';
 }
 
 function renderCategoryBars(byCategory) {
@@ -485,6 +524,55 @@ function renderLoansDashboard() {
   `;
 }
 
+function renderLoansPage() {
+  const loans = state.loans?.loans ?? [];
+  if (!loans.length) {
+    return `<div class="budget-tab-panel budget-tab-panel--loans">
+      <div class="empty-state">
+        <i data-lucide="hand-coins" class="empty-state__icon" aria-hidden="true"></i>
+        <div class="empty-state__title">${t('budget.loansEmpty')}</div>
+        <div class="empty-state__description">${t('budget.loansEmptyDescription')}</div>
+        <button class="btn btn--primary empty-state__cta" id="budget-empty-loan">
+          <i data-lucide="plus" aria-hidden="true" class="icon-base"></i>
+          ${t('budget.newLoan')}
+        </button>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="budget-tab-panel budget-tab-panel--loans">
+    ${renderLoansDashboard()}
+  </div>`;
+}
+
+function wireLoansPage() {
+  _container.querySelector('#budget-empty-loan')?.addEventListener('click', () => openBudgetModal({ mode: 'create', initialType: 'loan' }));
+  _container.querySelectorAll('[data-action="loan-pay"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      await markLoanPayment(parseInt(btn.dataset.id, 10));
+    });
+  });
+  _container.querySelectorAll('[data-action="loan-edit"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const loan = state.loans.loans.find((item) => item.id === parseInt(btn.dataset.id, 10));
+      if (loan) openLoanModal(loan);
+    });
+  });
+  _container.querySelectorAll('[data-action="loan-delete"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      await deleteLoan(parseInt(btn.dataset.id, 10));
+    });
+  });
+  _container.querySelectorAll('[data-action="loan-filter"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      state.loanFilterId = parseInt(btn.dataset.id, 10);
+      state.activeTab = 'budget';
+      await loadMonth(state.month);
+      renderBody();
+    });
+  });
+}
+
 function renderLoanCard(loan) {
   const paidPct = Math.min(100, Math.round((loan.paid_amount / loan.total_amount) * 100));
   const nextDue = loan.next_due_month ? formatMonthLabel(loan.next_due_month) : t('budget.loanPaidStatus');
@@ -493,7 +581,12 @@ function renderLoanCard(loan) {
   return `
     <article class="budget-loan-card">
       <div class="budget-loan-card__main">
-        <div class="budget-loan-card__title">${esc(loan.title)}</div>
+        <div class="budget-loan-card__title-row">
+          <div class="budget-loan-card__title">${esc(loan.title)}</div>
+          <button class="budget-loan-card__filter" data-action="loan-filter" data-id="${loan.id}" aria-label="${t('budget.filterLoanTransactions')}">
+            <i data-lucide="filter" aria-hidden="true"></i>
+          </button>
+        </div>
         <div class="budget-loan-card__meta">${esc(loan.borrower)} · ${t('budget.loanInstallmentMeta', {
           paid: loan.paid_installments,
           total: loan.installment_count,
@@ -554,7 +647,7 @@ function formatEntryDate(dateStr) {
 // Modal
 // --------------------------------------------------------
 
-function openBudgetModal({ mode, entry = null }) {
+function openBudgetModal({ mode, entry = null, initialType = '' }) {
   const isEdit = mode === 'edit';
   const today  = new Date().toISOString().slice(0, 10);
   const todayMonth = today.slice(0, 7);
@@ -671,7 +764,7 @@ function openBudgetModal({ mode, entry = null }) {
     content,
     size: 'sm',
     onSave(panel) {
-      let currentType = isExpense ? 'expense' : 'income';
+      let currentType = !isEdit && initialType === 'loan' ? 'loan' : (isExpense ? 'expense' : 'income');
 
       const setType = (type) => {
         currentType = type;
@@ -724,7 +817,11 @@ function openBudgetModal({ mode, entry = null }) {
       };
 
       const addCategory = async () => {
-        const name = window.prompt(t('budget.newCategoryPrompt'));
+        const name = await requestNameInPanel(panel, {
+          title: t('budget.newCategoryTitle'),
+          label: t('budget.newCategoryPrompt'),
+          placeholder: t('budget.newCategoryPlaceholder'),
+        });
         if (!name?.trim()) return;
         try {
           const res = await api.post('/budget/categories', { name: name.trim(), type: currentType });
@@ -740,7 +837,11 @@ function openBudgetModal({ mode, entry = null }) {
         if (currentType !== 'expense') return;
         const category = panel.querySelector('#bm-category').value;
         if (!category) return;
-        const name = window.prompt(t('budget.newSubcategoryPrompt'));
+        const name = await requestNameInPanel(panel, {
+          title: t('budget.newSubcategoryTitle'),
+          label: t('budget.newSubcategoryPrompt'),
+          placeholder: t('budget.newSubcategoryPlaceholder'),
+        });
         if (!name?.trim()) return;
         try {
           const res = await api.post(`/budget/categories/${encodeURIComponent(category)}/subcategories`, { name: name.trim() });
@@ -812,8 +913,7 @@ function openBudgetModal({ mode, entry = null }) {
             const idx = state.entries.findIndex((e) => e.id === entry.id);
             if (idx !== -1) state.entries[idx] = res.data;
           }
-          const sumRes  = await api.get(`/budget/summary?month=${state.month}`);
-          state.summary = sumRes.data;
+          await loadMonth(state.month);
 
           closeModal({ force: true });
           renderBody();
@@ -826,6 +926,50 @@ function openBudgetModal({ mode, entry = null }) {
       });
       setType(currentType);
     },
+  });
+}
+
+function requestNameInPanel(panel, { title, label, placeholder }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'budget-inline-modal';
+    setHtml(overlay, `
+      <div class="budget-inline-modal__panel" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+        <div class="budget-inline-modal__header">
+          <strong>${esc(title)}</strong>
+          <button class="btn btn--icon" type="button" data-action="inline-cancel" aria-label="${t('common.cancel')}">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="budget-inline-name">${esc(label)}</label>
+          <input class="form-input" id="budget-inline-name" type="text" placeholder="${esc(placeholder)}">
+        </div>
+        <div class="budget-inline-modal__footer">
+          <button class="btn btn--secondary" type="button" data-action="inline-cancel">${t('common.cancel')}</button>
+          <button class="btn btn--primary" type="button" data-action="inline-save">${t('common.add')}</button>
+        </div>
+      </div>
+    `);
+    panel.append(overlay);
+    if (window.lucide) lucide.createIcons();
+
+    const input = overlay.querySelector('#budget-inline-name');
+    const cleanup = (value = '') => {
+      overlay.remove();
+      resolve(value);
+    };
+    overlay.querySelectorAll('[data-action="inline-cancel"]').forEach((btn) => {
+      btn.addEventListener('click', () => cleanup(''));
+    });
+    overlay.querySelector('[data-action="inline-save"]').addEventListener('click', () => {
+      cleanup(input.value.trim());
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') cleanup(input.value.trim());
+      if (e.key === 'Escape') cleanup('');
+    });
+    input.focus();
   });
 }
 
@@ -976,8 +1120,7 @@ async function deleteEntry(id) {
     if (undone) return;
     try {
       await api.delete(`/budget/${id}`);
-      const sumRes  = await api.get(`/budget/summary?month=${state.month}`);
-      state.summary = sumRes.data;
+      await loadMonth(state.month);
       renderBody();
     } catch (err) {
       if (entry) {

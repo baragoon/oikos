@@ -597,7 +597,19 @@
     "loanSavedToast": "Empréstimo salvo",
     "loanDeletedToast": "Empréstimo excluído",
     "loanPaymentAddedToast": "Pagamento registrado",
-    "typeLoan": "Empréstimo"
+    "typeLoan": "Empréstimo",
+    "tabsLabel": "Seções do orçamento",
+    "budgetTab": "Orçamento",
+    "loansTab": "Empréstimos",
+    "filteredTransactions": "Transações filtradas",
+    "clearLoanFilter": "Limpar filtro",
+    "loanFilterActive": "Empréstimo: {{title}}",
+    "filterLoanTransactions": "Mostrar transações deste empréstimo",
+    "loansEmptyDescription": "Crie um empréstimo pelo botão + e escolha Empréstimo.",
+    "newCategoryTitle": "Nova categoria",
+    "newCategoryPlaceholder": "Nome da categoria",
+    "newSubcategoryTitle": "Nova subcategoria",
+    "newSubcategoryPlaceholder": "Nome da subcategoria"
   },
   "settings": {
     "title": "Configurações",

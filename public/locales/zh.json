@@ -597,7 +597,19 @@
     "loanSavedToast": "借款已保存",
     "loanDeletedToast": "借款已删除",
     "loanPaymentAddedToast": "还款已记录",
-    "typeLoan": "借款"
+    "typeLoan": "借款",
+    "tabsLabel": "预算分区",
+    "budgetTab": "预算",
+    "loansTab": "借款",
+    "filteredTransactions": "已筛选交易",
+    "clearLoanFilter": "清除筛选",
+    "loanFilterActive": "借款：{{title}}",
+    "filterLoanTransactions": "显示此借款的交易",
+    "loansEmptyDescription": "点击 + 按钮并选择借款来创建。",
+    "newCategoryTitle": "新类别",
+    "newCategoryPlaceholder": "类别名称",
+    "newSubcategoryTitle": "新子类别",
+    "newSubcategoryPlaceholder": "子类别名称"
   },
   "settings": {
     "title": "设置",

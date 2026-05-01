@@ -597,7 +597,19 @@
     "loanSavedToast": "Позику збережено",
     "loanDeletedToast": "Позику видалено",
     "loanPaymentAddedToast": "Платіж записано",
-    "typeLoan": "Позика"
+    "typeLoan": "Позика",
+    "tabsLabel": "Розділи бюджету",
+    "budgetTab": "Бюджет",
+    "loansTab": "Позики",
+    "filteredTransactions": "Відфільтровані операції",
+    "clearLoanFilter": "Очистити фільтр",
+    "loanFilterActive": "Позика: {{title}}",
+    "filterLoanTransactions": "Показати операції цієї позики",
+    "loansEmptyDescription": "Створіть позику кнопкою + і виберіть Позика.",
+    "newCategoryTitle": "Нова категорія",
+    "newCategoryPlaceholder": "Назва категорії",
+    "newSubcategoryTitle": "Нова підкатегорія",
+    "newSubcategoryPlaceholder": "Назва підкатегорії"
   },
   "settings": {
     "title": "Налаштування",

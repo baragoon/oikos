@@ -25,6 +25,21 @@
   .budget-page { height: 100dvh; }
 }
 
+@media (max-width: 640px) {
+  .budget-nav {
+    flex-wrap: wrap;
+  }
+
+  .budget-nav__label {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .budget-tabs {
+    margin-left: auto;
+  }
+}
+
 /* --------------------------------------------------------
  * Monat-Navigation
  * -------------------------------------------------------- */
@@ -56,6 +71,49 @@
   cursor: pointer;
   border: none;
   white-space: nowrap;
+}
+
+.budget-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+}
+
+.budget-tab {
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.budget-tab--active {
+  background: var(--module-accent);
+  color: var(--color-text-on-accent);
+}
+
+.budget-tab-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.budget-tab-panel--budget {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.budget-tab-panel--loans {
+  overflow-y: auto;
+  padding-top: var(--space-3);
 }
 
 /* --------------------------------------------------------
@@ -252,8 +310,9 @@
   grid-template-columns: 1fr;
   gap: var(--space-2);
   margin-top: var(--space-3);
-  max-height: 260px;
+  max-height: min(58dvh, 640px);
   overflow-y: auto;
+  padding-right: var(--space-1);
 }
 
 .budget-loans__empty {
@@ -281,6 +340,37 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.budget-loan-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.budget-loan-card__filter {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.budget-loan-card__filter:hover {
+  color: var(--module-accent);
+  border-color: var(--module-accent);
+}
+
+.budget-loan-card__filter i {
+  width: 15px;
+  height: 15px;
 }
 
 .budget-loan-card__amounts {
@@ -356,6 +446,7 @@
   flex-direction: column;
   overflow: hidden;
   border-top: 1px solid var(--color-border);
+  min-height: 0;
 }
 
 .budget-list-header {
@@ -365,6 +456,20 @@
   padding: var(--space-3) var(--space-4) var(--space-2);
   flex-shrink: 0;
   border-top: 3px solid var(--module-accent);
+}
+
+.budget-list-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.budget-list-header__filter {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  margin-top: 2px;
 }
 
 .budget-list-header__title {
@@ -377,8 +482,37 @@
 
 .budget-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.budget-list,
+.budget-loans__list,
+.budget-tab-panel--loans {
+  scrollbar-width: thin;
+  scrollbar-color: var(--module-accent) transparent;
+}
+
+.budget-list::-webkit-scrollbar,
+.budget-loans__list::-webkit-scrollbar,
+.budget-tab-panel--loans::-webkit-scrollbar {
+  width: 10px;
+}
+
+.budget-list::-webkit-scrollbar-track,
+.budget-loans__list::-webkit-scrollbar-track,
+.budget-tab-panel--loans::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.budget-list::-webkit-scrollbar-thumb,
+.budget-loans__list::-webkit-scrollbar-thumb,
+.budget-tab-panel--loans::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--module-accent) 55%, transparent);
+  border: 3px solid transparent;
+  border-radius: var(--radius-full);
+  background-clip: padding-box;
 }
 
 .budget-entry {
@@ -527,4 +661,40 @@
   min-height: auto;
   padding: 2px var(--space-2);
   font-size: var(--text-xs);
+}
+
+.budget-inline-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.budget-inline-modal__panel {
+  width: min(100%, 380px);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.budget-inline-modal__header,
+.budget-inline-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.budget-inline-modal__header {
+  margin-bottom: var(--space-3);
+}
+
+.budget-inline-modal__footer {
+  justify-content: flex-end;
 }

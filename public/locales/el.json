@@ -597,7 +597,19 @@
     "loanSavedToast": "Το δάνειο αποθηκεύτηκε",
     "loanDeletedToast": "Το δάνειο διαγράφηκε",
     "loanPaymentAddedToast": "Η πληρωμή καταγράφηκε",
-    "typeLoan": "Δάνειο"
+    "typeLoan": "Δάνειο",
+    "tabsLabel": "Ενότητες προϋπολογισμού",
+    "budgetTab": "Προϋπολογισμός",
+    "loansTab": "Δάνεια",
+    "filteredTransactions": "Φιλτραρισμένες συναλλαγές",
+    "clearLoanFilter": "Καθαρισμός φίλτρου",
+    "loanFilterActive": "Δάνειο: {{title}}",
+    "filterLoanTransactions": "Εμφάνιση συναλλαγών αυτού του δανείου",
+    "loansEmptyDescription": "Δημιουργήστε δάνειο από το κουμπί + και επιλέξτε Δάνειο.",
+    "newCategoryTitle": "Νέα κατηγορία",
+    "newCategoryPlaceholder": "Όνομα κατηγορίας",
+    "newSubcategoryTitle": "Νέα υποκατηγορία",
+    "newSubcategoryPlaceholder": "Όνομα υποκατηγορίας"
   },
   "settings": {
     "title": "Ρυθμίσεις",

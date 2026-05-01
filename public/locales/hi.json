@@ -597,7 +597,19 @@
     "loanSavedToast": "उधार सहेजा गया",
     "loanDeletedToast": "उधार हटाया गया",
     "loanPaymentAddedToast": "भुगतान दर्ज किया गया",
-    "typeLoan": "उधार"
+    "typeLoan": "उधार",
+    "tabsLabel": "बजट अनुभाग",
+    "budgetTab": "बजट",
+    "loansTab": "उधार",
+    "filteredTransactions": "फ़िल्टर किए गए लेन-देन",
+    "clearLoanFilter": "फ़िल्टर हटाएं",
+    "loanFilterActive": "उधार: {{title}}",
+    "filterLoanTransactions": "इस उधार के लेन-देन दिखाएं",
+    "loansEmptyDescription": "+ बटन से उधार चुनकर नया उधार बनाएं।",
+    "newCategoryTitle": "नई श्रेणी",
+    "newCategoryPlaceholder": "श्रेणी का नाम",
+    "newSubcategoryTitle": "नई उपश्रेणी",
+    "newSubcategoryPlaceholder": "उपश्रेणी का नाम"
   },
   "settings": {
     "title": "सेटिंग्स",

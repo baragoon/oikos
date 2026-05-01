@@ -597,7 +597,19 @@
     "loanSavedToast": "Borç kaydedildi",
     "loanDeletedToast": "Borç silindi",
     "loanPaymentAddedToast": "Ödeme kaydedildi",
-    "typeLoan": "Borç"
+    "typeLoan": "Borç",
+    "tabsLabel": "Bütçe bölümleri",
+    "budgetTab": "Bütçe",
+    "loansTab": "Borçlar",
+    "filteredTransactions": "Filtrelenmiş işlemler",
+    "clearLoanFilter": "Filtreyi temizle",
+    "loanFilterActive": "Borç: {{title}}",
+    "filterLoanTransactions": "Bu borcun işlemlerini göster",
+    "loansEmptyDescription": "+ düğmesinden Borç seçerek yeni bir borç oluşturun.",
+    "newCategoryTitle": "Yeni kategori",
+    "newCategoryPlaceholder": "Kategori adı",
+    "newSubcategoryTitle": "Yeni alt kategori",
+    "newSubcategoryPlaceholder": "Alt kategori adı"
   },
   "settings": {
     "title": "Ayarlar",

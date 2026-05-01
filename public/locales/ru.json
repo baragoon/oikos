@@ -597,7 +597,19 @@
     "loanSavedToast": "Займ сохранён",
     "loanDeletedToast": "Займ удалён",
     "loanPaymentAddedToast": "Платёж записан",
-    "typeLoan": "Займ"
+    "typeLoan": "Займ",
+    "tabsLabel": "Разделы бюджета",
+    "budgetTab": "Бюджет",
+    "loansTab": "Займы",
+    "filteredTransactions": "Отфильтрованные операции",
+    "clearLoanFilter": "Сбросить фильтр",
+    "loanFilterActive": "Займ: {{title}}",
+    "filterLoanTransactions": "Показать операции этого займа",
+    "loansEmptyDescription": "Создайте займ кнопкой + и выберите Займ.",
+    "newCategoryTitle": "Новая категория",
+    "newCategoryPlaceholder": "Название категории",
+    "newSubcategoryTitle": "Новая подкатегория",
+    "newSubcategoryPlaceholder": "Название подкатегории"
   },
   "settings": {
     "title": "Настройки",

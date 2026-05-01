@@ -597,7 +597,19 @@
     "loanSavedToast": "Prêt enregistré",
     "loanDeletedToast": "Prêt supprimé",
     "loanPaymentAddedToast": "Paiement enregistré",
-    "typeLoan": "Prêt"
+    "typeLoan": "Prêt",
+    "tabsLabel": "Sections du budget",
+    "budgetTab": "Budget",
+    "loansTab": "Prêts",
+    "filteredTransactions": "Transactions filtrées",
+    "clearLoanFilter": "Effacer le filtre",
+    "loanFilterActive": "Prêt : {{title}}",
+    "filterLoanTransactions": "Afficher les transactions de ce prêt",
+    "loansEmptyDescription": "Créez un prêt avec le bouton + puis choisissez Prêt.",
+    "newCategoryTitle": "Nouvelle catégorie",
+    "newCategoryPlaceholder": "Nom de la catégorie",
+    "newSubcategoryTitle": "Nouvelle sous-catégorie",
+    "newSubcategoryPlaceholder": "Nom de la sous-catégorie"
   },
   "settings": {
     "title": "Paramètres",

@@ -597,7 +597,19 @@
     "loanSavedToast": "Lån sparat",
     "loanDeletedToast": "Lån borttaget",
     "loanPaymentAddedToast": "Betalning registrerad",
-    "typeLoan": "Lån"
+    "typeLoan": "Lån",
+    "tabsLabel": "Budgetsektioner",
+    "budgetTab": "Budget",
+    "loansTab": "Lån",
+    "filteredTransactions": "Filtrerade transaktioner",
+    "clearLoanFilter": "Rensa filter",
+    "loanFilterActive": "Lån: {{title}}",
+    "filterLoanTransactions": "Visa transaktioner för detta lån",
+    "loansEmptyDescription": "Skapa ett lån med +-knappen och välj Lån.",
+    "newCategoryTitle": "Ny kategori",
+    "newCategoryPlaceholder": "Kategorinamn",
+    "newSubcategoryTitle": "Ny underkategori",
+    "newSubcategoryPlaceholder": "Underkategorinamn"
   },
   "settings": {
     "title": "Inställningar",

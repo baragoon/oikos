@@ -622,7 +622,19 @@
     "loanSavedToast": "Darlehen gespeichert",
     "loanDeletedToast": "Darlehen gelöscht",
     "loanPaymentAddedToast": "Zahlung erfasst",
-    "typeLoan": "Darlehen"
+    "typeLoan": "Darlehen",
+    "tabsLabel": "Budgetbereiche",
+    "budgetTab": "Budget",
+    "loansTab": "Darlehen",
+    "filteredTransactions": "Gefilterte Transaktionen",
+    "clearLoanFilter": "Filter löschen",
+    "loanFilterActive": "Darlehen: {{title}}",
+    "filterLoanTransactions": "Transaktionen dieses Darlehens anzeigen",
+    "loansEmptyDescription": "Erstelle ein Darlehen über die +-Schaltfläche und wähle Darlehen.",
+    "newCategoryTitle": "Neue Kategorie",
+    "newCategoryPlaceholder": "Kategoriename",
+    "newSubcategoryTitle": "Neue Unterkategorie",
+    "newSubcategoryPlaceholder": "Name der Unterkategorie"
   },
   "settings": {
     "title": "Einstellungen",

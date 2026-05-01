@@ -597,7 +597,19 @@
     "loanSavedToast": "Loan saved",
     "loanDeletedToast": "Loan deleted",
     "loanPaymentAddedToast": "Payment recorded",
-    "typeLoan": "Loan"
+    "typeLoan": "Loan",
+    "tabsLabel": "Budget sections",
+    "budgetTab": "Budget",
+    "loansTab": "Loans",
+    "filteredTransactions": "Filtered transactions",
+    "clearLoanFilter": "Clear filter",
+    "loanFilterActive": "Loan: {{title}}",
+    "filterLoanTransactions": "Show transactions for this loan",
+    "loansEmptyDescription": "Create a loan from the + button and choose Loan.",
+    "newCategoryTitle": "New category",
+    "newCategoryPlaceholder": "Category name",
+    "newSubcategoryTitle": "New subcategory",
+    "newSubcategoryPlaceholder": "Subcategory name"
   },
   "settings": {
     "title": "Settings",
