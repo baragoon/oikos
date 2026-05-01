@@ -609,7 +609,15 @@
     "newCategoryTitle": "Yeni kategori",
     "newCategoryPlaceholder": "Kategori adı",
     "newSubcategoryTitle": "Yeni alt kategori",
-    "newSubcategoryPlaceholder": "Alt kategori adı"
+    "newSubcategoryPlaceholder": "Alt kategori adı",
+    "loanStatusFilterLabel": "Borç durumu filtresi",
+    "loanStatusActive": "Aktif",
+    "loanStatusPaid": "Ödendi",
+    "loanStatusAll": "Tümü",
+    "loanTransactions": "Borç işlemleri",
+    "loanInstallmentNumber": "{{total}} taksitten {{number}}.",
+    "loanReportTitle": "Borç raporu",
+    "loanNoTransactions": "Henüz ödeme kaydedilmedi."
   },
   "settings": {
     "title": "Ayarlar",

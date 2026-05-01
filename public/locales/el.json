@@ -609,7 +609,15 @@
     "newCategoryTitle": "Νέα κατηγορία",
     "newCategoryPlaceholder": "Όνομα κατηγορίας",
     "newSubcategoryTitle": "Νέα υποκατηγορία",
-    "newSubcategoryPlaceholder": "Όνομα υποκατηγορίας"
+    "newSubcategoryPlaceholder": "Όνομα υποκατηγορίας",
+    "loanStatusFilterLabel": "Φίλτρο κατάστασης δανείων",
+    "loanStatusActive": "Ενεργά",
+    "loanStatusPaid": "Πληρωμένα",
+    "loanStatusAll": "Όλα",
+    "loanTransactions": "Συναλλαγές δανείου",
+    "loanInstallmentNumber": "Δόση {{number}} από {{total}}",
+    "loanReportTitle": "Αναφορά δανείου",
+    "loanNoTransactions": "Δεν έχουν καταγραφεί πληρωμές ακόμα."
   },
   "settings": {
     "title": "Ρυθμίσεις",

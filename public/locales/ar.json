@@ -609,7 +609,15 @@
     "newCategoryTitle": "فئة جديدة",
     "newCategoryPlaceholder": "اسم الفئة",
     "newSubcategoryTitle": "فئة فرعية جديدة",
-    "newSubcategoryPlaceholder": "اسم الفئة الفرعية"
+    "newSubcategoryPlaceholder": "اسم الفئة الفرعية",
+    "loanStatusFilterLabel": "فلتر حالة القرض",
+    "loanStatusActive": "نشطة",
+    "loanStatusPaid": "مدفوعة",
+    "loanStatusAll": "الكل",
+    "loanTransactions": "معاملات القرض",
+    "loanInstallmentNumber": "القسط {{number}} من {{total}}",
+    "loanReportTitle": "تقرير القرض",
+    "loanNoTransactions": "لم يتم تسجيل أي دفعات بعد."
   },
   "settings": {
     "title": "الإعدادات",

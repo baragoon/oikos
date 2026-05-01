@@ -609,7 +609,15 @@
     "newCategoryTitle": "New category",
     "newCategoryPlaceholder": "Category name",
     "newSubcategoryTitle": "New subcategory",
-    "newSubcategoryPlaceholder": "Subcategory name"
+    "newSubcategoryPlaceholder": "Subcategory name",
+    "loanStatusFilterLabel": "Loan status filter",
+    "loanStatusActive": "Active",
+    "loanStatusPaid": "Paid",
+    "loanStatusAll": "All",
+    "loanTransactions": "Loan transactions",
+    "loanInstallmentNumber": "Installment {{number}} of {{total}}",
+    "loanReportTitle": "Loan report",
+    "loanNoTransactions": "No payments recorded yet."
   },
   "settings": {
     "title": "Settings",

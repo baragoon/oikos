@@ -609,7 +609,15 @@
     "newCategoryTitle": "Новая категория",
     "newCategoryPlaceholder": "Название категории",
     "newSubcategoryTitle": "Новая подкатегория",
-    "newSubcategoryPlaceholder": "Название подкатегории"
+    "newSubcategoryPlaceholder": "Название подкатегории",
+    "loanStatusFilterLabel": "Фильтр статуса займов",
+    "loanStatusActive": "Активные",
+    "loanStatusPaid": "Оплаченные",
+    "loanStatusAll": "Все",
+    "loanTransactions": "Операции займа",
+    "loanInstallmentNumber": "Платёж {{number}} из {{total}}",
+    "loanReportTitle": "Отчёт по займу",
+    "loanNoTransactions": "Платежи ещё не записаны."
   },
   "settings": {
     "title": "Настройки",

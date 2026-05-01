@@ -609,7 +609,15 @@
     "newCategoryTitle": "新类别",
     "newCategoryPlaceholder": "类别名称",
     "newSubcategoryTitle": "新子类别",
-    "newSubcategoryPlaceholder": "子类别名称"
+    "newSubcategoryPlaceholder": "子类别名称",
+    "loanStatusFilterLabel": "借款状态筛选",
+    "loanStatusActive": "进行中",
+    "loanStatusPaid": "已还清",
+    "loanStatusAll": "全部",
+    "loanTransactions": "借款交易",
+    "loanInstallmentNumber": "第 {{number}} / {{total}} 期",
+    "loanReportTitle": "借款报告",
+    "loanNoTransactions": "尚未记录还款。"
   },
   "settings": {
     "title": "设置",

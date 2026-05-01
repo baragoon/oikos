@@ -127,6 +127,7 @@ let state = {
   loans:       { loans: [], summary: { active_count: 0, remaining_amount: 0, remaining_installments: 0 } },
   activeTab:   'budget',
   loanFilterId: null,
+  loanStatusFilter: 'active',
   currency:    'EUR',
   meta:        { expenseCategories: [], incomeCategories: [], expenseSubcategories: {} },
 };
@@ -486,7 +487,7 @@ function renderLoansDashboard() {
   if (!loans.length) return '';
 
   const summary = state.loans?.summary ?? {};
-  const activeLoans = loans.filter((loan) => loan.status === 'active');
+  const visibleLoans = filteredLoans();
 
   return `
     <section class="budget-loans">
@@ -497,6 +498,14 @@ function renderLoansDashboard() {
             count: summary.active_count ?? 0,
             amount: formatAmount(summary.remaining_amount ?? 0),
           })}</div>
+        </div>
+        <div class="budget-loans__filters" role="group" aria-label="${t('budget.loanStatusFilterLabel')}">
+          <button class="budget-loans__filter ${state.loanStatusFilter === 'active' ? 'budget-loans__filter--active' : ''}"
+                  type="button" data-loan-status="active">${t('budget.loanStatusActive')}</button>
+          <button class="budget-loans__filter ${state.loanStatusFilter === 'paid' ? 'budget-loans__filter--active' : ''}"
+                  type="button" data-loan-status="paid">${t('budget.loanStatusPaid')}</button>
+          <button class="budget-loans__filter ${state.loanStatusFilter === 'all' ? 'budget-loans__filter--active' : ''}"
+                  type="button" data-loan-status="all">${t('budget.loanStatusAll')}</button>
         </div>
       </div>
       <div class="budget-loans__stats">
@@ -513,15 +522,53 @@ function renderLoansDashboard() {
           <strong>${formatAmount(summary.paid_amount ?? 0)}</strong>
         </div>
       </div>
-      ${activeLoans.length ? `
+      ${visibleLoans.length ? `
         <div class="budget-loans__list">
-          ${activeLoans.map(renderLoanCard).join('')}
+          ${visibleLoans.map(renderLoanCard).join('')}
         </div>
       ` : `
         <div class="budget-loans__empty">${t('budget.loansEmpty')}</div>
       `}
+      ${renderLoanTransactions(visibleLoans)}
     </section>
   `;
+}
+
+function filteredLoans() {
+  const loans = state.loans?.loans ?? [];
+  if (state.loanStatusFilter === 'all') return loans;
+  return loans.filter((loan) => loan.status === state.loanStatusFilter);
+}
+
+function loanPaymentsFor(loans) {
+  return loans.flatMap((loan) => (loan.payments ?? []).map((payment) => ({ ...payment, loan })))
+    .sort((a, b) => new Date(b.paid_date) - new Date(a.paid_date) || b.installment_number - a.installment_number);
+}
+
+function renderLoanTransactions(loans) {
+  const payments = loanPaymentsFor(loans);
+  if (!payments.length) return '';
+
+  return `<div class="budget-loan-transactions">
+    <div class="budget-loan-transactions__title">${t('budget.loanTransactions')}</div>
+    <div class="budget-loan-transactions__list">
+      ${payments.map(({ loan, ...payment }) => `
+        <div class="budget-loan-transaction">
+          <div>
+            <strong>${esc(loan.title)}</strong>
+            <span>${esc(loan.borrower)} · ${t('budget.loanInstallmentNumber', {
+              number: payment.installment_number,
+              total: loan.installment_count,
+            })}</span>
+          </div>
+          <div>
+            <strong>${formatAmount(payment.amount)}</strong>
+            <span>${formatEntryDate(payment.paid_date)}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
 }
 
 function renderLoansPage() {
@@ -547,6 +594,19 @@ function renderLoansPage() {
 
 function wireLoansPage() {
   _container.querySelector('#budget-empty-loan')?.addEventListener('click', () => openBudgetModal({ mode: 'create', initialType: 'loan' }));
+  _container.querySelectorAll('[data-loan-status]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.loanStatusFilter = btn.dataset.loanStatus;
+      renderBody();
+    });
+  });
+  _container.querySelectorAll('.budget-loan-card[data-loan-id]').forEach((card) => {
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('button, a')) return;
+      const loan = state.loans.loans.find((item) => item.id === parseInt(card.dataset.loanId, 10));
+      if (loan) openLoanReport(loan);
+    });
+  });
   _container.querySelectorAll('[data-action="loan-pay"]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       await markLoanPayment(parseInt(btn.dataset.id, 10));
@@ -573,13 +633,65 @@ function wireLoansPage() {
   });
 }
 
+function openLoanReport(loan) {
+  const payments = (loan.payments ?? []).slice()
+    .sort((a, b) => new Date(b.paid_date) - new Date(a.paid_date) || b.installment_number - a.installment_number);
+  const content = `
+    <div class="loan-report">
+      <div class="loan-report__hero">
+        <div>
+          <div class="loan-report__borrower">${esc(loan.borrower)}</div>
+          <div class="loan-report__title">${esc(loan.title)}</div>
+        </div>
+        <span class="loan-report__status loan-report__status--${loan.status}">
+          ${loan.status === 'paid' ? t('budget.loanStatusPaid') : t('budget.loanStatusActive')}
+        </span>
+      </div>
+      <div class="loan-report__grid">
+        <div><span>${t('budget.loanAmountLabel')}</span><strong>${formatAmount(loan.total_amount)}</strong></div>
+        <div><span>${t('budget.loanRemainingAmount')}</span><strong>${formatAmount(loan.remaining_amount)}</strong></div>
+        <div><span>${t('budget.loanPaidAmount')}</span><strong>${formatAmount(loan.paid_amount)}</strong></div>
+        <div><span>${t('budget.loanRemainingInstallments')}</span><strong>${loan.remaining_installments}</strong></div>
+      </div>
+      <div class="loan-report__section-title">${t('budget.loanTransactions')}</div>
+      ${payments.length ? `
+        <div class="loan-report__transactions">
+          ${payments.map((payment) => `
+            <div class="budget-loan-transaction">
+              <div>
+                <strong>${t('budget.loanInstallmentNumber', { number: payment.installment_number, total: loan.installment_count })}</strong>
+                <span>${formatEntryDate(payment.paid_date)}</span>
+              </div>
+              <div>
+                <strong>${formatAmount(payment.amount)}</strong>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div class="budget-loans__empty">${t('budget.loanNoTransactions')}</div>`}
+    </div>
+    <div class="modal-panel__footer" style="border:none;padding:0;margin-top:var(--space-4)">
+      <div></div>
+      <button class="btn btn--primary" id="loan-report-close">${t('common.close')}</button>
+    </div>`;
+
+  openSharedModal({
+    title: t('budget.loanReportTitle'),
+    content,
+    size: 'md',
+    onSave(panel) {
+      panel.querySelector('#loan-report-close')?.addEventListener('click', closeModal);
+    },
+  });
+}
+
 function renderLoanCard(loan) {
   const paidPct = Math.min(100, Math.round((loan.paid_amount / loan.total_amount) * 100));
   const nextDue = loan.next_due_month ? formatMonthLabel(loan.next_due_month) : t('budget.loanPaidStatus');
   const payDisabled = loan.remaining_installments <= 0 ? 'disabled' : '';
 
   return `
-    <article class="budget-loan-card">
+    <article class="budget-loan-card" data-loan-id="${loan.id}">
       <div class="budget-loan-card__main">
         <div class="budget-loan-card__title-row">
           <div class="budget-loan-card__title">${esc(loan.title)}</div>

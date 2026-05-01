@@ -634,7 +634,15 @@
     "newCategoryTitle": "Neue Kategorie",
     "newCategoryPlaceholder": "Kategoriename",
     "newSubcategoryTitle": "Neue Unterkategorie",
-    "newSubcategoryPlaceholder": "Name der Unterkategorie"
+    "newSubcategoryPlaceholder": "Name der Unterkategorie",
+    "loanStatusFilterLabel": "Darlehensstatus filtern",
+    "loanStatusActive": "Aktiv",
+    "loanStatusPaid": "Bezahlt",
+    "loanStatusAll": "Alle",
+    "loanTransactions": "Darlehenstransaktionen",
+    "loanInstallmentNumber": "Rate {{number}} von {{total}}",
+    "loanReportTitle": "Darlehensbericht",
+    "loanNoTransactions": "Noch keine Zahlungen erfasst."
   },
   "settings": {
     "title": "Einstellungen",

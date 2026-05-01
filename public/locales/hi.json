@@ -609,7 +609,15 @@
     "newCategoryTitle": "नई श्रेणी",
     "newCategoryPlaceholder": "श्रेणी का नाम",
     "newSubcategoryTitle": "नई उपश्रेणी",
-    "newSubcategoryPlaceholder": "उपश्रेणी का नाम"
+    "newSubcategoryPlaceholder": "उपश्रेणी का नाम",
+    "loanStatusFilterLabel": "उधार स्थिति फ़िल्टर",
+    "loanStatusActive": "सक्रिय",
+    "loanStatusPaid": "चुकाया गया",
+    "loanStatusAll": "सभी",
+    "loanTransactions": "उधार लेन-देन",
+    "loanInstallmentNumber": "{{total}} में से किस्त {{number}}",
+    "loanReportTitle": "उधार रिपोर्ट",
+    "loanNoTransactions": "अभी कोई भुगतान दर्ज नहीं है।"
   },
   "settings": {
     "title": "सेटिंग्स",

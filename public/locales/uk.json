@@ -609,7 +609,15 @@
     "newCategoryTitle": "Нова категорія",
     "newCategoryPlaceholder": "Назва категорії",
     "newSubcategoryTitle": "Нова підкатегорія",
-    "newSubcategoryPlaceholder": "Назва підкатегорії"
+    "newSubcategoryPlaceholder": "Назва підкатегорії",
+    "loanStatusFilterLabel": "Фільтр статусу позик",
+    "loanStatusActive": "Активні",
+    "loanStatusPaid": "Сплачені",
+    "loanStatusAll": "Усі",
+    "loanTransactions": "Операції позики",
+    "loanInstallmentNumber": "Платіж {{number}} з {{total}}",
+    "loanReportTitle": "Звіт по позиці",
+    "loanNoTransactions": "Платежі ще не записано."
   },
   "settings": {
     "title": "Налаштування",

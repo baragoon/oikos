@@ -609,7 +609,15 @@
     "newCategoryTitle": "Ny kategori",
     "newCategoryPlaceholder": "Kategorinamn",
     "newSubcategoryTitle": "Ny underkategori",
-    "newSubcategoryPlaceholder": "Underkategorinamn"
+    "newSubcategoryPlaceholder": "Underkategorinamn",
+    "loanStatusFilterLabel": "Filter för lånestatus",
+    "loanStatusActive": "Aktiva",
+    "loanStatusPaid": "Betalda",
+    "loanStatusAll": "Alla",
+    "loanTransactions": "Lånetransaktioner",
+    "loanInstallmentNumber": "Delbetalning {{number}} av {{total}}",
+    "loanReportTitle": "Lånrapport",
+    "loanNoTransactions": "Inga betalningar registrerade ännu."
   },
   "settings": {
     "title": "Inställningar",

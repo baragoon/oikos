@@ -889,6 +889,17 @@ router.put('/:id', (req, res) => {
     if (linkedPayment && amount !== undefined && Number(amount) <= 0) {
       return res.status(400).json({ error: 'Loan repayment entries must remain income.', code: 400 });
     }
+    if (linkedPayment && amount !== undefined) {
+      const loan = db.get().prepare('SELECT total_amount FROM budget_loans WHERE id = ?').get(linkedPayment.loan_id);
+      const otherPaid = db.get().prepare(`
+        SELECT COALESCE(SUM(amount), 0) AS total
+        FROM budget_loan_payments
+        WHERE loan_id = ? AND id != ?
+      `).get(linkedPayment.loan_id, linkedPayment.id).total;
+      if (Number(amount) - (Number(loan?.total_amount || 0) - Number(otherPaid || 0)) > 0.005) {
+        return res.status(400).json({ error: 'Amount cannot be greater than the remaining loan amount.', code: 400 });
+      }
+    }
     const nextCategory = category ?? entry.category;
     const subcategory = requestedSubcategory !== undefined || category !== undefined
       ? validateSubcategory(nextCategory, requestedSubcategory ?? entry.subcategory)

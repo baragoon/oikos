@@ -609,7 +609,15 @@
     "newCategoryTitle": "Nuova categoria",
     "newCategoryPlaceholder": "Nome categoria",
     "newSubcategoryTitle": "Nuova sottocategoria",
-    "newSubcategoryPlaceholder": "Nome sottocategoria"
+    "newSubcategoryPlaceholder": "Nome sottocategoria",
+    "loanStatusFilterLabel": "Filtro stato prestiti",
+    "loanStatusActive": "Attivi",
+    "loanStatusPaid": "Pagati",
+    "loanStatusAll": "Tutti",
+    "loanTransactions": "Movimenti del prestito",
+    "loanInstallmentNumber": "Rata {{number}} di {{total}}",
+    "loanReportTitle": "Report del prestito",
+    "loanNoTransactions": "Nessun pagamento registrato."
   },
   "settings": {
     "title": "Impostazioni",

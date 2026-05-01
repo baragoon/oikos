@@ -609,7 +609,15 @@
     "newCategoryTitle": "Nova categoria",
     "newCategoryPlaceholder": "Nome da categoria",
     "newSubcategoryTitle": "Nova subcategoria",
-    "newSubcategoryPlaceholder": "Nome da subcategoria"
+    "newSubcategoryPlaceholder": "Nome da subcategoria",
+    "loanStatusFilterLabel": "Filtro de status dos empréstimos",
+    "loanStatusActive": "Ativos",
+    "loanStatusPaid": "Pagos",
+    "loanStatusAll": "Todos",
+    "loanTransactions": "Transações do empréstimo",
+    "loanInstallmentNumber": "Parcela {{number}} de {{total}}",
+    "loanReportTitle": "Relatório do empréstimo",
+    "loanNoTransactions": "Nenhum pagamento registrado ainda."
   },
   "settings": {
     "title": "Configurações",

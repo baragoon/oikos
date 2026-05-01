@@ -609,7 +609,15 @@
     "newCategoryTitle": "新しいカテゴリ",
     "newCategoryPlaceholder": "カテゴリ名",
     "newSubcategoryTitle": "新しいサブカテゴリ",
-    "newSubcategoryPlaceholder": "サブカテゴリ名"
+    "newSubcategoryPlaceholder": "サブカテゴリ名",
+    "loanStatusFilterLabel": "貸付ステータスフィルター",
+    "loanStatusActive": "進行中",
+    "loanStatusPaid": "完済",
+    "loanStatusAll": "すべて",
+    "loanTransactions": "貸付取引",
+    "loanInstallmentNumber": "{{total}} 回中 {{number}} 回目",
+    "loanReportTitle": "貸付レポート",
+    "loanNoTransactions": "返済はまだ記録されていません。"
   },
   "settings": {
     "title": "設定",
