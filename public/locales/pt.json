@@ -193,7 +193,8 @@
     "swipedDoneToast": "Marcado como concluído.",
     "swipedOpenToast": "Marcado como aberto.",
     "reminderNeedsDueDate": "Defina uma data de vencimento para habilitar lembretes da tarefa.",
-    "emptyAction": "Criar tarefa"
+    "emptyAction": "Criar tarefa",
+    "navLabelOverdue": "Tarefas, {{count}} atrasadas"
   },
   "shopping": {
     "title": "Compras",
@@ -372,7 +373,17 @@
     "attachmentHint": "Anexe uma imagem, PDF ou documento local. Imagens aparecem no pop-up do evento.",
     "attachmentFallback": "Anexo",
     "attachmentReadError": "Não foi possível ler o anexo.",
-    "attachmentTooLarge": "O anexo pode ter no máximo 5 MB."
+    "attachmentTooLarge": "O anexo pode ter no máximo 5 MB.",
+    "colorBlue": "Azul",
+    "colorCoral": "Coral",
+    "colorCyan": "Ciano",
+    "colorGray": "Cinza",
+    "colorGreen": "Verde",
+    "colorOrange": "Laranja",
+    "colorPurple": "Roxo",
+    "colorRed": "Vermelho",
+    "colorSkyBlue": "Azul céu",
+    "colorYellow": "Amarelo"
   },
   "notes": {
     "title": "Quadro de notas",
@@ -411,7 +422,15 @@
     "formatCode": "Código",
     "formatQuote": "Citação",
     "formatDivider": "Divisor",
-    "emptyAction": "Criar nota"
+    "emptyAction": "Criar nota",
+    "colorAmber": "Âmbar",
+    "colorBlue": "Azul",
+    "colorGreen": "Verde",
+    "colorOrange": "Laranja",
+    "colorPurple": "Roxo",
+    "colorTeal": "Verde-azulado",
+    "colorWhite": "Branco",
+    "colorYellow": "Amarelo"
   },
   "contacts": {
     "title": "Contatos",
@@ -880,7 +899,7 @@
     "nameLabel": "Nome",
     "birthDateLabel": "Data de nascimento",
     "photoLabel": "Foto de perfil",
-    "photoOptional": "Opcional: você também pode salvar sem foto de perfil.",
+    "photoOptional": "Opcional: você pode salvar sem foto de perfil.",
     "removePhoto": "Remover foto",
     "notesLabel": "Notas",
     "notesPlaceholder": "Ideias de presente, bolo favorito, notas da família…",
@@ -940,7 +959,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Crie receitas e vincule-as ao seu planejador de refeições."
+    "recipes": "Crie receitas e vincule-as ao seu planejador de refeições.",
+    "birthdays": "Adicione aniversários — você receberá um lembrete a tempo.",
+    "budget": "Crie categorias e registre receitas e despesas.",
+    "calendar": "Conecte o Google Agenda em Configurações → Integrações para sincronização automática.",
+    "contacts": "Adicione contatos importantes — médico, escola, emergência — para acesso rápido.",
+    "meals": "Planeje as refeições da semana e vincule receitas.",
+    "notes": "Toque em + para uma nova nota. As notas são pesquisadas em texto completo.",
+    "shopping": "Adicione itens e deslize para marcar ou excluir.",
+    "tasks": "Toque em + para criar sua primeira tarefa. Deslize um cartão para a esquerda para excluir."
   },
   "documents": {
     "title": "Documentos",
@@ -1004,6 +1031,14 @@
     "selectedFileLabel": "Selecionado: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Cozinha"
+    "goKitchen": "Cozinha",
+    "goCal": "Calendário",
+    "goDash": "Painel",
+    "goNotes": "Notas",
+    "goShop": "Lista de compras",
+    "goTasks": "Tarefas",
+    "help": "Atalhos de teclado",
+    "new": "Criar nova entrada",
+    "search": "Abrir pesquisa"
   }
 }

@@ -193,7 +193,8 @@
     "swipedDoneToast": "Marked as done.",
     "swipedOpenToast": "Marked as open.",
     "reminderNeedsDueDate": "Set a due date to enable task reminders.",
-    "emptyAction": "Create task"
+    "emptyAction": "Create task",
+    "navLabelOverdue": "Tasks, {{count}} overdue"
   },
   "shopping": {
     "title": "Shopping",
@@ -372,7 +373,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Blue",
+    "colorCoral": "Coral",
+    "colorCyan": "Cyan",
+    "colorGray": "Gray",
+    "colorGreen": "Green",
+    "colorOrange": "Orange",
+    "colorPurple": "Purple",
+    "colorRed": "Red",
+    "colorSkyBlue": "Sky Blue",
+    "colorYellow": "Yellow"
   },
   "notes": {
     "title": "Board",
@@ -411,7 +422,15 @@
     "formatCode": "Code",
     "formatQuote": "Quote",
     "formatDivider": "Divider",
-    "emptyAction": "Create note"
+    "emptyAction": "Create note",
+    "colorAmber": "Amber",
+    "colorBlue": "Blue",
+    "colorGreen": "Green",
+    "colorOrange": "Orange",
+    "colorPurple": "Purple",
+    "colorTeal": "Teal",
+    "colorWhite": "White",
+    "colorYellow": "Yellow"
   },
   "contacts": {
     "title": "Contacts",

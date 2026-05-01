@@ -193,7 +193,8 @@
     "archivedToast": "Attività archiviata.",
     "kanbanArchived": "Archiviato",
     "reminderNeedsDueDate": "Imposta una data di scadenza per abilitare i promemoria delle attività.",
-    "emptyAction": "Crea attività"
+    "emptyAction": "Crea attività",
+    "navLabelOverdue": "Attività, {{count}} in ritardo"
   },
   "shopping": {
     "title": "Spesa",
@@ -372,7 +373,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Blu",
+    "colorCoral": "Corallo",
+    "colorCyan": "Ciano",
+    "colorGray": "Grigio",
+    "colorGreen": "Verde",
+    "colorOrange": "Arancione",
+    "colorPurple": "Viola",
+    "colorRed": "Rosso",
+    "colorSkyBlue": "Azzurro",
+    "colorYellow": "Giallo"
   },
   "notes": {
     "title": "Bacheca",
@@ -411,7 +422,15 @@
     "formatCode": "Codice",
     "formatQuote": "Citazione",
     "formatDivider": "Divisore",
-    "emptyAction": "Crea nota"
+    "emptyAction": "Crea nota",
+    "colorAmber": "Ambra",
+    "colorBlue": "Blu",
+    "colorGreen": "Verde",
+    "colorOrange": "Arancione",
+    "colorPurple": "Viola",
+    "colorTeal": "Verde acqua",
+    "colorWhite": "Bianco",
+    "colorYellow": "Giallo"
   },
   "contacts": {
     "title": "Contatti",
@@ -891,7 +910,8 @@
     "deleteConfirm": "Eliminare il compleanno di \"{{name}}\"?",
     "ageNoteToday": "Compie {{age}} anni oggi.",
     "ageNoteTomorrow": "Compirà {{age}} anni domani.",
-    "ageNoteDays": "Compirà {{age}} anni tra {{days}} giorni."
+    "ageNoteDays": "Compirà {{age}} anni tra {{days}} giorni.",
+    "photoOptional": "Facoltativo: puoi salvare anche senza foto del profilo."
   },
   "reminders": {
     "sectionTitle": "Promemoria",
@@ -939,7 +959,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Crea ricette e collegale al tuo piano pasti."
+    "recipes": "Crea ricette e collegale al tuo piano pasti.",
+    "birthdays": "Aggiungi compleanni — riceverai un promemoria in anticipo.",
+    "budget": "Crea categorie e registra entrate e uscite.",
+    "calendar": "Collega Google Calendar in Impostazioni → Integrazioni per la sincronizzazione automatica.",
+    "contacts": "Aggiungi contatti importanti — medico, scuola, emergenza — per accesso rapido.",
+    "meals": "Pianifica i pasti della settimana e collega le ricette.",
+    "notes": "Tocca + per una nuova nota. Le note vengono cercate nel testo completo.",
+    "shopping": "Aggiungi articoli e scorri per contrassegnare o eliminare.",
+    "tasks": "Tocca + per creare il tuo primo compito. Scorri una scheda a sinistra per eliminare."
   },
   "documents": {
     "title": "Documenti",
@@ -1003,6 +1031,14 @@
     "selectedFileLabel": "Selezionato: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Cucina"
+    "goKitchen": "Cucina",
+    "goCal": "Calendario",
+    "goDash": "Dashboard",
+    "goNotes": "Note",
+    "goShop": "Lista della spesa",
+    "goTasks": "Attività",
+    "help": "Scorciatoie da tastiera",
+    "new": "Crea nuova voce",
+    "search": "Apri ricerca"
   }
 }

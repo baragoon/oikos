@@ -193,7 +193,8 @@
     "archivedToast": "Uppgiften arkiverades.",
     "kanbanArchived": "Arkiverad",
     "reminderNeedsDueDate": "Ange ett förfallodatum för att aktivera påminnelser för uppgiften.",
-    "emptyAction": "Skapa uppgift"
+    "emptyAction": "Skapa uppgift",
+    "navLabelOverdue": "Uppgifter, {{count}} försenade"
   },
   "shopping": {
     "title": "Shopping",
@@ -372,7 +373,17 @@
     "attachmentHint": "Bifoga en lokal bild, PDF eller dokument. Bilder kommer att visas i evenemangets popup.",
     "attachmentFallback": "Fastsättning",
     "attachmentReadError": "Bilagan kunde inte läsas.",
-    "attachmentTooLarge": "Bilaga får vara högst 5 MB."
+    "attachmentTooLarge": "Bilaga får vara högst 5 MB.",
+    "colorBlue": "Blå",
+    "colorGreen": "Grön",
+    "colorOrange": "Orange",
+    "colorRed": "Röd",
+    "colorPurple": "Lila",
+    "colorCoral": "Korall",
+    "colorSkyBlue": "Himmelsblå",
+    "colorYellow": "Gul",
+    "colorGray": "Grå",
+    "colorCyan": "Cyan"
   },
   "notes": {
     "title": "Anteckningar",
@@ -411,7 +422,15 @@
     "formatCode": "Kod",
     "formatQuote": "Citationstecken",
     "formatDivider": "Delare",
-    "emptyAction": "Skapa anteckning"
+    "emptyAction": "Skapa anteckning",
+    "colorYellow": "Gul",
+    "colorAmber": "Amber",
+    "colorGreen": "Grön",
+    "colorTeal": "Teal",
+    "colorBlue": "Blå",
+    "colorPurple": "Lila",
+    "colorOrange": "Orange",
+    "colorWhite": "Vit"
   },
   "contacts": {
     "title": "Kontakter",
@@ -891,7 +910,8 @@
     "deleteConfirm": "Ta bort födelsedagen för \"{{name}}\"?",
     "ageNoteToday": "Fyller {{age}} år idag.",
     "ageNoteTomorrow": "Fyller {{age}} år i morgon.",
-    "ageNoteDays": "Fyller {{age}} år om {{days}} dagar."
+    "ageNoteDays": "Fyller {{age}} år om {{days}} dagar.",
+    "photoOptional": "Valfritt: Du kan spara utan profilbild."
   },
   "reminders": {
     "sectionTitle": "Påminnelse",
@@ -939,7 +959,15 @@
     "banner": "Offline – återansluter…"
   },
   "emptyHint": {
-    "recipes": "Skapa recept och koppla dem till din måltidsplanering."
+    "recipes": "Skapa recept och koppla dem till din måltidsplanering.",
+    "tasks": "Tryck på + för att skapa din första uppgift. Svep ett kort åt vänster för att ta bort.",
+    "calendar": "Koppla Google Kalender under Inställningar → Integrationer för automatisk synkronisering.",
+    "shopping": "Lägg till artiklar och svep för att markera eller ta bort.",
+    "notes": "Tryck på + för en ny anteckning. Anteckningar söks i fulltext.",
+    "contacts": "Lägg till viktiga kontakter — läkare, skola, nödfall — för snabb åtkomst.",
+    "budget": "Skapa kategorier och registrera inkomster och utgifter.",
+    "meals": "Planera måltider för veckan och koppla recept.",
+    "birthdays": "Lägg in födelsedagar — du får en påminnelse i tid."
   },
   "documents": {
     "title": "Dokument",
@@ -1003,6 +1031,14 @@
     "selectedFileLabel": "Vald: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Kök"
+    "goKitchen": "Kök",
+    "search": "Öppna sökning",
+    "new": "Skapa ny post",
+    "help": "Tangentbordsgenvägar",
+    "goDash": "Översikt",
+    "goTasks": "Uppgifter",
+    "goCal": "Kalender",
+    "goShop": "Inköpslista",
+    "goNotes": "Anteckningar"
   }
 }
