@@ -57,6 +57,28 @@ async function loadData() {
   ]);
   state.birthdays = allRes.data ?? [];
   state.upcoming = upcomingRes.data ?? [];
+  updateBirthdayBadge();
+}
+
+function updateBirthdayBadge() {
+  const soon = state.upcoming.filter((b) => b.days_until <= 3).length;
+  document.querySelectorAll('[data-route="/birthdays"] .nav-badge').forEach((el) => el.remove());
+  if (!soon) return;
+  document.querySelectorAll('[data-route="/birthdays"]').forEach((navItem) => {
+    let anchor = navItem.querySelector('.nav-item__icon-wrap');
+    if (!anchor) {
+      const icon = navItem.querySelector('.nav-item__icon');
+      anchor = document.createElement('span');
+      anchor.className = 'nav-item__icon-wrap';
+      if (icon) { icon.replaceWith(anchor); anchor.appendChild(icon); }
+      else navItem.prepend(anchor);
+    }
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.setAttribute('aria-hidden', 'true');
+    badge.textContent = String(soon);
+    anchor.appendChild(badge);
+  });
 }
 
 function renderSuggestions() {

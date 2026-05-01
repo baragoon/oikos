@@ -113,10 +113,23 @@ function showOnboarding(appContainer) {
 // NEU — primäre Inhalte (tasks, calendar) ganz oben
 const WIDGET_IDS = ['tasks', 'calendar', 'weather', 'meals', 'shopping', 'birthdays', 'budget', 'family', 'notes'];
 
-const WIDGET_SIZE_OPTIONS = ['1x1', '1x2', '1x3', '1x4', '2x1', '2x2', '2x3', '2x4', '3x1', '3x2', '3x3', '3x4', '4x1', '4x2', '4x3', '4x4'];
+const WIDGET_SIZE_PRESETS = [
+  { value: '1x1', labelKey: 'dashboard.widgetSizeTiny'     },
+  { value: '2x1', labelKey: 'dashboard.widgetSizeNarrow'   },
+  { value: '2x2', labelKey: 'dashboard.widgetSizeStandard' },
+  { value: '3x2', labelKey: 'dashboard.widgetSizeLarge'    },
+  { value: '4x2', labelKey: 'dashboard.widgetSizeFull'     },
+];
+
+// Alle bekannten Größen inkl. Legacy-Werte — für normalizeDashboardConfig-Validierung
+const WIDGET_SIZE_OPTIONS = [...new Set([
+  ...WIDGET_SIZE_PRESETS.map((p) => p.value),
+  '1x2', '1x3', '1x4', '2x3', '2x4', '3x1', '3x3', '3x4', '4x1', '4x3', '4x4',
+])];
 
 function widgetSizeLabel(size) {
-  return size;
+  const preset = WIDGET_SIZE_PRESETS.find((p) => p.value === size);
+  return preset ? t(preset.labelKey) : size;
 }
 
 function defaultWidgetSize(id) {
@@ -621,7 +634,7 @@ function renderSizeMiniGridCells(size) {
 }
 
 function renderWidgetCustomizeControls(w) {
-  const sizeOptions = WIDGET_SIZE_OPTIONS.map((size) => `
+  const sizeOptions = WIDGET_SIZE_PRESETS.map(({ value: size }) => `
     <option value="${size}" ${w.size === size ? 'selected' : ''}>${widgetSizeLabel(size)}</option>
   `).join('');
 

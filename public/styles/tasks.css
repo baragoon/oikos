@@ -148,6 +148,18 @@
   }
 }
 
+.filter-chip--recent {
+  border-style: dashed;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.filter-chip--recent:hover {
+  opacity: 1;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
 .filter-chip__remove {
   width: 16px;
   height: 16px;

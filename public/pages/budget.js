@@ -826,13 +826,13 @@ function openBudgetModal({ mode, entry = null, initialType = '' }) {
     </div>
 
     <div class="form-group js-entry-field">
-      <label class="form-label" for="bm-title">${t('budget.titleLabel')}</label>
+      <label class="form-label" for="bm-title">${t('budget.titleLabel')}<span class="required-marker" aria-hidden="true"> *</span></label>
       <input type="text" class="form-input" id="bm-title"
              placeholder="${t('budget.titlePlaceholder')}" value="${esc(isEdit ? entry.title : '')}">
     </div>
 
     <div class="form-group js-entry-field">
-      <label class="form-label" for="bm-amount">${t('budget.amountLabel')}</label>
+      <label class="form-label" for="bm-amount">${t('budget.amountLabel')}<span class="required-marker" aria-hidden="true"> *</span></label>
       <input type="number" class="form-input" id="bm-amount"
              placeholder="${t('budget.amountPlaceholder')}" step="0.01" min="0"
              inputmode="decimal" value="${absAmount}">

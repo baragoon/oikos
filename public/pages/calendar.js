@@ -63,110 +63,144 @@ const EVENT_ICON_ALIASES = {
   drill: 'tooth',
 };
 
-const EVENT_ICONS = [
-  { value: 'calendar', label: 'Calendar' },
-  { value: 'tooth', label: 'Dentist' },
-  { value: 'alarm-clock', label: 'Alarm' },
-  { value: 'clock', label: 'Time' },
-  { value: 'bell', label: 'Reminder' },
-  { value: 'map-pin', label: 'Location' },
-  { value: 'home', label: 'Home' },
-  { value: 'house', label: 'House' },
-  { value: 'building', label: 'Building' },
-  { value: 'hospital', label: 'Hospital' },
-  { value: 'stethoscope', label: 'Doctor' },
-  { value: 'syringe', label: 'Vaccine' },
-  { value: 'pill', label: 'Medicine' },
-  { value: 'tablets', label: 'Tablets' },
-  { value: 'bandage', label: 'Bandage' },
-  { value: 'ambulance', label: 'Ambulance' },
-  { value: 'heart-pulse', label: 'Health' },
-  { value: 'activity', label: 'Activity' },
-  { value: 'cross', label: 'Care' },
-  { value: 'scissors', label: 'Haircut' },
-  { value: 'shower-head', label: 'Personal care' },
-  { value: 'dumbbell', label: 'Sports' },
-  { value: 'trophy', label: 'Competition' },
-  { value: 'car', label: 'Car' },
-  { value: 'bus', label: 'Bus' },
-  { value: 'train', label: 'Train' },
-  { value: 'tram-front', label: 'Transit' },
-  { value: 'fuel', label: 'Fuel' },
-  { value: 'parking-meter', label: 'Parking' },
-  { value: 'traffic-cone', label: 'Traffic' },
-  { value: 'navigation', label: 'Navigation' },
-  { value: 'route', label: 'Route' },
-  { value: 'briefcase', label: 'Work' },
-  { value: 'laptop', label: 'Laptop' },
-  { value: 'monitor', label: 'Computer' },
-  { value: 'presentation', label: 'Presentation' },
-  { value: 'plane', label: 'Travel' },
-  { value: 'plane-takeoff', label: 'Flight' },
-  { value: 'school', label: 'School' },
-  { value: 'graduation-cap', label: 'Education' },
-  { value: 'book-open', label: 'Reading' },
-  { value: 'library', label: 'Library' },
-  { value: 'pencil', label: 'Study' },
-  { value: 'notebook-pen', label: 'Notes' },
-  { value: 'calculator', label: 'Calculator' },
-  { value: 'utensils', label: 'Meal' },
-  { value: 'cooking-pot', label: 'Cooking' },
-  { value: 'coffee', label: 'Coffee' },
-  { value: 'cake', label: 'Birthday' },
-  { value: 'croissant', label: 'Bakery' },
-  { value: 'pizza', label: 'Pizza' },
-  { value: 'ice-cream', label: 'Dessert' },
-  { value: 'beer', label: 'Bar' },
-  { value: 'wine', label: 'Wine' },
-  { value: 'popcorn', label: 'Cinema' },
-  { value: 'sandwich', label: 'Snack' },
-  { value: 'salad', label: 'Salad' },
-  { value: 'shopping-bag', label: 'Shopping' },
-  { value: 'shopping-cart', label: 'Groceries' },
-  { value: 'gift', label: 'Gift' },
-  { value: 'package', label: 'Package' },
-  { value: 'shirt', label: 'Clothing' },
-  { value: 'tag', label: 'Tag' },
-  { value: 'credit-card', label: 'Card' },
-  { value: 'wallet', label: 'Wallet' },
-  { value: 'banknote', label: 'Cash' },
-  { value: 'coins', label: 'Coins' },
-  { value: 'piggy-bank', label: 'Savings' },
-  { value: 'receipt', label: 'Receipt' },
-  { value: 'landmark', label: 'Bank' },
-  { value: 'music', label: 'Music' },
-  { value: 'guitar', label: 'Guitar' },
-  { value: 'film', label: 'Movie' },
-  { value: 'theater', label: 'Theater' },
-  { value: 'ticket', label: 'Ticket' },
-  { value: 'gamepad-2', label: 'Game' },
-  { value: 'camera', label: 'Photo' },
-  { value: 'party-popper', label: 'Party' },
-  { value: 'users', label: 'Family' },
-  { value: 'baby', label: 'Baby' },
-  { value: 'dog', label: 'Dog' },
-  { value: 'cat', label: 'Cat' },
-  { value: 'paw-print', label: 'Pet' },
-  { value: 'wrench', label: 'Repair' },
-  { value: 'hammer', label: 'Maintenance' },
-  { value: 'paintbrush', label: 'Decoration' },
-  { value: 'lightbulb', label: 'Idea' },
-  { value: 'sofa', label: 'Furniture' },
-  { value: 'bed', label: 'Bed' },
-  { value: 'bath', label: 'Bath' },
-  { value: 'washing-machine', label: 'Laundry' },
-  { value: 'refrigerator', label: 'Fridge' },
-  { value: 'star', label: 'Favorite' },
-  { value: 'flag', label: 'Flag' },
-  { value: 'target', label: 'Goal' },
-  { value: 'flame', label: 'Important' },
-  { value: 'leaf', label: 'Nature' },
-  { value: 'tree-pine', label: 'Outdoors' },
-  { value: 'flower', label: 'Flower' },
-  { value: 'sun', label: 'Day' },
-  { value: 'moon', label: 'Night' },
-  { value: 'cloud-sun', label: 'Weather' },
+const EVENT_ICON_CATEGORIES = () => [
+  {
+    key: 'general',
+    label: t('calendar.iconCategoryGeneral'),
+    icons: [
+      { value: 'calendar', label: t('calendar.iconCalendar') },
+      { value: 'alarm-clock', label: t('calendar.iconAlarm') },
+      { value: 'clock', label: t('calendar.iconClock') },
+      { value: 'bell', label: t('calendar.iconBell') },
+      { value: 'map-pin', label: t('calendar.iconLocation') },
+      { value: 'star', label: t('calendar.iconStar') },
+      { value: 'flag', label: t('calendar.iconFlag') },
+      { value: 'target', label: t('calendar.iconTarget') },
+      { value: 'flame', label: t('calendar.iconFlame') },
+    ],
+  },
+  {
+    key: 'health',
+    label: t('calendar.iconCategoryHealth'),
+    icons: [
+      { value: 'tooth', label: t('calendar.iconTooth') },
+      { value: 'hospital', label: t('calendar.iconHospital') },
+      { value: 'stethoscope', label: t('calendar.iconDoctor') },
+      { value: 'syringe', label: t('calendar.iconVaccine') },
+      { value: 'pill', label: t('calendar.iconMedicine') },
+      { value: 'bandage', label: t('calendar.iconBandage') },
+      { value: 'heart-pulse', label: t('calendar.iconHealth') },
+      { value: 'activity', label: t('calendar.iconActivity') },
+      { value: 'scissors', label: t('calendar.iconHaircut') },
+      { value: 'dumbbell', label: t('calendar.iconSports') },
+      { value: 'trophy', label: t('calendar.iconTrophy') },
+    ],
+  },
+  {
+    key: 'transport',
+    label: t('calendar.iconCategoryTransport'),
+    icons: [
+      { value: 'car', label: t('calendar.iconCar') },
+      { value: 'bus', label: t('calendar.iconBus') },
+      { value: 'train', label: t('calendar.iconTrain') },
+      { value: 'plane', label: t('calendar.iconPlane') },
+      { value: 'plane-takeoff', label: t('calendar.iconFlight') },
+      { value: 'fuel', label: t('calendar.iconFuel') },
+      { value: 'navigation', label: t('calendar.iconNavigation') },
+    ],
+  },
+  {
+    key: 'work',
+    label: t('calendar.iconCategoryWork'),
+    icons: [
+      { value: 'briefcase', label: t('calendar.iconWork') },
+      { value: 'laptop', label: t('calendar.iconLaptop') },
+      { value: 'presentation', label: t('calendar.iconPresentation') },
+      { value: 'school', label: t('calendar.iconSchool') },
+      { value: 'graduation-cap', label: t('calendar.iconEducation') },
+      { value: 'book-open', label: t('calendar.iconReading') },
+      { value: 'pencil', label: t('calendar.iconStudy') },
+      { value: 'calculator', label: t('calendar.iconCalculator') },
+    ],
+  },
+  {
+    key: 'food',
+    label: t('calendar.iconCategoryFood'),
+    icons: [
+      { value: 'utensils', label: t('calendar.iconMeal') },
+      { value: 'cooking-pot', label: t('calendar.iconCooking') },
+      { value: 'coffee', label: t('calendar.iconCoffee') },
+      { value: 'cake', label: t('calendar.iconCake') },
+      { value: 'pizza', label: t('calendar.iconPizza') },
+      { value: 'wine', label: t('calendar.iconWine') },
+      { value: 'beer', label: t('calendar.iconBeer') },
+    ],
+  },
+  {
+    key: 'shopping',
+    label: t('calendar.iconCategoryShopping'),
+    icons: [
+      { value: 'shopping-bag', label: t('calendar.iconShopping') },
+      { value: 'shopping-cart', label: t('calendar.iconGroceries') },
+      { value: 'gift', label: t('calendar.iconGift') },
+      { value: 'credit-card', label: t('calendar.iconCard') },
+      { value: 'wallet', label: t('calendar.iconWallet') },
+      { value: 'piggy-bank', label: t('calendar.iconSavings') },
+      { value: 'landmark', label: t('calendar.iconBank') },
+    ],
+  },
+  {
+    key: 'leisure',
+    label: t('calendar.iconCategoryLeisure'),
+    icons: [
+      { value: 'music', label: t('calendar.iconMusic') },
+      { value: 'film', label: t('calendar.iconMovie') },
+      { value: 'ticket', label: t('calendar.iconTicket') },
+      { value: 'gamepad-2', label: t('calendar.iconGame') },
+      { value: 'camera', label: t('calendar.iconPhoto') },
+      { value: 'party-popper', label: t('calendar.iconParty') },
+    ],
+  },
+  {
+    key: 'family',
+    label: t('calendar.iconCategoryFamily'),
+    icons: [
+      { value: 'users', label: t('calendar.iconFamily') },
+      { value: 'baby', label: t('calendar.iconBaby') },
+      { value: 'dog', label: t('calendar.iconDog') },
+      { value: 'cat', label: t('calendar.iconCat') },
+      { value: 'paw-print', label: t('calendar.iconPet') },
+    ],
+  },
+  {
+    key: 'home',
+    label: t('calendar.iconCategoryHome'),
+    icons: [
+      { value: 'home', label: t('calendar.iconHome') },
+      { value: 'building', label: t('calendar.iconBuilding') },
+      { value: 'wrench', label: t('calendar.iconRepair') },
+      { value: 'hammer', label: t('calendar.iconMaintenance') },
+      { value: 'paintbrush', label: t('calendar.iconDecoration') },
+      { value: 'sofa', label: t('calendar.iconFurniture') },
+      { value: 'washing-machine', label: t('calendar.iconLaundry') },
+    ],
+  },
+  {
+    key: 'nature',
+    label: t('calendar.iconCategoryNature'),
+    icons: [
+      { value: 'leaf', label: t('calendar.iconLeaf') },
+      { value: 'tree-pine', label: t('calendar.iconTree') },
+      { value: 'flower', label: t('calendar.iconFlower') },
+      { value: 'sun', label: t('calendar.iconSun') },
+      { value: 'moon', label: t('calendar.iconMoon') },
+      { value: 'cloud-sun', label: t('calendar.iconWeather') },
+    ],
+  },
 ];
+
+// Flache Liste aller Icons für Kompatibilität (z.B. eventIconName-Validierung)
+const EVENT_ICONS = EVENT_ICON_CATEGORIES().flatMap((cat) => cat.icons);
 
 const CUSTOM_EVENT_ICONS = new Set(['tooth']);
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
@@ -556,7 +590,8 @@ async function navigate(dir) {
   if (state.view === 'month') {
     state.cursor = addMonths(state.cursor, dir);
   } else if (state.view === 'week') {
-    state.cursor = addDays(state.cursor, dir * 7);
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
+    state.cursor = addDays(state.cursor, dir * (isMobile ? 3 : 7));
   } else if (state.view === 'day') {
     state.cursor = addDays(state.cursor, dir);
   } else if (state.view === 'agenda') {
@@ -674,7 +709,7 @@ function renderMonthDay(date, inMonth) {
          data-id="${ev.id}"
          style="background-color:${esc(bg)};${fg ? `color:${fg};` : ''}"
          title="${esc(ev.title)}${ev.cal_name ? ' · ' + ev.cal_name : ''}"
-    >${eventIconHtml(ev.icon, 'event-icon event-icon--compact')}<span>${esc(ev.title)}</span></div>
+    >${eventIconHtml(ev.icon, 'event-icon event-icon--compact')}<span>${esc(ev.title)}</span>${(ev.recurrence_rule || ev.is_recurring_instance) ? '<i data-lucide="repeat" style="width:9px;height:9px;flex-shrink:0;opacity:0.7;margin-left:2px" aria-hidden="true"></i>' : ''}</div>
   `;
   }).join('');
 
@@ -692,8 +727,15 @@ function renderMonthDay(date, inMonth) {
 // --------------------------------------------------------
 
 function renderWeekView(container) {
-  const monday = getMondayOf(state.cursor);
-  const days   = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const isMobile = window.matchMedia('(max-width: 639px)').matches;
+  // Auf Mobile: 3-Tage-Fenster zentriert um state.cursor statt vollem Mo–So
+  const days = isMobile
+    ? Array.from({ length: 3 }, (_, i) => addDays(state.cursor, i - 1))
+    : (() => {
+        const monday = getMondayOf(state.cursor);
+        return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+      })();
+  const colCount = days.length;
 
   const alldayEvs = days.map((d) =>
     eventsOnDay(d).filter((e) => e.all_day || !e.start_datetime.includes('T'))
@@ -706,7 +748,7 @@ function renderWeekView(container) {
   container.innerHTML = `
     <div class="week-view">
       <div class="week-view__header" id="week-header"
-           style="display:grid;grid-template-columns:48px repeat(7,1fr);">
+           style="display:grid;grid-template-columns:48px repeat(${colCount},1fr);">
         <div class="week-view__time-gutter"></div>
         ${days.map((d) => {
           const dt = new Date(d + 'T00:00:00');
@@ -717,7 +759,7 @@ function renderWeekView(container) {
         }).join('')}
       </div>
       <!-- Ganztägige Ereignisse -->
-      <div class="allday-row" style="display:grid;grid-template-columns:48px repeat(7,1fr);">
+      <div class="allday-row" style="display:grid;grid-template-columns:48px repeat(${colCount},1fr);">
         <div style="width:48px;padding:2px;font-size:10px;color:var(--color-text-disabled);text-align:right;padding-right:4px;line-height:24px;">${t('calendar.allDayShort')}</div>
         ${days.map((d, i) => `
           <div class="allday-cell">
@@ -739,7 +781,7 @@ function renderWeekView(container) {
             `).join('')}
           </div>
           <div class="week-view__columns" id="week-cols"
-               style="display:grid;grid-template-columns:repeat(7,1fr);">
+               style="display:grid;grid-template-columns:repeat(${colCount},1fr);">
             ${days.map((d, i) => `
               <div class="week-view__col" data-date="${d}">
                 ${Array.from({ length: 24 }, (_, h) => `
@@ -795,7 +837,7 @@ function renderWeekEvent(ev, layout = null) {
   return `
     <div class="week-event" data-id="${ev.id}"
          style="top:${top}px;height:${height}px;left:${left};width:${width};${ev.cal_color || ev.color ? `background-color:${esc(ev.cal_color || ev.color)};` : ''}${getContrastColor(ev.cal_color || ev.color) ? `color:${getContrastColor(ev.cal_color || ev.color)};` : ''}">
-      <div class="week-event__title">${eventIconHtml(ev.icon, 'event-icon event-icon--compact')}<span>${esc(ev.title)}</span></div>
+      <div class="week-event__title">${eventIconHtml(ev.icon, 'event-icon event-icon--compact')}<span>${esc(ev.title)}</span>${(ev.recurrence_rule || ev.is_recurring_instance) ? '<i data-lucide="repeat" style="width:9px;height:9px;flex-shrink:0;opacity:0.7;margin-left:2px" aria-hidden="true"></i>' : ''}</div>
       <div class="week-event__time">${formatTime(ev.start_datetime)}${ev.end_datetime ? '–' + formatTime(ev.end_datetime) : ''}</div>
     </div>
   `;
@@ -1305,6 +1347,50 @@ function openEventModal({ mode, event = null, date = null, reminder = null }) {
         iconTrigger?.setAttribute('aria-expanded', 'false');
         iconTrigger?.focus();
       });
+
+      const iconSearch = iconGrid?.querySelector('#modal-icon-search');
+      iconSearch?.addEventListener('input', () => {
+        const q = iconSearch.value.trim().toLowerCase();
+        const resultsEl = iconGrid?.querySelector('#modal-icon-results');
+        if (!resultsEl) return;
+        if (!q) {
+          resultsEl.replaceChildren();
+          resultsEl.insertAdjacentHTML('afterbegin', EVENT_ICON_CATEGORIES().map((cat) => `
+            <div class="event-icon-picker__category">
+              <div class="event-icon-picker__category-label">${esc(cat.label)}</div>
+              <div class="event-icon-picker__category-icons">
+                ${cat.icons.map((icon) => `
+                  <button type="button" class="event-icon-picker__option ${iconInput?.value === icon.value ? 'event-icon-picker__option--active' : ''}"
+                          data-icon="${icon.value}" role="radio"
+                          aria-checked="${iconInput?.value === icon.value ? 'true' : 'false'}"
+                          aria-label="${esc(icon.label)}" title="${esc(icon.label)}">
+                    ${eventIconHtml(icon.value, 'event-icon-picker__option-icon')}
+                  </button>`).join('')}
+              </div>
+            </div>`).join(''));
+          if (window.lucide) lucide.createIcons({ el: resultsEl });
+          return;
+        }
+        const allIcons = EVENT_ICON_CATEGORIES().flatMap((c) => c.icons);
+        const filtered = allIcons.filter((i) => i.label.toLowerCase().includes(q) || i.value.includes(q));
+        resultsEl.replaceChildren();
+        if (filtered.length === 0) {
+          resultsEl.insertAdjacentHTML('afterbegin', `<div class="event-icon-picker__no-results">${esc(t('calendar.iconSearchEmpty'))}</div>`);
+          return;
+        }
+        resultsEl.insertAdjacentHTML('afterbegin', `
+          <div class="event-icon-picker__category-icons">
+            ${filtered.map((icon) => `
+              <button type="button" class="event-icon-picker__option ${iconInput?.value === icon.value ? 'event-icon-picker__option--active' : ''}"
+                      data-icon="${icon.value}" role="radio"
+                      aria-checked="${iconInput?.value === icon.value ? 'true' : 'false'}"
+                      aria-label="${esc(icon.label)}" title="${esc(icon.label)}">
+                ${eventIconHtml(icon.value, 'event-icon-picker__option-icon')}
+              </button>`).join('')}
+          </div>`);
+        if (window.lucide) lucide.createIcons({ el: resultsEl });
+      });
+
       document.addEventListener('click', function closeIconPicker(e) {
         if (!panel.isConnected) {
           document.removeEventListener('click', closeIconPicker);
@@ -1403,17 +1489,23 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
   const endTime   = isEdit && event.end_datetime && event.end_datetime.length > 10
     ? localTime(event.end_datetime) : '10:00';
   const selectedIcon = eventIconName(isEdit ? event.icon : 'calendar');
-  const iconButtons = EVENT_ICONS.map((icon) =>
-    `<button type="button"
-             class="event-icon-picker__option ${selectedIcon === icon.value ? 'event-icon-picker__option--active' : ''}"
-             data-icon="${icon.value}"
-             role="radio"
-             aria-checked="${selectedIcon === icon.value ? 'true' : 'false'}"
-             aria-label="${esc(icon.label)}"
-             title="${esc(icon.label)}">
-       ${eventIconHtml(icon.value, 'event-icon-picker__option-icon')}
-     </button>`
-  ).join('');
+  const iconCats = EVENT_ICON_CATEGORIES();
+  const iconCategoryButtons = iconCats.map((cat) => `
+    <div class="event-icon-picker__category">
+      <div class="event-icon-picker__category-label">${esc(cat.label)}</div>
+      <div class="event-icon-picker__category-icons">
+        ${cat.icons.map((icon) => `
+          <button type="button"
+                  class="event-icon-picker__option ${selectedIcon === icon.value ? 'event-icon-picker__option--active' : ''}"
+                  data-icon="${icon.value}"
+                  role="radio"
+                  aria-checked="${selectedIcon === icon.value ? 'true' : 'false'}"
+                  aria-label="${esc(icon.label)}"
+                  title="${esc(icon.label)}">
+            ${eventIconHtml(icon.value, 'event-icon-picker__option-icon')}
+          </button>`).join('')}
+      </div>
+    </div>`).join('');
 
   const userOpts = [
     `<option value="">${t('calendar.assignedNobody')}</option>`,
@@ -1438,13 +1530,17 @@ function buildEventModalContent({ mode, event, date, reminder = null }) {
         </button>
       </div>
       <div class="form-group event-title-picker__title">
-        <label class="form-label" for="modal-title">${t('calendar.titleLabel')}</label>
+        <label class="form-label" for="modal-title">${t('calendar.titleLabel')}<span class="required-marker" aria-hidden="true"> *</span></label>
         <input type="text" class="form-input" id="modal-title"
                placeholder="${t('calendar.titlePlaceholder')}" value="${esc(isEdit ? event.title : '')}">
       </div>
     </div>
     <div class="event-icon-picker__grid" id="modal-icon-grid" role="radiogroup" aria-label="${t('calendar.iconLabel')}" hidden>
-      ${iconButtons}
+      <input type="search" class="form-input event-icon-picker__search" id="modal-icon-search"
+             placeholder="${t('calendar.iconSearchPlaceholder')}" autocomplete="off" aria-label="${t('calendar.iconSearchPlaceholder')}">
+      <div id="modal-icon-results">
+        ${iconCategoryButtons}
+      </div>
     </div>
 
     <div class="form-group">

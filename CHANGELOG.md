@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-05-01
+
+### Added
+- **Birthday badge**: the birthdays nav item now shows a badge when any family member has a birthday within the next 3 days.
+- **Recent filter chips**: the task filter bar now shows up to three recently used filters as quick-access chips, persisted in `localStorage`.
+- **Calendar icon search**: the event icon picker now includes a live search field to quickly find icons by keyword, with results grouped by category.
+- **Calendar icon categories**: event icons are now organised into labelled category groups (transport, sports, health, nature, leisure, social, work, home, food, other).
+- **Repeat indicator on calendar events**: events with a recurrence rule now display a small repeat icon in both month and week views.
+- **3-day week view on mobile**: the calendar week view automatically switches to a 3-day window on screens narrower than 640 px for better readability.
+- **Widget size presets**: the dashboard widget size selector uses named presets (Tiny, Narrow, Standard, Large, Full) instead of raw grid dimension values.
+
+### Changed
+- **Required-field markers**: title fields in the task, event, and budget modals now show a required-field asterisk via the `.required-marker` CSS class.
+- **Modal drag handle touch target**: the bottom-sheet drag handle has a 44 px tall invisible hit area so it can be grabbed comfortably.
+- **Swipe affordance**: list rows with swipe actions show a subtle chevron hint to signal the gesture.
+- **Budget tab height**: budget tab buttons have a minimum height of 40 px to meet touch-target requirements.
+
 ## [0.40.1] - 2026-05-01
 
 ### Changed

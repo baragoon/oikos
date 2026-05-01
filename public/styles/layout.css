@@ -1174,12 +1174,20 @@ html.fab-anim-done .page-fab {
   .modal-panel::before {
     content: '';
     position: absolute;
-    top: var(--space-3);
+    top: 0;
     left: 50%;
     transform: translateX(-50%);
+    /* Visuelle Linie bleibt klein, Hit-Area ist 44px hoch */
     width: 36px;
-    height: var(--space-1);
-    background: var(--color-border);
+    height: 44px;
+    background-color: transparent;
+    background-image: linear-gradient(
+      to bottom,
+      transparent calc(50% - 2px),
+      var(--color-border) calc(50% - 2px),
+      var(--color-border) calc(50% + 2px),
+      transparent calc(50% + 2px)
+    );
     border-radius: var(--radius-full);
   }
 
@@ -1353,6 +1361,14 @@ html.fab-anim-done .page-fab {
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   margin-bottom: var(--space-1);
+}
+
+.required-marker {
+  color: var(--color-danger);
+  margin-left: var(--space-0h);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
 .form-group {
@@ -2087,6 +2103,33 @@ html.fab-anim-done .page-fab {
 
 .swipe-row--hint > :first-child {
   animation: swipe-nudge 0.8s var(--ease-out) 1.2s both;
+}
+
+/* Swipe-Affordanz: permanente Chevron-Hints an den Kartenrändern */
+.swipe-row::after {
+  content: '';
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 20' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3,4 9,10 3,16'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.swipe-row:hover::after,
+.swipe-row:focus-within::after {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-row::after { display: none; }
 }
 
 /* Gemeinsam: Erledigt / Abhaken (Swipe nach links) */

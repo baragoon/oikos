@@ -317,7 +317,7 @@ function renderModalContent({ task = null, users = [], reminder = null } = {}) {
 
       <div class="form-group">
         <div class="form-field">
-          <label class="label" for="task-title">${t('tasks.titleLabel')}</label>
+          <label class="label" for="task-title">${t('tasks.titleLabel')}<span class="required-marker" aria-hidden="true"> *</span></label>
           <input class="input" type="text" id="task-title" name="title"
                  value="${esc(task?.title)}" placeholder="${t('tasks.titlePlaceholder')}"
                  required autocomplete="off">
@@ -1128,6 +1128,27 @@ function renderFilters(container) {
   }
 
   bar.appendChild(toggleBtn);
+
+  // ---- Zuletzt verwendete Filter als Quick-Chips ----
+  const statusLabelsMap   = STATUS_LABELS();
+  const priorityLabelsMap = PRIORITY_LABELS();
+  const recent = getRecentFilters();
+  recent.forEach((f) => {
+    const parts = [];
+    if (f.status)      parts.push(statusLabelsMap[f.status]   ?? f.status);
+    if (f.priority)    parts.push(priorityLabelsMap[f.priority] ?? f.priority);
+    if (f.assigned_to) {
+      const u = state.users.find((u) => u.id === Number(f.assigned_to));
+      if (u) parts.push(u.display_name);
+    }
+    if (!parts.length) return;
+    const chip = document.createElement('span');
+    chip.className = 'filter-chip filter-chip--recent';
+    chip.dataset.recentFilter = JSON.stringify(f);
+    chip.textContent = parts.join(' · ');
+    bar.appendChild(chip);
+  });
+
   if (window.lucide) window.lucide.createIcons({ el: bar });
 
   // ---- Filter-Panel: Gruppen mit allen Optionen ----
@@ -1245,8 +1266,24 @@ const SWIPE_THRESHOLD    = 80;   // px - Mindestweg für Aktion
 const SWIPE_MAX_VERT     = 12;   // px - vertikaler Bewegungs-Toleranzbereich (darunter: kein Scroll-Abbruch)
 const SWIPE_LOCK_VERT    = 30;   // px - ab diesem Weg gilt es als Scroll (Swipe abgebrochen)
 
-const SWIPE_HINT_KEY = 'oikos:swipeHintSeen';
-const SWIPE_HINT_MAX = 3;
+const SWIPE_HINT_KEY  = 'oikos:swipeHintSeen';
+const SWIPE_HINT_MAX  = 3;
+const RECENT_FILTERS_KEY = 'oikos:recentTaskFilters';
+const RECENT_FILTERS_MAX = 3;
+
+function getRecentFilters() {
+  try { return JSON.parse(localStorage.getItem(RECENT_FILTERS_KEY) ?? '[]'); } catch { return []; }
+}
+
+function saveRecentFilter(filters) {
+  if (!filters.status && !filters.priority && !filters.assigned_to) return;
+  const key = [filters.status, filters.priority, filters.assigned_to].join('|');
+  const recent = getRecentFilters().filter((f) =>
+    [f.status, f.priority, f.assigned_to].join('|') !== key
+  );
+  recent.unshift({ ...filters });
+  try { localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recent.slice(0, RECENT_FILTERS_MAX))); } catch {}
+}
 
 function wireSwipeGestures(container) {
   const listEl = container.querySelector('#task-list');
@@ -1435,7 +1472,20 @@ function wireFilterChips(container) {
         state.filters[filter] = '';
       } else {
         state.filters[filter] = chip.dataset.value;
+        saveRecentFilter(state.filters);
       }
+      renderFilters(container);
+      await loadTasks(container);
+    });
+  });
+
+  // Recent-Filter-Chips anwenden
+  container.querySelectorAll('[data-recent-filter]').forEach((chip) => {
+    chip.addEventListener('click', async () => {
+      try {
+        const f = JSON.parse(chip.dataset.recentFilter);
+        state.filters = { status: f.status || '', priority: f.priority || '', assigned_to: f.assigned_to || '' };
+      } catch { return; }
       renderFilters(container);
       await loadTasks(container);
     });

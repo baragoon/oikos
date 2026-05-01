@@ -84,7 +84,7 @@
 }
 
 .budget-tab {
-  min-height: 30px;
+  min-height: 40px;
   padding: 0 var(--space-2);
   border: 0;
   border-radius: var(--radius-xs);
