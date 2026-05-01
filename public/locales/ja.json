@@ -193,7 +193,8 @@
     "archivedToast": "タスクをアーカイブしました。",
     "kanbanArchived": "アーカイブ済み",
     "reminderNeedsDueDate": "タスクのリマインダーを有効にするには期日を設定してください。",
-    "emptyAction": "タスクを作成"
+    "emptyAction": "タスクを作成",
+    "navLabelOverdue": "タスク、{{count}}件期限超過"
   },
   "shopping": {
     "title": "買い物",
@@ -372,7 +373,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "青",
+    "colorCoral": "コーラル",
+    "colorCyan": "シアン",
+    "colorGray": "グレー",
+    "colorGreen": "緑",
+    "colorOrange": "オレンジ",
+    "colorPurple": "紫",
+    "colorRed": "赤",
+    "colorSkyBlue": "空色",
+    "colorYellow": "黄"
   },
   "notes": {
     "title": "メモボード",
@@ -411,7 +422,15 @@
     "formatCode": "コード",
     "formatQuote": "引用",
     "formatDivider": "区切り線",
-    "emptyAction": "メモを作成"
+    "emptyAction": "メモを作成",
+    "colorAmber": "アンバー",
+    "colorBlue": "青",
+    "colorGreen": "緑",
+    "colorOrange": "オレンジ",
+    "colorPurple": "紫",
+    "colorTeal": "ティール",
+    "colorWhite": "白",
+    "colorYellow": "黄"
   },
   "contacts": {
     "title": "連絡先",
@@ -891,7 +910,8 @@
     "deleteConfirm": "「{{name}}」の誕生日を削除しますか？",
     "ageNoteToday": "今日で{{age}}歳になります。",
     "ageNoteTomorrow": "明日で{{age}}歳になります。",
-    "ageNoteDays": "{{days}}日後に{{age}}歳になります。"
+    "ageNoteDays": "{{days}}日後に{{age}}歳になります。",
+    "photoOptional": "任意: プロフィール写真なしでも保存できます。"
   },
   "reminders": {
     "sectionTitle": "リマインダー",
@@ -939,7 +959,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "レシピを作成して、食事プランに関連付けましょう。"
+    "recipes": "レシピを作成して、食事プランに関連付けましょう。",
+    "birthdays": "誕生日を追加してください — 適切なタイミングでリマインダーが届きます。",
+    "budget": "カテゴリを作成して収入と支出を記録してください。",
+    "calendar": "設定 → 連携でGoogle カレンダーを接続すると自動同期ができます。",
+    "contacts": "重要な連絡先（医師、学校、緊急連絡先）を追加してすばやくアクセス。",
+    "meals": "週の食事を計画してレシピを紐づけましょう。",
+    "notes": "+ をタップして新しいメモを作成。メモは全文検索されます。",
+    "shopping": "アイテムを追加してスワイプでチェックや削除。",
+    "tasks": "+ をタップして最初のタスクを作成。カードを左にスワイプで削除。"
   },
   "documents": {
     "title": "書類",
@@ -1003,6 +1031,14 @@
     "selectedFileLabel": "選択済み: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "キッチン"
+    "goKitchen": "キッチン",
+    "goCal": "カレンダー",
+    "goDash": "ダッシュボード",
+    "goNotes": "メモ",
+    "goShop": "買い物リスト",
+    "goTasks": "タスク",
+    "help": "キーボードショートカット",
+    "new": "新規エントリを作成",
+    "search": "検索を開く"
   }
 }

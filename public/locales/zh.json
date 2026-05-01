@@ -193,7 +193,8 @@
     "archivedToast": "任务已归档。",
     "kanbanArchived": "已归档",
     "reminderNeedsDueDate": "设置截止日期以启用任务提醒。",
-    "emptyAction": "创建任务"
+    "emptyAction": "创建任务",
+    "navLabelOverdue": "任务，{{count}} 项已逾期"
   },
   "shopping": {
     "title": "购物",
@@ -372,7 +373,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "蓝色",
+    "colorCoral": "珊瑚色",
+    "colorCyan": "青色",
+    "colorGray": "灰色",
+    "colorGreen": "绿色",
+    "colorOrange": "橙色",
+    "colorPurple": "紫色",
+    "colorRed": "红色",
+    "colorSkyBlue": "天蓝色",
+    "colorYellow": "黄色"
   },
   "notes": {
     "title": "便签板",
@@ -411,7 +422,15 @@
     "formatCode": "代码",
     "formatQuote": "引用",
     "formatDivider": "分隔线",
-    "emptyAction": "创建笔记"
+    "emptyAction": "创建笔记",
+    "colorAmber": "琥珀色",
+    "colorBlue": "蓝色",
+    "colorGreen": "绿色",
+    "colorOrange": "橙色",
+    "colorPurple": "紫色",
+    "colorTeal": "青绿色",
+    "colorWhite": "白色",
+    "colorYellow": "黄色"
   },
   "contacts": {
     "title": "联系人",
@@ -891,7 +910,8 @@
     "deleteConfirm": "删除“{{name}}”的生日？",
     "ageNoteToday": "今天满 {{age}} 岁。",
     "ageNoteTomorrow": "明天满 {{age}} 岁。",
-    "ageNoteDays": "{{days}} 天后满 {{age}} 岁。"
+    "ageNoteDays": "{{days}} 天后满 {{age}} 岁。",
+    "photoOptional": "可选：您也可以不上传头像直接保存。"
   },
   "reminders": {
     "sectionTitle": "提醒",
@@ -939,7 +959,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "创建食谱并将其关联到你的膳食计划。"
+    "recipes": "创建食谱并将其关联到你的膳食计划。",
+    "birthdays": "添加生日 — 系统会在适时提醒您。",
+    "budget": "创建分类并记录收入和支出。",
+    "calendar": "在设置 → 集成中连接 Google 日历以自动同步。",
+    "contacts": "添加重要联系人 — 医生、学校、紧急联系人 — 以便快速访问。",
+    "meals": "规划每周餐食并关联食谱。",
+    "notes": "点击 + 创建新笔记。笔记支持全文搜索。",
+    "shopping": "添加商品，滑动以标记或删除。",
+    "tasks": "点击 + 创建您的第一个任务。向左滑动卡片可删除。"
   },
   "documents": {
     "title": "文档",
@@ -1003,6 +1031,14 @@
     "selectedFileLabel": "已选择：{{name}}"
   },
   "shortcuts": {
-    "goKitchen": "厨房"
+    "goKitchen": "厨房",
+    "goCal": "日历",
+    "goDash": "仪表板",
+    "goNotes": "笔记",
+    "goShop": "购物清单",
+    "goTasks": "任务",
+    "help": "键盘快捷键",
+    "new": "创建新条目",
+    "search": "打开搜索"
   }
 }

@@ -193,7 +193,8 @@
     "archivedToast": "Η εργασία αρχειοθετήθηκε.",
     "kanbanArchived": "Αρχειοθετημένο",
     "reminderNeedsDueDate": "Ορίστε ημερομηνία λήξης για να ενεργοποιήσετε τις υπενθυμίσεις.",
-    "emptyAction": "Δημιουργία εργασίας"
+    "emptyAction": "Δημιουργία εργασίας",
+    "navLabelOverdue": "Εργασίες, {{count}} εκπρόθεσμες"
   },
   "shopping": {
     "title": "Αγορές",
@@ -372,7 +373,17 @@
     "attachmentHint": "Attach a local image, PDF, or document. Images will be shown in the event popup.",
     "attachmentFallback": "Attachment",
     "attachmentReadError": "The attachment could not be read.",
-    "attachmentTooLarge": "Attachment may be at most 5 MB."
+    "attachmentTooLarge": "Attachment may be at most 5 MB.",
+    "colorBlue": "Μπλε",
+    "colorCoral": "Κοραλί",
+    "colorCyan": "Κυανό",
+    "colorGray": "Γκρι",
+    "colorGreen": "Πράσινο",
+    "colorOrange": "Πορτοκαλί",
+    "colorPurple": "Μοβ",
+    "colorRed": "Κόκκινο",
+    "colorSkyBlue": "Γαλάζιο",
+    "colorYellow": "Κίτρινο"
   },
   "notes": {
     "title": "Σημειώσεις",
@@ -411,7 +422,15 @@
     "formatCode": "Κώδικας",
     "formatQuote": "Παράθεση",
     "formatDivider": "Διαχωριστής",
-    "emptyAction": "Δημιουργία σημείωσης"
+    "emptyAction": "Δημιουργία σημείωσης",
+    "colorAmber": "Κεχριμπάρι",
+    "colorBlue": "Μπλε",
+    "colorGreen": "Πράσινο",
+    "colorOrange": "Πορτοκαλί",
+    "colorPurple": "Μοβ",
+    "colorTeal": "Πράσινο-μπλε",
+    "colorWhite": "Λευκό",
+    "colorYellow": "Κίτρινο"
   },
   "contacts": {
     "title": "Επαφές",
@@ -891,7 +910,8 @@
     "deleteConfirm": "Διαγραφή γενεθλίων για τον/την \"{{name}}\";",
     "ageNoteToday": "Γίνεται {{age}} ετών σήμερα.",
     "ageNoteTomorrow": "Γίνεται {{age}} ετών αύριο.",
-    "ageNoteDays": "Γίνεται {{age}} ετών σε {{days}} ημέρες."
+    "ageNoteDays": "Γίνεται {{age}} ετών σε {{days}} ημέρες.",
+    "photoOptional": "Προαιρετικό: μπορείτε να αποθηκεύσετε χωρίς φωτογραφία προφίλ."
   },
   "reminders": {
     "sectionTitle": "Υπενθύμιση",
@@ -939,7 +959,15 @@
     "banner": "Offline – reconnecting…"
   },
   "emptyHint": {
-    "recipes": "Δημιουργήστε συνταγές και συνδέστε τις με τον προγραμματισμό γευμάτων."
+    "recipes": "Δημιουργήστε συνταγές και συνδέστε τις με τον προγραμματισμό γευμάτων.",
+    "birthdays": "Προσθέστε γενέθλια — θα λάβετε υπενθύμιση εγκαίρως.",
+    "budget": "Δημιουργήστε κατηγορίες και καταγράψτε έσοδα και έξοδα.",
+    "calendar": "Συνδέστε το Google Calendar στις Ρυθμίσεις → Ενσωματώσεις για αυτόματο συγχρονισμό.",
+    "contacts": "Προσθέστε σημαντικές επαφές — γιατρός, σχολείο, έκτακτη ανάγκη — για γρήγορη πρόσβαση.",
+    "meals": "Σχεδιάστε γεύματα για την εβδομάδα και συνδέστε συνταγές.",
+    "notes": "Πατήστε + για νέα σημείωση. Οι σημειώσεις αναζητούνται σε πλήρες κείμενο.",
+    "shopping": "Προσθέστε αντικείμενα και σύρετε για επιλογή ή διαγραφή.",
+    "tasks": "Πατήστε + για να δημιουργήσετε την πρώτη σας εργασία. Σύρετε αριστερά για διαγραφή."
   },
   "documents": {
     "title": "Έγγραφα",
@@ -1003,6 +1031,14 @@
     "selectedFileLabel": "Επιλέχθηκε: {{name}}"
   },
   "shortcuts": {
-    "goKitchen": "Κουζίνα"
+    "goKitchen": "Κουζίνα",
+    "goCal": "Ημερολόγιο",
+    "goDash": "Πίνακας Ελέγχου",
+    "goNotes": "Σημειώσεις",
+    "goShop": "Λίστα Αγορών",
+    "goTasks": "Εργασίες",
+    "help": "Συντομεύσεις πληκτρολογίου",
+    "new": "Δημιουργία νέας εγγραφής",
+    "search": "Άνοιγμα αναζήτησης"
   }
 }
