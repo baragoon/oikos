@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.39.2] - 2026-05-01
+
+### Fixed
+- **Budget date picker**: the date input in Budget → New Entry / Edit Entry now uses a native date picker on iOS and Android instead of a plain text field.
+
 ## [0.39.1] - 2026-05-01
 
 ### Added
