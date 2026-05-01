@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-05-01
+
+### Added
+- **Budget loans tracker** (PR #117 by @rafaelfoster): a new Loans tab in the Budget module lets you create instalment-based loans, record individual payments, track remaining balance and due months, and filter budget transactions by loan. Paid-off loans are automatically marked as closed. Full CRUD with confirmation modals.
+- **Dashboard widget sizes**: each dashboard widget now has a configurable size (columns × rows). Sizes are persisted in user preferences and survive page reloads.
+- **Extended date formats**: Settings → General now offers four additional date format options — `MM.DD.YYYY`, `YYYY.MM.DD`, `YYYY/MM/DD`, and `DD/MM/YYYY` — alongside the existing formats.
+
+### Fixed
+- **`dmy` date format preserved**: the existing `DD.MM.YYYY` behaviour of the `dmy` preference is unchanged for all current users; a new `DD/MM/YYYY` option (`dmy_slash`) is available for those who want slashes.
+
 ## [0.39.2] - 2026-05-01
 
 ### Fixed
