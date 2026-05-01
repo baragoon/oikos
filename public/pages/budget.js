@@ -346,7 +346,6 @@ function renderBody() {
   _container.querySelector('#empty-cta-budget')?.addEventListener('click', () => {
     document.querySelector('.page-fab')?.click();
   });
-  _container.querySelector('#budget-add-loan')?.addEventListener('click', () => openLoanModal());
   _container.querySelectorAll('[data-action="loan-pay"]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       await markLoanPayment(parseInt(btn.dataset.id, 10));
@@ -445,6 +444,8 @@ function renderEntries() {
 
 function renderLoansDashboard() {
   const loans = state.loans?.loans ?? [];
+  if (!loans.length) return '';
+
   const summary = state.loans?.summary ?? {};
   const activeLoans = loans.filter((loan) => loan.status === 'active');
 
@@ -458,10 +459,6 @@ function renderLoansDashboard() {
             amount: formatAmount(summary.remaining_amount ?? 0),
           })}</div>
         </div>
-        <button class="btn btn--secondary budget-loans__add" id="budget-add-loan">
-          <i data-lucide="hand-coins" aria-hidden="true" class="icon-base"></i>
-          ${t('budget.newLoan')}
-        </button>
       </div>
       <div class="budget-loans__stats">
         <div>
@@ -560,6 +557,7 @@ function formatEntryDate(dateStr) {
 function openBudgetModal({ mode, entry = null }) {
   const isEdit = mode === 'edit';
   const today  = new Date().toISOString().slice(0, 10);
+  const todayMonth = today.slice(0, 7);
 
   const isExpense  = isEdit ? entry.amount < 0 : true;
   const absAmount  = isEdit ? Math.abs(entry.amount).toFixed(2) : '';
@@ -575,27 +573,29 @@ function openBudgetModal({ mode, entry = null }) {
   ).join('');
 
   const content = `
-    <div class="amount-type-toggle">
+    <div class="amount-type-toggle ${isEdit ? 'amount-type-toggle--entry-only' : ''}">
       <button class="amount-type-btn amount-type-btn--expenses ${isExpense ? 'amount-type-btn--active' : ''}"
               id="type-expense" type="button">${t('budget.typeExpense')}</button>
       <button class="amount-type-btn amount-type-btn--income ${!isExpense ? 'amount-type-btn--active' : ''}"
               id="type-income" type="button">${t('budget.typeIncome')}</button>
+      ${!isEdit ? `<button class="amount-type-btn amount-type-btn--loan"
+              id="type-loan" type="button">${t('budget.typeLoan')}</button>` : ''}
     </div>
 
-    <div class="form-group">
+    <div class="form-group js-entry-field">
       <label class="form-label" for="bm-title">${t('budget.titleLabel')}</label>
       <input type="text" class="form-input" id="bm-title"
              placeholder="${t('budget.titlePlaceholder')}" value="${esc(isEdit ? entry.title : '')}">
     </div>
 
-    <div class="form-group">
+    <div class="form-group js-entry-field">
       <label class="form-label" for="bm-amount">${t('budget.amountLabel')}</label>
       <input type="number" class="form-input" id="bm-amount"
              placeholder="${t('budget.amountPlaceholder')}" step="0.01" min="0"
              inputmode="decimal" value="${absAmount}">
     </div>
 
-    <div class="form-group">
+    <div class="form-group js-entry-field">
       <div class="budget-field-header">
         <label class="form-label" for="bm-category">${t('budget.categoryLabel')}</label>
         <button class="btn btn--secondary budget-inline-add" type="button" id="bm-add-category">${t('budget.addCategory')}</button>
@@ -603,7 +603,7 @@ function openBudgetModal({ mode, entry = null }) {
       <select class="form-input" id="bm-category">${catOpts}</select>
     </div>
 
-    <div class="form-group" id="bm-subcategory-group" ${isExpense ? '' : 'hidden'}>
+    <div class="form-group js-entry-field" id="bm-subcategory-group" ${isExpense ? '' : 'hidden'}>
       <div class="budget-field-header">
         <label class="form-label" for="bm-subcategory">${t('budget.subcategoryLabel')}</label>
         <button class="btn btn--secondary budget-inline-add" type="button" id="bm-add-subcategory">${t('budget.addSubcategory')}</button>
@@ -611,18 +611,49 @@ function openBudgetModal({ mode, entry = null }) {
       <select class="form-input" id="bm-subcategory">${subcatOpts}</select>
     </div>
 
-    <div class="form-group">
+    <div class="form-group js-entry-field">
       <label class="form-label" for="bm-date">${t('budget.dateLabel')}</label>
       <input type="text" class="form-input js-date-input" id="bm-date"
              value="${formatDateInput(isEdit ? entry.date : today)}" placeholder="${dateInputPlaceholder()}" inputmode="numeric">
     </div>
 
-    <div class="form-group">
+    <div class="form-group js-entry-field">
       <label class="toggle">
         <input type="checkbox" id="bm-recurring" ${isEdit && entry.is_recurring ? 'checked' : ''}>
         <span class="toggle__track"></span>
         <span>${t('budget.recurringLabel')}</span>
       </label>
+    </div>
+
+    <div id="bm-loan-fields" hidden>
+      <div class="form-group">
+        <label class="form-label" for="lm-borrower">${t('budget.loanBorrowerLabel')}</label>
+        <input type="text" class="form-input" id="lm-borrower"
+               placeholder="${t('budget.loanBorrowerPlaceholder')}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="lm-title">${t('budget.loanTitleLabel')}</label>
+        <input type="text" class="form-input" id="lm-title"
+               placeholder="${t('budget.loanTitlePlaceholder')}">
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="lm-amount">${t('budget.loanAmountLabel')}</label>
+          <input type="number" class="form-input" id="lm-amount" step="0.01" min="0.01" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lm-installments">${t('budget.loanInstallmentsLabel')}</label>
+          <input type="number" class="form-input" id="lm-installments" step="1" min="1" max="240" inputmode="numeric">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="lm-start">${t('budget.loanStartMonthLabel')}</label>
+        <input type="month" class="form-input" id="lm-start" value="${todayMonth}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="lm-notes">${t('budget.loanNotesLabel')}</label>
+        <textarea class="form-input" id="lm-notes" rows="3"></textarea>
+      </div>
     </div>
 
     <div class="modal-panel__footer" style="border:none;padding:0;margin-top:var(--space-4)">
@@ -641,6 +672,19 @@ function openBudgetModal({ mode, entry = null }) {
     size: 'sm',
     onSave(panel) {
       let currentType = isExpense ? 'expense' : 'income';
+
+      const setType = (type) => {
+        currentType = type;
+        panel.querySelector('#type-expense').classList.toggle('amount-type-btn--active', type === 'expense');
+        panel.querySelector('#type-income').classList.toggle('amount-type-btn--active', type === 'income');
+        panel.querySelector('#type-loan')?.classList.toggle('amount-type-btn--active', type === 'loan');
+        panel.querySelectorAll('.js-entry-field').forEach((el) => { el.hidden = type === 'loan'; });
+        panel.querySelector('#bm-loan-fields').hidden = type !== 'loan';
+        panel.querySelector('#bm-save').textContent = type === 'loan'
+          ? t('budget.createLoan')
+          : (isEdit ? t('common.save') : t('common.add'));
+        if (type !== 'loan') updateCategoryOptions();
+      };
 
       const updateCategoryOptions = (preferredCategory = '') => {
         const cats = currentType === 'income' ? incomeCategories() : expenseCategories();
@@ -709,16 +753,13 @@ function openBudgetModal({ mode, entry = null }) {
       };
 
       panel.querySelector('#type-expense').addEventListener('click', () => {
-        currentType = 'expense';
-        panel.querySelector('#type-expense').classList.add('amount-type-btn--active');
-        panel.querySelector('#type-income').classList.remove('amount-type-btn--active');
-        updateCategoryOptions();
+        setType('expense');
       });
       panel.querySelector('#type-income').addEventListener('click', () => {
-        currentType = 'income';
-        panel.querySelector('#type-income').classList.add('amount-type-btn--active');
-        panel.querySelector('#type-expense').classList.remove('amount-type-btn--active');
-        updateCategoryOptions();
+        setType('income');
+      });
+      panel.querySelector('#type-loan')?.addEventListener('click', () => {
+        setType('loan');
       });
       panel.querySelector('#bm-category').addEventListener('change', () => updateSubcategoryOptions());
       panel.querySelector('#bm-add-category').addEventListener('click', addCategory);
@@ -739,6 +780,11 @@ function openBudgetModal({ mode, entry = null }) {
 
       panel.querySelector('#bm-save').addEventListener('click', async () => {
         const saveBtn    = panel.querySelector('#bm-save');
+        if (currentType === 'loan') {
+          await saveLoanFromPanel(panel, saveBtn, { closeAfterSave: true });
+          return;
+        }
+
         const title      = panel.querySelector('#bm-title').value.trim();
         const absVal     = parseFloat(panel.querySelector('#bm-amount').value);
         const category   = panel.querySelector('#bm-category').value;
@@ -778,8 +824,43 @@ function openBudgetModal({ mode, entry = null }) {
           saveBtn.textContent = isEdit ? t('common.save') : t('common.add');
         }
       });
+      setType(currentType);
     },
   });
+}
+
+async function saveLoanFromPanel(panel, saveBtn, { loan = null, closeAfterSave = false } = {}) {
+  const isEdit = Boolean(loan);
+  const borrower = panel.querySelector('#lm-borrower').value.trim();
+  const title = panel.querySelector('#lm-title').value.trim() || borrower;
+  const total_amount = parseFloat(panel.querySelector('#lm-amount').value);
+  const installment_count = parseInt(panel.querySelector('#lm-installments').value, 10);
+  const start_month = panel.querySelector('#lm-start').value;
+  const notes = panel.querySelector('#lm-notes').value.trim();
+
+  if (!borrower) { window.oikos?.showToast(t('budget.loanBorrowerRequired'), 'error'); return; }
+  if (isNaN(total_amount) || total_amount <= 0) { window.oikos?.showToast(t('budget.validAmountRequired'), 'error'); return; }
+  if (!Number.isInteger(installment_count) || installment_count < 1) { window.oikos?.showToast(t('budget.loanInstallmentsRequired'), 'error'); return; }
+  if (!/^\d{4}-\d{2}$/.test(start_month)) { window.oikos?.showToast(t('budget.loanStartMonthRequired'), 'error'); return; }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = '...';
+  try {
+    const body = { borrower, title, total_amount, installment_count, start_month, notes };
+    if (isEdit) {
+      await api.put(`/budget/loans/${loan.id}`, body);
+    } else {
+      await api.post('/budget/loans', body);
+    }
+    await loadMonth(state.month);
+    if (closeAfterSave) closeModal({ force: true });
+    renderBody();
+    window.oikos?.showToast(isEdit ? t('budget.loanSavedToast') : t('budget.loanAddedToast'), 'success');
+  } catch (err) {
+    window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'error');
+    saveBtn.disabled = false;
+    saveBtn.textContent = isEdit ? t('common.save') : t('budget.createLoan');
+  }
 }
 
 function openLoanModal(loan = null) {
@@ -832,36 +913,7 @@ function openLoanModal(loan = null) {
       panel.querySelector('#lm-cancel').addEventListener('click', closeModal);
       panel.querySelector('#lm-save').addEventListener('click', async () => {
         const saveBtn = panel.querySelector('#lm-save');
-        const borrower = panel.querySelector('#lm-borrower').value.trim();
-        const title = panel.querySelector('#lm-title').value.trim() || borrower;
-        const total_amount = parseFloat(panel.querySelector('#lm-amount').value);
-        const installment_count = parseInt(panel.querySelector('#lm-installments').value, 10);
-        const start_month = panel.querySelector('#lm-start').value;
-        const notes = panel.querySelector('#lm-notes').value.trim();
-
-        if (!borrower) { window.oikos?.showToast(t('budget.loanBorrowerRequired'), 'error'); return; }
-        if (isNaN(total_amount) || total_amount <= 0) { window.oikos?.showToast(t('budget.validAmountRequired'), 'error'); return; }
-        if (!Number.isInteger(installment_count) || installment_count < 1) { window.oikos?.showToast(t('budget.loanInstallmentsRequired'), 'error'); return; }
-        if (!/^\d{4}-\d{2}$/.test(start_month)) { window.oikos?.showToast(t('budget.loanStartMonthRequired'), 'error'); return; }
-
-        saveBtn.disabled = true;
-        saveBtn.textContent = '...';
-        try {
-          const body = { borrower, title, total_amount, installment_count, start_month, notes };
-          if (isEdit) {
-            await api.put(`/budget/loans/${loan.id}`, body);
-          } else {
-            await api.post('/budget/loans', body);
-          }
-          await loadMonth(state.month);
-          closeModal({ force: true });
-          renderBody();
-          window.oikos?.showToast(isEdit ? t('budget.loanSavedToast') : t('budget.loanAddedToast'), 'success');
-        } catch (err) {
-          window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'error');
-          saveBtn.disabled = false;
-          saveBtn.textContent = isEdit ? t('common.save') : t('budget.createLoan');
-        }
+        await saveLoanFromPanel(panel, saveBtn, { loan, closeAfterSave: true });
       });
     },
   });

@@ -606,7 +606,7 @@
     "loanRemainingOf": "von {{total}}",
     "loanNextDue": "Nächste: {{month}}",
     "loanPaidStatus": "Bezahlt",
-    "markLoanPaid": "Bezahlt",
+    "markLoanPaid": "Als bezahlt markieren",
     "loanBorrowerLabel": "Person *",
     "loanBorrowerPlaceholder": "z. B. Lais",
     "loanTitleLabel": "Darlehenstitel",
@@ -621,7 +621,8 @@
     "loanAddedToast": "Darlehen hinzugefügt",
     "loanSavedToast": "Darlehen gespeichert",
     "loanDeletedToast": "Darlehen gelöscht",
-    "loanPaymentAddedToast": "Zahlung erfasst"
+    "loanPaymentAddedToast": "Zahlung erfasst",
+    "typeLoan": "Darlehen"
   },
   "settings": {
     "title": "Einstellungen",

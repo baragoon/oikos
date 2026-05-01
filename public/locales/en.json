@@ -596,7 +596,8 @@
     "loanAddedToast": "Loan added",
     "loanSavedToast": "Loan saved",
     "loanDeletedToast": "Loan deleted",
-    "loanPaymentAddedToast": "Payment recorded"
+    "loanPaymentAddedToast": "Payment recorded",
+    "typeLoan": "Loan"
   },
   "settings": {
     "title": "Settings",

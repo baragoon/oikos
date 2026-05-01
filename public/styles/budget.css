@@ -472,11 +472,15 @@
 /* Einnahme/Ausgabe-Toggle */
 .amount-type-toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
   background-color: var(--color-surface-2);
   border-radius: var(--radius-sm);
   padding: var(--space-0h);
+}
+
+.amount-type-toggle--entry-only {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .amount-type-btn {
@@ -499,6 +503,11 @@
 
 .amount-type-btn--expenses.amount-type-btn--active {
   background-color: var(--color-danger);
+  color: var(--color-text-on-accent);
+}
+
+.amount-type-btn--loan.amount-type-btn--active {
+  background-color: var(--module-accent);
   color: var(--color-text-on-accent);
 }
 

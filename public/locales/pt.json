@@ -596,7 +596,8 @@
     "loanAddedToast": "Empréstimo adicionado",
     "loanSavedToast": "Empréstimo salvo",
     "loanDeletedToast": "Empréstimo excluído",
-    "loanPaymentAddedToast": "Pagamento registrado"
+    "loanPaymentAddedToast": "Pagamento registrado",
+    "typeLoan": "Empréstimo"
   },
   "settings": {
     "title": "Configurações",
