@@ -340,6 +340,10 @@ export async function render(container, { user }) {
               <option value="mdy"${prefs.date_format === 'mdy' ? ' selected' : ''}>MM/DD/YYYY</option>
               <option value="dmy"${prefs.date_format === 'dmy' ? ' selected' : ''}>DD/MM/YYYY</option>
               <option value="ymd"${prefs.date_format === 'ymd' ? ' selected' : ''}>YYYY-MM-DD</option>
+              <option value="mdy_dot"${prefs.date_format === 'mdy_dot' ? ' selected' : ''}>MM.DD.YYYY</option>
+              <option value="dmy_dot"${prefs.date_format === 'dmy_dot' ? ' selected' : ''}>DD.MM.YYYY</option>
+              <option value="ymd_dot"${prefs.date_format === 'ymd_dot' ? ' selected' : ''}>YYYY.MM.DD</option>
+              <option value="ymd_slash"${prefs.date_format === 'ymd_slash' ? ' selected' : ''}>YYYY/MM/DD</option>
             </select>
             <label class="form-label" for="time-format-select" style="margin-top:var(--space-3)">${t('settings.timeFormatLabel')}</label>
             <select class="form-input" id="time-format-select">

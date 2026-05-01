@@ -6,7 +6,7 @@
  */
 
 import { api } from '/api.js';
-import { openModal as openSharedModal, closeModal } from '/components/modal.js';
+import { openModal as openSharedModal, closeModal, confirmModal } from '/components/modal.js';
 import { stagger, vibrate } from '/utils/ux.js';
 import { t, formatDate, getLocale, dateInputPlaceholder, formatDateInput, parseDateInput, isDateInputValid } from '/i18n.js';
 import { esc } from '/utils/html.js';
@@ -164,11 +164,8 @@ function setHtml(element, html) {
 async function loadMonth(month) {
   const prevMonth = addMonths(month, -1);
   try {
-    const entriesPath = state.loanFilterId
-      ? `/budget?loan_id=${encodeURIComponent(state.loanFilterId)}`
-      : `/budget?month=${month}`;
     const [entriesRes, summaryRes, prevSummaryRes, loansRes] = await Promise.all([
-      api.get(entriesPath),
+      api.get(`/budget?month=${month}`),
       api.get(`/budget/summary?month=${month}`),
       api.get(`/budget/summary?month=${prevMonth}`),
       api.get('/budget/loans'),
@@ -357,16 +354,10 @@ function renderBody() {
     <div class="budget-list-section">
       <div class="budget-list-header">
         <div>
-          <span class="budget-list-header__title">${state.loanFilterId ? t('budget.filteredTransactions') : t('budget.transactions')}</span>
-          ${state.loanFilterId ? `<div class="budget-list-header__filter">${esc(activeLoanLabel())}</div>` : ''}
+          <span class="budget-list-header__title">${t('budget.transactions')}</span>
         </div>
         <div class="budget-list-header__actions">
-        ${state.loanFilterId ? `
-        <button class="btn btn--secondary" id="budget-clear-loan-filter"
-           style="font-size:var(--text-sm);padding:var(--space-1) var(--space-3);">
-          <i data-lucide="x" style="width:14px;height:14px;margin-right:4px;" aria-hidden="true"></i>${t('budget.clearLoanFilter')}
-        </button>` : ''}
-        ${state.entries.length && !state.loanFilterId ? `
+        ${state.entries.length ? `
         <a href="/api/v1/budget/export?month=${state.month}" class="btn btn--secondary"
            style="font-size:var(--text-sm);padding:var(--space-1) var(--space-3);">
           <i data-lucide="download" style="width:14px;height:14px;margin-right:4px;" aria-hidden="true"></i>CSV
@@ -383,11 +374,6 @@ function renderBody() {
   if (window.lucide) lucide.createIcons();
   _container.querySelector('#empty-cta-budget')?.addEventListener('click', () => {
     document.querySelector('.page-fab')?.click();
-  });
-  _container.querySelector('#budget-clear-loan-filter')?.addEventListener('click', async () => {
-    state.loanFilterId = null;
-    await loadMonth(state.month);
-    renderBody();
   });
   stagger(_container.querySelector('#budget-list')?.querySelectorAll('.budget-entry') ?? []);
 
@@ -409,11 +395,6 @@ function updateTabs() {
     tab.classList.toggle('budget-tab--active', active);
     tab.setAttribute('aria-selected', String(active));
   });
-}
-
-function activeLoanLabel() {
-  const loan = state.loans.loans.find((item) => item.id === state.loanFilterId);
-  return loan ? t('budget.loanFilterActive', { title: loan.title }) : '';
 }
 
 function renderCategoryBars(byCategory) {
@@ -498,8 +479,13 @@ function renderLoansDashboard() {
             count: summary.active_count ?? 0,
             amount: formatAmount(summary.remaining_amount ?? 0),
           })}</div>
+          ${state.loanFilterId ? `<div class="budget-list-header__filter">${esc(activeLoanLabel())}</div>` : ''}
         </div>
         <div class="budget-loans__filters" role="group" aria-label="${t('budget.loanStatusFilterLabel')}">
+          ${state.loanFilterId ? `
+          <button class="budget-loans__filter" type="button" id="budget-clear-loan-filter">
+            <i data-lucide="x" aria-hidden="true"></i>${t('budget.clearLoanFilter')}
+          </button>` : ''}
           <button class="budget-loans__filter ${state.loanStatusFilter === 'active' ? 'budget-loans__filter--active' : ''}"
                   type="button" data-loan-status="active">${t('budget.loanStatusActive')}</button>
           <button class="budget-loans__filter ${state.loanStatusFilter === 'paid' ? 'budget-loans__filter--active' : ''}"
@@ -536,8 +522,16 @@ function renderLoansDashboard() {
 
 function filteredLoans() {
   const loans = state.loans?.loans ?? [];
-  if (state.loanStatusFilter === 'all') return loans;
-  return loans.filter((loan) => loan.status === state.loanStatusFilter);
+  return loans.filter((loan) => {
+    const matchesStatus = state.loanStatusFilter === 'all' || loan.status === state.loanStatusFilter;
+    const matchesLoan = !state.loanFilterId || loan.id === state.loanFilterId;
+    return matchesStatus && matchesLoan;
+  });
+}
+
+function activeLoanLabel() {
+  const loan = state.loans.loans.find((item) => item.id === state.loanFilterId);
+  return loan ? t('budget.loanFilterActive', { title: loan.title }) : '';
 }
 
 function loanPaymentsFor(loans) {
@@ -552,23 +546,51 @@ function renderLoanTransactions(loans) {
   return `<div class="budget-loan-transactions">
     <div class="budget-loan-transactions__title">${t('budget.loanTransactions')}</div>
     <div class="budget-loan-transactions__list">
-      ${payments.map(({ loan, ...payment }) => `
-        <div class="budget-loan-transaction">
-          <div>
-            <strong>${esc(loan.title)}</strong>
-            <span>${esc(loan.borrower)} · ${t('budget.loanInstallmentNumber', {
-              number: payment.installment_number,
-              total: loan.installment_count,
-            })}</span>
-          </div>
-          <div>
-            <strong>${formatAmount(payment.amount)}</strong>
-            <span>${formatEntryDate(payment.paid_date)}</span>
-          </div>
-        </div>
-      `).join('')}
+      ${payments.map(({ loan, ...payment }) => renderLoanPaymentEntry(loan, payment)).join('')}
     </div>
   </div>`;
+}
+
+function loanPaymentToEntry(loan, payment) {
+  if (!payment.budget_entry_id) return null;
+  return {
+    id: payment.budget_entry_id,
+    title: payment.entry_title || `Loan repayment: ${loan.borrower}`,
+    amount: Number(payment.amount || 0),
+    category: payment.entry_category || 'Geschenke & Transfers',
+    subcategory: payment.entry_subcategory || '',
+    date: payment.paid_date,
+    is_recurring: payment.entry_is_recurring || 0,
+    recurrence_parent_id: payment.entry_recurrence_parent_id || null,
+  };
+}
+
+function renderLoanPaymentEntry(loan, payment) {
+  const entry = loanPaymentToEntry(loan, payment);
+  const meta = `${formatEntryDate(payment.paid_date)} · ${esc(loan.title)} · ${t('budget.loanInstallmentNumber', {
+    number: payment.installment_number,
+    total: loan.installment_count,
+  })}`;
+
+  return `
+    <div class="budget-entry budget-entry--loan" data-loan-payment-id="${payment.id}" data-loan-id="${loan.id}" ${entry ? `data-entry-id="${entry.id}"` : ''}>
+      <div class="budget-entry__indicator budget-entry__indicator--income"></div>
+      <div class="budget-entry__body">
+        <div class="budget-entry__title">${esc(payment.entry_title || t('budget.loanPaymentTitle', { borrower: loan.borrower }))}</div>
+        <div class="budget-entry__meta">${meta}</div>
+      </div>
+      <div class="budget-entry__amount budget-entry__amount--income">+${formatAmount(payment.amount)}</div>
+      <div class="budget-entry__actions">
+        ${entry ? `
+        <button class="budget-entry__delete" data-action="loan-payment-edit" data-loan-id="${loan.id}" data-payment-id="${payment.id}" data-entry-id="${entry.id}" aria-label="${t('common.edit')}">
+          <i data-lucide="pencil" style="width:14px;height:14px;" aria-hidden="true"></i>
+        </button>` : ''}
+        <button class="budget-entry__delete" data-action="loan-payment-delete" data-loan-id="${loan.id}" data-payment-id="${payment.id}" data-entry-id="${entry?.id ?? ''}" aria-label="${t('budget.deleteLabel')}">
+          <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 function renderLoansPage() {
@@ -594,6 +616,10 @@ function renderLoansPage() {
 
 function wireLoansPage() {
   _container.querySelector('#budget-empty-loan')?.addEventListener('click', () => openBudgetModal({ mode: 'create', initialType: 'loan' }));
+  _container.querySelector('#budget-clear-loan-filter')?.addEventListener('click', () => {
+    state.loanFilterId = null;
+    renderBody();
+  });
   _container.querySelectorAll('[data-loan-status]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.loanStatusFilter = btn.dataset.loanStatus;
@@ -624,11 +650,23 @@ function wireLoansPage() {
     });
   });
   _container.querySelectorAll('[data-action="loan-filter"]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      state.loanFilterId = parseInt(btn.dataset.id, 10);
-      state.activeTab = 'budget';
-      await loadMonth(state.month);
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id, 10);
+      state.loanFilterId = state.loanFilterId === id ? null : id;
       renderBody();
+    });
+  });
+  _container.querySelectorAll('[data-action="loan-payment-edit"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const loan = state.loans.loans.find((item) => item.id === parseInt(btn.dataset.loanId, 10));
+      const payment = loan?.payments?.find((item) => item.id === parseInt(btn.dataset.paymentId, 10));
+      const entry = loan && payment ? loanPaymentToEntry(loan, payment) : null;
+      if (entry) openBudgetModal({ mode: 'edit', entry });
+    });
+  });
+  _container.querySelectorAll('[data-action="loan-payment-delete"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      await deleteLoanPayment(parseInt(btn.dataset.loanId, 10), parseInt(btn.dataset.paymentId, 10));
     });
   });
 }
@@ -695,7 +733,7 @@ function renderLoanCard(loan) {
       <div class="budget-loan-card__main">
         <div class="budget-loan-card__title-row">
           <div class="budget-loan-card__title">${esc(loan.title)}</div>
-          <button class="budget-loan-card__filter" data-action="loan-filter" data-id="${loan.id}" aria-label="${t('budget.filterLoanTransactions')}">
+          <button class="budget-loan-card__filter ${state.loanFilterId === loan.id ? 'budget-loan-card__filter--active' : ''}" data-action="loan-filter" data-id="${loan.id}" aria-label="${t('budget.filterLoanTransactions')}">
             <i data-lucide="filter" aria-hidden="true"></i>
           </button>
         </div>
@@ -752,7 +790,7 @@ function renderTrend(current, prev, prevLabel) {
 }
 
 function formatEntryDate(dateStr) {
-  return formatDate(new Date(dateStr + 'T00:00:00'));
+  return formatDate(dateStr);
 }
 
 // --------------------------------------------------------
@@ -1198,7 +1236,7 @@ async function markLoanPayment(id) {
 async function deleteLoan(id) {
   const loan = state.loans.loans.find((item) => item.id === id);
   if (!loan) return;
-  if (!window.confirm(t('budget.deleteLoanConfirm', { title: loan.title }))) return;
+  if (!await confirmModal(t('budget.deleteLoanConfirm', { title: loan.title }), { danger: true, confirmLabel: t('common.delete') })) return;
   try {
     await api.delete(`/budget/loans/${id}`);
     await loadMonth(state.month);
@@ -1206,6 +1244,18 @@ async function deleteLoan(id) {
     window.oikos?.showToast(t('budget.loanDeletedToast'), 'success');
   } catch (err) {
     window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'error');
+  }
+}
+
+async function deleteLoanPayment(loanId, paymentId) {
+  if (!await confirmModal(t('budget.deleteLoanPaymentConfirm'), { danger: true, confirmLabel: t('common.delete') })) return;
+  try {
+    await api.delete(`/budget/loans/${loanId}/payments/${paymentId}`);
+    await loadMonth(state.month);
+    renderBody();
+    window.oikos?.showToast(t('budget.deletedToast'), 'success');
+  } catch (err) {
+    window.oikos?.showToast(err.data?.error ?? t('common.unknownError'), 'danger');
   }
 }
 

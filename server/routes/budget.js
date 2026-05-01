@@ -240,9 +240,15 @@ function cents(value) {
 
 function loanSummaryRow(loan) {
   const payments = db.get().prepare(`
-    SELECT p.*, u.display_name AS creator_name
+    SELECT p.*, u.display_name AS creator_name,
+           b.title AS entry_title,
+           b.category AS entry_category,
+           b.subcategory AS entry_subcategory,
+           b.is_recurring AS entry_is_recurring,
+           b.recurrence_parent_id AS entry_recurrence_parent_id
     FROM budget_loan_payments p
     LEFT JOIN users u ON u.id = p.created_by
+    LEFT JOIN budget_entries b ON b.id = p.budget_entry_id
     WHERE p.loan_id = ?
     ORDER BY p.installment_number ASC
   `).all(loan.id);

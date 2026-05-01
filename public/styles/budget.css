@@ -84,31 +84,15 @@
 }
 
 .budget-tab {
-  min-height: 34px;
-  padding: 0 var(--space-3);
-  border: 1px solid transparent;
+  min-height: 30px;
+  padding: 0 var(--space-2);
+  border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
-}
-
-.budget-tab[data-tab="budget"] {
-  color: var(--module-budget);
-}
-
-.budget-tab[data-tab="loans"] {
-  color: var(--color-info);
-}
-
-.budget-tab[data-tab="budget"]:not(.budget-tab--active) {
-  background: color-mix(in srgb, var(--module-budget) 10%, transparent);
-}
-
-.budget-tab[data-tab="loans"]:not(.budget-tab--active) {
-  background: color-mix(in srgb, var(--color-info) 10%, transparent);
 }
 
 .budget-tab--active {
@@ -313,6 +297,13 @@
   font-weight: var(--font-weight-medium);
 }
 
+.budget-loans__filter i {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
 .budget-loans__filter--active {
   background: var(--color-info);
   color: var(--color-text-on-accent);
@@ -418,6 +409,12 @@
 .budget-loan-card__filter:hover {
   color: var(--module-accent);
   border-color: var(--module-accent);
+}
+
+.budget-loan-card__filter--active {
+  color: var(--color-text-on-accent);
+  border-color: var(--color-info);
+  background: var(--color-info);
 }
 
 .budget-loan-card__filter i {
@@ -737,6 +734,13 @@
   position: relative;
 }
 
+.budget-entry__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
 .budget-entry__delete::before {
   content: '';
   position: absolute;
@@ -744,6 +748,10 @@
 }
 
 .budget-entry:hover .budget-entry__delete {
+  opacity: 1;
+}
+
+.budget-entry--loan .budget-entry__delete {
   opacity: 1;
 }
 
