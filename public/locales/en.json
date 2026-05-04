@@ -1004,7 +1004,12 @@
     "caldavRefreshCalendars": "Refresh calendars",
     "caldavSyncSuccess": "CalDAV sync successful",
     "caldavSyncFailed": "CalDAV sync failed",
-    "caldavConnectionFailed": "Connection to CalDAV server failed"
+    "caldavConnectionFailed": "Connection to CalDAV server failed",
+    "calendarEnabled": "Calendar enabled",
+    "calendarDisabled": "Calendar disabled",
+    "calendarsRefreshed": "Calendars refreshed",
+    "deleteAccountConfirm": "Really delete CalDAV account? All synced calendars will be removed.",
+    "lastSync": "Last synced"
   },
   "login": {
     "tagline": "Family planning. Secure. Privacy-friendly. Open source.",
