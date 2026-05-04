@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-05-04
+
+### Added
+- **Automatic scheduled backups**: database backups are now created automatically on a configurable cron schedule (default: 2 AM daily). Old backups are rotated automatically, keeping only the last N copies (default: 7). Configuration via `.env` variables: `BACKUP_ENABLED`, `BACKUP_SCHEDULE`, `BACKUP_DIR`, `BACKUP_KEEP`. Settings → Backup displays scheduler status, schedule, retention policy, last backup timestamp, and a manual trigger button.
+
 ## [0.42.0] - 2026-05-04
 
 ### Added
