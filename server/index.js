@@ -17,6 +17,7 @@ import { buildOpenApiSpec } from './openapi.js';
 import * as googleCalendar from './services/google-calendar.js';
 import * as appleCalendar from './services/apple-calendar.js';
 import * as icsSubscription from './services/ics-subscription.js';
+import { startScheduler as startBackupScheduler } from './services/backup-scheduler.js';
 import dashboardRouter from './routes/dashboard.js';
 import tasksRouter from './routes/tasks.js';
 import shoppingRouter from './routes/shopping.js';
@@ -274,6 +275,9 @@ app.listen(PORT, () => {
     setInterval(runSync, SYNC_INTERVAL_MS);
     logSync.info(`Auto-sync active every ${SYNC_INTERVAL_MS / 60_000} minutes.`);
   }, 10_000);
+
+  // Backup-Scheduler starten
+  startBackupScheduler();
 });
 
 export default app;

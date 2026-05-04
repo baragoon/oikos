@@ -967,7 +967,22 @@
     "backupRestoredToast": "Database restored. Reloading...",
     "backupCliTitle": "CLI / Docker Compose restore",
     "backupCliHint": "For operational restores, stop the app, mount the backup in a temporary container and replace the database file.",
-    "backupCliBackupHint": "You can also create a backup directly from Docker Compose:"
+    "backupCliBackupHint": "You can also create a backup directly from Docker Compose:",
+    "backupSchedulerTitle": "Automatic Backups",
+    "backupSchedulerHint": "Scheduled backups are created automatically and old backups are rotated.",
+    "backupSchedulerStatus": "Status",
+    "backupSchedulerEnabled": "Enabled",
+    "backupSchedulerDisabled": "Disabled",
+    "backupSchedulerSchedule": "Schedule",
+    "backupSchedulerKeep": "Retention",
+    "backupSchedulerKeepCount": "{{count}} backups",
+    "backupSchedulerLastBackup": "Last backup",
+    "backupSchedulerLastSuccess": "{{date}} (successful)",
+    "backupSchedulerLastFail": "{{date}} (failed)",
+    "backupSchedulerNever": "No backup created yet",
+    "backupSchedulerTrigger": "Create backup now",
+    "backupSchedulerTriggering": "Creating backup...",
+    "backupSchedulerTriggeredToast": "Backup created successfully."
   },
   "login": {
     "tagline": "Family planning. Secure. Privacy-friendly. Open source.",

@@ -798,6 +798,14 @@ export async function render(container, { user }) {
             </div>
           </div>
 
+          <div class="settings-card" id="backup-scheduler-card">
+            <h3 class="settings-card__title">${t('settings.backupSchedulerTitle')}</h3>
+            <p class="form-hint">${t('settings.backupSchedulerHint')}</p>
+            <div class="settings-info-grid" id="backup-scheduler-info">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+
           <div class="settings-card">
             <h3 class="settings-card__title">${t('settings.backupCliTitle')}</h3>
             <p class="form-hint">${t('settings.backupCliHint')}</p>
@@ -1535,7 +1543,83 @@ function bindApiTokenEvents(container, initialTokens) {
   });
 }
 
+async function loadBackupSchedulerStatus(container) {
+  const infoContainer = container.querySelector('#backup-scheduler-info');
+  if (!infoContainer) return;
+
+  try {
+    const res = await api.get('/backup/status');
+    const scheduler = res.data?.scheduler;
+    if (!scheduler) return;
+
+    const { enabled, schedule, keepCount, lastBackup } = scheduler;
+
+    let lastBackupText = t('settings.backupSchedulerNever');
+    if (lastBackup?.timestamp) {
+      const date = formatDate(lastBackup.timestamp) + ' ' + formatTime(lastBackup.timestamp);
+      lastBackupText = lastBackup.success
+        ? t('settings.backupSchedulerLastSuccess', { date })
+        : t('settings.backupSchedulerLastFail', { date });
+    }
+
+    const html = `
+      <div class="settings-info-row">
+        <span class="settings-info-label">${t('settings.backupSchedulerStatus')}</span>
+        <span class="settings-info-value ${enabled ? 'settings-info-value--success' : ''}">
+          ${enabled ? t('settings.backupSchedulerEnabled') : t('settings.backupSchedulerDisabled')}
+        </span>
+      </div>
+      ${enabled ? `
+        <div class="settings-info-row">
+          <span class="settings-info-label">${t('settings.backupSchedulerSchedule')}</span>
+          <span class="settings-info-value"><code>${esc(schedule)}</code></span>
+        </div>
+        <div class="settings-info-row">
+          <span class="settings-info-label">${t('settings.backupSchedulerKeep')}</span>
+          <span class="settings-info-value">${t('settings.backupSchedulerKeepCount', { count: keepCount })}</span>
+        </div>
+        <div class="settings-info-row">
+          <span class="settings-info-label">${t('settings.backupSchedulerLastBackup')}</span>
+          <span class="settings-info-value">${esc(lastBackupText)}</span>
+        </div>
+        <div class="settings-form-actions">
+          <button class="btn btn--secondary" id="backup-trigger-btn">${t('settings.backupSchedulerTrigger')}</button>
+        </div>
+      ` : ''}
+    `;
+
+    infoContainer.replaceChildren();
+    infoContainer.insertAdjacentHTML('beforeend', html);
+
+    if (window.lucide) window.lucide.createIcons();
+
+    // Event-Handler für manuellen Trigger
+    const triggerBtn = infoContainer.querySelector('#backup-trigger-btn');
+    if (triggerBtn) {
+      triggerBtn.addEventListener('click', async () => {
+        triggerBtn.disabled = true;
+        triggerBtn.textContent = t('settings.backupSchedulerTriggering');
+        try {
+          await api.post('/backup/trigger');
+          window.oikos?.showToast(t('settings.backupSchedulerTriggeredToast'), 'success');
+          // Status neu laden
+          loadBackupSchedulerStatus(container);
+        } catch (err) {
+          window.oikos?.showToast(err.message ?? t('common.errorGeneric'), 'danger');
+          triggerBtn.disabled = false;
+          triggerBtn.textContent = t('settings.backupSchedulerTrigger');
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Failed to load backup scheduler status:', err);
+  }
+}
+
 function bindBackupEvents(container) {
+  // Scheduler-Status laden und anzeigen
+  loadBackupSchedulerStatus(container);
+
   const form = container.querySelector('#backup-restore-form');
   const fileInput = container.querySelector('#backup-restore-file');
   const selectedFile = container.querySelector('#backup-selected-file');

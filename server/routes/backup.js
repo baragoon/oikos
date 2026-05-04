@@ -11,6 +11,7 @@ import fs from 'node:fs/promises';
 import { backupToFile, currentVersion, restoreFromFile } from '../db.js';
 import { requireAdmin } from '../auth.js';
 import { createLogger } from '../logger.js';
+import { getStatus as getSchedulerStatus, triggerBackup } from '../services/backup-scheduler.js';
 
 const router = express.Router();
 const log = createLogger('Backup');
@@ -22,10 +23,12 @@ function backupFileName() {
 }
 
 router.get('/status', requireAdmin, (req, res) => {
+  const schedulerStatus = getSchedulerStatus();
   res.json({
     data: {
       schema_version: currentVersion(),
       restore_upload_limit: RESTORE_LIMIT,
+      scheduler: schedulerStatus,
     },
   });
 });
@@ -86,6 +89,16 @@ router.post(
     }
   }
 );
+
+router.post('/trigger', requireAdmin, async (req, res) => {
+  try {
+    const result = await triggerBackup();
+    res.json({ data: result });
+  } catch (err) {
+    log.error('Manual backup trigger failed:', err);
+    res.status(500).json({ error: 'Backup trigger failed.', code: 500 });
+  }
+});
 
 router.use((err, req, res, next) => {
   if (err?.type === 'entity.too.large') {

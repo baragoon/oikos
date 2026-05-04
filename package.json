@@ -26,7 +26,8 @@
     "test:setup": "node test-setup.js",
     "test:ics-parser": "node test-ics-parser.js",
     "test:ics-sub": "node --experimental-sqlite test-ics-subscription.js",
-    "test": "node --experimental-sqlite test-db.js && node --experimental-sqlite test-dashboard.js && node --experimental-sqlite test-tasks.js && node --experimental-sqlite test-shopping.js && node --experimental-sqlite test-meals.js && node --experimental-sqlite test-calendar.js && node --experimental-sqlite test-notes-contacts-budget.js && npm run test:ux-utils && npm run test:modal-utils && npm run test:reminders && npm run test:api && npm run test:ics-parser && npm run test:ics-sub && npm run test:setup && npm run test:kitchen-tabs"
+    "test:backup-scheduler": "node --experimental-sqlite test-backup-scheduler.js",
+    "test": "node --experimental-sqlite test-db.js && node --experimental-sqlite test-dashboard.js && node --experimental-sqlite test-tasks.js && node --experimental-sqlite test-shopping.js && node --experimental-sqlite test-meals.js && node --experimental-sqlite test-calendar.js && node --experimental-sqlite test-notes-contacts-budget.js && npm run test:ux-utils && npm run test:modal-utils && npm run test:reminders && npm run test:api && npm run test:ics-parser && npm run test:ics-sub && npm run test:setup && npm run test:kitchen-tabs && npm run test:backup-scheduler"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -36,6 +37,7 @@
     "express-rate-limit": "^8.4.1",
     "express-session": "^1.19.0",
     "helmet": "^8.1.0",
+    "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2"
   },
   "optionalDependencies": {

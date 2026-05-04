@@ -724,3 +724,51 @@
 .cat-add-form .form-input {
   flex: 1;
 }
+
+/* --------------------------------------------------------
+   Backup Scheduler Info Grid
+   -------------------------------------------------------- */
+
+.settings-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings-info-row:last-of-type {
+  border-bottom: none;
+}
+
+.settings-info-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.settings-info-value {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
+.settings-info-value--success {
+  color: var(--color-success);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-info-value code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}

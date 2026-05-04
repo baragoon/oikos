@@ -973,7 +973,22 @@
     "backupRestoredToast": "Datenbank wiederhergestellt. Seite wird neu geladen...",
     "backupCliTitle": "CLI / Docker-Compose-Wiederherstellung",
     "backupCliHint": "Für operative Wiederherstellungen die App stoppen, das Backup in einen temporären Container einbinden und die Datenbankdatei ersetzen.",
-    "backupCliBackupHint": "Du kannst auch direkt über Docker Compose ein Backup erstellen:"
+    "backupCliBackupHint": "Du kannst auch direkt über Docker Compose ein Backup erstellen:",
+    "backupSchedulerTitle": "Automatische Backups",
+    "backupSchedulerHint": "Geplante Backups werden automatisch erstellt und alte Backups rotiert.",
+    "backupSchedulerStatus": "Status",
+    "backupSchedulerEnabled": "Aktiv",
+    "backupSchedulerDisabled": "Deaktiviert",
+    "backupSchedulerSchedule": "Zeitplan",
+    "backupSchedulerKeep": "Aufbewahrung",
+    "backupSchedulerKeepCount": "{{count}} Backups",
+    "backupSchedulerLastBackup": "Letztes Backup",
+    "backupSchedulerLastSuccess": "{{date}} (erfolgreich)",
+    "backupSchedulerLastFail": "{{date}} (fehlgeschlagen)",
+    "backupSchedulerNever": "Noch kein Backup erstellt",
+    "backupSchedulerTrigger": "Jetzt Backup erstellen",
+    "backupSchedulerTriggering": "Backup wird erstellt...",
+    "backupSchedulerTriggeredToast": "Backup erfolgreich erstellt."
   },
   "login": {
     "tagline": "Familienplanung. Sicher. Datenschutzfreundlich. Open Source.",
